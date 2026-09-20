@@ -1,0 +1,1665 @@
+//@version=5
+indicator("ICT SMT + IFVG in HTF FVG", shorttitle = "ICT SMT/IFVG", overlay = true, max_boxes_count = 500, max_labels_count = 500, max_lines_count = 500)
+
+// =====================================================================================
+// BUY  = bullish SMT + bullish IFVG that sits in an HTF FVG (5m / 15m / 30m / 1H / 2H / 4H / D / W)
+// SELL = the inverse.  Entry timeframes: 30s, 1m, 2m, 3m, 5m.  Closed bars only (no repaint).
+//
+// ENGINES (multi-timeframe)
+//   The whole SMT + IFVG engine is a function (f_runEngine) that runs on a "Feed" = the closed
+//   candles of ONE timeframe for BOTH markets.  The chart feed runs on every chart bar.  Up to four
+//   extra feeds (default 2m / 3m / 5m / 15m) run on the closed candles of a HIGHER timeframe and
+//   draw their SMTs / IFVGs / Buy / Sell marks on the chart you are viewing.  So a 3m BUY and a 15m
+//   SMT are both visible on a 1m chart, each tagged with the timeframe it came from.
+//   A feed's marks appear on the first chart bar AFTER the feed candle closes (no repaint).
+//
+// SMT ENGINE
+//   * Every liquidity reference exists on BOTH markets with its OWN price (never compared across markets):
+//       - feed-TF swings (both markets can anchor the swing; the other market's level = its extreme
+//         inside +/- syncBars of the swing, so the two swings do not need the same candle)
+//       - HTF swings (default 1H pivots) = major liquidity, e.g. a low from two days ago
+//       - PDH/PDL, PWH/PWL, Asia range, London range
+//   * Many references can be "armed" at once (a pool of unswept levels). A reference is used up when
+//     both markets take it, or when it produces an SMT.
+//   * A market TAKES a level when it trades beyond it by more than tolTicks x ITS OWN tick size.
+//   * Exactly one market takes it -> DEVELOPING SMT. The sweeper may keep making deeper extremes: the
+//     SAME SMT stays valid and its extreme is updated.
+//   * The other market takes ITS level before confirmation -> SMT invalidated.
+//   * smtConfirmBars after the sweep with the other market still not having taken it -> CONFIRMED.
+// RISK
+//   * Every Buy/Sell gets a stop (sweep extreme or IFVG far side), fixed-RR and/or HTF-swing targets,
+//     and a contract count = Account risk / (stop distance in points x point value).
+// FILTERS (all optional, OFF by default): killzone, key level, displacement, FVG, MSS.
+// DEBUG: table + gray notes on the chart + tooltips on SMT labels tell you WHY there was no signal.
+// =====================================================================================
+
+// ============================== 1) INPUTS ==============================
+grpView = "0 · Display & debug"
+showSMT        = input.bool(true, "Show SMT", group = grpView)
+showDeveloping = input.bool(true, "Show developing SMT", group = grpView)
+showSmtLines   = input.bool(true, "Show SMT connector lines", group = grpView)
+showRejected   = input.bool(true, "Show SMTs hidden by a filter (gray)", group = grpView, tooltip = "An SMT that was detected but hidden by the killzone / key-level filter is shown in gray. Hover it to see why.")
+showHTF        = input.bool(true, "Show HTF FVGs", group = grpView)
+showIFVG       = input.bool(true, "Show IFVGs", group = grpView)
+showSignalMarks = input.bool(true, "Show Buy/Sell triangle marks", group = grpView, tooltip = "Turn off to hide the ▲ BUY / ▼ SELL markers near price. Alerts still fire either way — this only controls the marker on the chart.")
+showSmtShapes  = input.bool(true, "Show SMT label shapes (colored boxes)", group = grpView, tooltip = "Off: the SMT text stays on the chart (in the SMT color) but the big colored box / pointer behind it is gone. Connector lines, tooltips, table logs, alerts and the SMT engine itself are NOT affected.")
+smtLabelSize   = input.string("Tiny", "SMT label size", options = ["Tiny", "Small", "Normal", "Large"], group = grpView)
+sigMarkSize    = input.string("Normal", "Buy/Sell mark size", options = ["Tiny", "Small", "Normal", "Large"], group = grpView)
+showDebug      = input.bool(true, "Show debug information", group = grpView, tooltip = "Debug table (bottom right) plus small gray notes on the chart explaining why an IFVG did not pair with an SMT.")
+keepHistory    = input.bool(true, "Keep SMT / signal marks on past bars", group = grpView, tooltip = "On: SMT labels, Buy/Sell marks and the HTF FVGs / IFVGs used by a signal stay on the chart when you scroll back, so you can review old days. TradingView still keeps only the newest 500 labels / lines / boxes. Off: marks are removed after the max-age inputs.")
+keepAllIfvg    = input.bool(false, "Keep ALL IFVG boxes on past bars", group = grpView, tooltip = "Off: an IFVG box disappears when it is invalidated or too old (unless it produced a signal). On: every IFVG box stays (useful when reviewing, but can fill the 500-box limit).")
+
+grpIFVG = "1 · IFVG (entry TFs only: 30s / 1m / 2m / 3m / 5m)"
+maxHiddenFVG = input.int(120, "Hidden FVG memory", minval = 10, maxval = 500, group = grpIFVG, tooltip = "How many not-yet-inverted FVGs are remembered (per feed).")
+maxFvgAge    = input.int(60, "Max hidden FVG age (bars)", minval = 5, maxval = 500, group = grpIFVG, tooltip = "An FVG that has not inverted within this many bars (of its own feed timeframe) expires.")
+minGapTicks  = input.int(0, "Minimum FVG size (ticks)", minval = 0, group = grpIFVG)
+fvgExtend    = input.int(15, "Extend boxes (chart bars)", minval = 0, group = grpIFVG)
+ifvgMaxAge   = input.int(50, "IFVG max age (bars)", minval = 1, group = grpIFVG, tooltip = "Counted (in feed bars) from the bar the FVG inverted. After this an IFVG can no longer be used for a signal.")
+ifvgAnchor   = input.string("Inversion candle", "Anchor IFVG box at", options = ["Inversion candle", "Original FVG (gap candle)"], group = grpIFVG, tooltip = "Where the LEFT edge of the IFVG box sits: the candle that closed through the FVG (inversion), or the middle candle of the original 3-bar FVG.")
+ifvgBullClr  = input.color(color.new(color.lime, 80), "Bullish IFVG (support)", group = grpIFVG)
+ifvgBearClr  = input.color(color.new(color.fuchsia, 80), "Bearish IFVG (resistance)", group = grpIFVG)
+
+grpFilter = "1b · IFVG quality filter"
+filterMode         = input.string("Balanced", "IFVG filter mode", options = ["Off", "Loose", "Balanced", "Strict", "Custom"], group = grpFilter)
+customMinGapAtr    = input.float(0.25, "Custom: min gap / ATR", minval = 0.0, step = 0.05, group = grpFilter)
+customMinBodyRatio = input.float(0.50, "Custom: min body ratio", minval = 0.0, maxval = 1.0, step = 0.05, group = grpFilter)
+customMinRangeAtr  = input.float(0.60, "Custom: min range / ATR", minval = 0.0, step = 0.05, group = grpFilter)
+customBreakAtr     = input.float(0.05, "Custom: clean break buffer / ATR", minval = 0.0, step = 0.01, group = grpFilter)
+atrLen             = input.int(14, "ATR length", minval = 1, group = grpFilter)
+
+grpHTF = "2 · HTF FVG (the IFVG must sit in one)"
+requireHTF    = input.bool(true, "Require HTF FVG for Buy/Sell", group = grpHTF)
+htfContain    = input.string("Overlapping", "IFVG counts as in the HTF FVG when it is", options = ["Overlapping", "Fully inside"], group = grpHTF, tooltip = "Overlapping: any overlap between the IFVG box and the HTF FVG. Fully inside: the whole IFVG box lies inside the HTF FVG.")
+htfMatchDir   = input.bool(false, "HTF FVG direction must match the setup", group = grpHTF, tooltip = "On: bullish setups only use bullish HTF FVGs, bearish setups only bearish ones. Off: either direction counts.")
+htfInvalidate = input.string("Close through", "HTF FVG is removed when price", options = ["Close through", "Wick through"], group = grpHTF, tooltip = "Close through: a candle closes beyond the far side of the gap. Wick through: any wick passes the far side.")
+htfAnchor     = input.string("Candle 2 (gap candle)", "Anchor HTF FVG box at", options = ["Candle 1 (first of the 3)", "Candle 2 (gap candle)"], group = grpHTF, tooltip = "The LEFT edge of the box is drawn on the historical HTF candle where the 3-candle FVG formed (time-anchored, so it sits on the right candles on any chart timeframe) instead of floating ahead of price.")
+htfExtendMode = input.string("Extend with price", "HTF FVG box width", options = ["Extend with price", "Fixed to the 3 candles"], group = grpHTF, tooltip = "Extend with price: the right edge follows the current bar (+ 'Extend boxes' bars) until the gap is mitigated, then freezes. Fixed: the box only covers the 3-candle sequence (candle 1/2 to the close of candle 3).")
+htfMaxPerTf   = input.int(6, "Max active FVGs per timeframe", minval = 1, maxval = 20, group = grpHTF)
+htfMinGapTicks = input.int(0, "Min HTF FVG size (ticks)", minval = 0, group = grpHTF)
+useHtf1 = input.bool(true, "Use", inline = "h1", group = grpHTF)
+htfTf1  = input.timeframe("5", "HTF #1", inline = "h1", group = grpHTF)
+useHtf2 = input.bool(true, "Use", inline = "h2", group = grpHTF)
+htfTf2  = input.timeframe("15", "HTF #2", inline = "h2", group = grpHTF)
+useHtf3 = input.bool(false, "Use", inline = "h3", group = grpHTF)
+htfTf3  = input.timeframe("30", "HTF #3", inline = "h3", group = grpHTF)
+useHtf4 = input.bool(true, "Use", inline = "h4", group = grpHTF)
+htfTf4  = input.timeframe("60", "HTF #4", inline = "h4", group = grpHTF)
+useHtf5 = input.bool(false, "Use", inline = "h5", group = grpHTF)
+htfTf5  = input.timeframe("120", "HTF #5", inline = "h5", group = grpHTF)
+useHtf6 = input.bool(true, "Use", inline = "h6", group = grpHTF)
+htfTf6  = input.timeframe("240", "HTF #6", inline = "h6", group = grpHTF)
+useHtf7 = input.bool(true, "Use", inline = "h7", group = grpHTF)
+htfTf7  = input.timeframe("D", "HTF #7", inline = "h7", group = grpHTF)
+useHtf8 = input.bool(false, "Use", inline = "h8", group = grpHTF)
+htfTf8  = input.timeframe("W", "HTF #8", inline = "h8", group = grpHTF)
+htfBull = input.color(color.new(color.blue, 75), "HTF bullish FVG", group = grpHTF)
+htfBear = input.color(color.new(color.orange, 75), "HTF bearish FVG", group = grpHTF)
+
+grpSMT = "3 · SMT engine"
+correlatedSym  = input.symbol("CME_MINI:ES1!", "Correlated symbol", group = grpSMT, tooltip = "ES for an NQ chart, NQ for an ES chart. Either market can be the one that takes the liquidity.")
+tolTicks       = input.int(2, "SMT tolerance (ticks)", minval = 0, group = grpSMT, tooltip = "A market only 'takes' a level if it trades beyond it by MORE than this. Each market uses its OWN tick size.")
+pivotLeft      = input.int(5, "Feed swing: bars left", minval = 1, group = grpSMT)
+pivotRight     = input.int(5, "Feed swing: bars right", minval = 1, group = grpSMT, tooltip = "Delay before a swing is confirmed. It is the only source of delay for swing references.")
+syncBars       = input.int(3, "Swing sync window (bars)", minval = 0, group = grpSMT, tooltip = "The other market's level for a swing = its extreme within +/- this many bars of the swing. Used up to a maximum of the 'bars right' value.")
+smtConfirmBars = input.int(3, "SMT confirmation bars", minval = 1, group = grpSMT, tooltip = "An SMT becomes CONFIRMED this many bars after the sweep if the other market has not taken its level. The sweeper can keep making new extremes meanwhile; it does not reset the count.")
+smtLifeBars    = input.int(30, "SMT setup lifetime (bars)", minval = 1, group = grpSMT, tooltip = "Counted from the sweeper's latest extreme. After this the SMT can no longer produce a signal.")
+smtMaxAge      = input.int(500, "Remove SMT marks after (bars)", minval = 1, group = grpSMT, tooltip = "Only used when 'Keep marks on past bars' is OFF.")
+smtBullClr     = input.color(color.teal, "Bullish SMT", group = grpSMT)
+smtBearClr     = input.color(color.red, "Bearish SMT", group = grpSMT)
+removeInvalidatedSMT = input.bool(true, "Remove an SMT immediately once it's broken/invalidated", group = grpSMT, tooltip = "On: the moment the other market also takes the level (whether that happens before or after the SMT confirmed), its label/connector line is deleted right away instead of lingering until it naturally expires. Off: restores the old behavior.")
+minSmtTf       = input.timeframe("1", "Minimum timeframe for SMT display", group = grpSMT, tooltip = "Only SMTs found by an engine running on THIS timeframe or higher are drawn. Example: set to 15 on a 1m chart -> the 1m chart's own SMTs are hidden, but the 15m feed's SMTs (section 9) are still drawn on the 1m chart. The engines keep running underneath either way.")
+
+grpLiq = "4 · Liquidity references (each enabled type is its own SMT test)"
+useSwing        = input.bool(true, "Feed-TF swing highs / lows (minor)", group = grpLiq)
+swingMaxRefs    = input.int(10, "  max unswept swings kept per side", minval = 1, maxval = 50, group = grpLiq)
+swingRefMaxAge  = input.int(800, "  drop a feed swing after (bars)", minval = 10, group = grpLiq)
+useHtfSwing     = input.bool(true, "HTF swing highs / lows (major)", group = grpLiq, tooltip = "Pivots on a higher timeframe (default 1H). This is what lets a 1m chart see an SMT against a low from days ago. Also the pool used for 'HTF swing' take-profit targets.")
+swTf            = input.timeframe("60", "  HTF swing timeframe", group = grpLiq)
+swL             = input.int(3, "  HTF swing bars left", minval = 1, group = grpLiq)
+swR             = input.int(3, "  HTF swing bars right", minval = 1, group = grpLiq)
+swSync          = input.int(1, "  HTF swing sync window (HTF bars)", minval = 0, group = grpLiq)
+htfSwingMaxRefs = input.int(20, "  max unswept HTF swings kept per side", minval = 1, maxval = 50, group = grpLiq)
+usePD           = input.bool(true, "Previous day high / low (PDH / PDL)", group = grpLiq, tooltip = "Each market's previous DAILY bar (futures: 18:00-17:00 ET session).")
+usePW           = input.bool(false, "Previous week high / low (PWH / PWL)", group = grpLiq)
+useAsia         = input.bool(true, "Asia range high / low", group = grpLiq)
+useLon          = input.bool(false, "London range high / low", group = grpLiq)
+
+grpTime = "5 · Time: killzones & session ranges"
+tz        = input.string("America/New_York", "Time zone (IANA)", group = grpTime, tooltip = "Sessions below are read in THIS zone, not your chart zone. IANA names handle daylight-saving changes.")
+kzFilter  = input.bool(false, "Require the SMT sweep to be inside an enabled killzone", group = grpTime)
+useKzLdn  = input.bool(true, "London Open", inline = "kz1", group = grpTime)
+kzLdnSess = input.session("0200-0500", "", inline = "kz1", group = grpTime)
+useKzNy   = input.bool(true, "New York Open", inline = "kz2", group = grpTime)
+kzNySess  = input.session("0700-1000", "", inline = "kz2", group = grpTime)
+useKzLc   = input.bool(true, "London Close", inline = "kz3", group = grpTime)
+kzLcSess  = input.session("1000-1200", "", inline = "kz3", group = grpTime)
+useKzCu   = input.bool(false, "Custom (default NY PM)", inline = "kz4", group = grpTime)
+kzCuSess  = input.session("1330-1600", "", inline = "kz4", group = grpTime)
+asiaSess  = input.session("2000-0000", "Asia range", group = grpTime)
+lonSess   = input.session("0200-0500", "London range", group = grpTime)
+
+grpKey = "6 · Optional filter: key level"
+keyFilter = input.bool(false, "Require SMT at a key level", group = grpKey, tooltip = "Key level = PDH/PDL/PWH/PWL/Asia/London, an HTF swing, or (option below) a sweep that taps an HTF FVG. A plain feed-TF swing SMT in the middle of a range is rejected.")
+keyHtfTap = input.bool(true, "A sweep that taps an HTF FVG counts as a key level", group = grpKey)
+
+grpConf = "7 · Optional filters: structure after the sweep"
+reqDisp       = input.bool(false, "Require displacement after the sweep", group = grpConf)
+reqSetupFvg   = input.bool(false, "Require same-direction FVG after the sweep", group = grpConf)
+reqMSS        = input.bool(false, "Require MSS after the sweep", group = grpConf, tooltip = "Bullish: a close above the last feed swing HIGH that existed when the sweep began. Bearish: a close below the last feed swing LOW.")
+dispAtrMult   = input.float(1.0, "Displacement: body >= x ATR", minval = 0.1, step = 0.1, group = grpConf)
+dispBodyRatio = input.float(0.60, "Displacement: body / range >=", minval = 0.1, maxval = 1.0, step = 0.05, group = grpConf)
+
+grpSignal = "8 · Buy / Sell signal"
+reqConfirmedSMT = input.bool(true, "Require confirmed SMT for Buy/Sell", group = grpSignal, tooltip = "On: the SMT must be CONFIRMED. Off: a developing SMT is enough (the SMT can still disappear later).")
+confluenceBars  = input.int(10, "Max bars from SMT to IFVG", minval = 1, group = grpSignal)
+ifvgAfterSweep  = input.bool(true, "IFVG must form at/after the SMT", group = grpSignal, tooltip = "Off: the IFVG may also have formed up to N bars BEFORE the SMT appeared.")
+signalMaxAge    = input.int(150, "Remove Buy/Sell marks after (bars)", minval = 1, group = grpSignal, tooltip = "Only used when 'Keep marks on past bars' is OFF.")
+
+grpMtf = "9 · Multi-timeframe feeds (higher-TF SMTs & signals on lower charts)"
+useMtf = input.bool(true, "Run the engine on extra (higher) timeframes", group = grpMtf, tooltip = "Each enabled feed runs the FULL SMT + IFVG engine on that timeframe's CLOSED candles (both markets) and draws its SMTs, IFVGs and Buy/Sell marks on the chart you are viewing, tagged with the feed timeframe (e.g. 'BUY 3m' on a 1m chart). A feed is skipped when it is not higher than the chart timeframe. Buy/Sell only fire from entry timeframes (30s/1/2/3/5m); a 15m feed still shows its SMTs. Feed marks appear on the first chart bar after the feed candle closes.")
+useF1  = input.bool(true, "Use", inline = "f1", group = grpMtf)
+tfF1   = input.timeframe("2", "Feed #1", inline = "f1", group = grpMtf)
+useF2  = input.bool(true, "Use", inline = "f2", group = grpMtf)
+tfF2   = input.timeframe("3", "Feed #2", inline = "f2", group = grpMtf)
+useF3  = input.bool(true, "Use", inline = "f3", group = grpMtf)
+tfF3   = input.timeframe("5", "Feed #3", inline = "f3", group = grpMtf)
+useF4  = input.bool(true, "Use", inline = "f4", group = grpMtf)
+tfF4   = input.timeframe("15", "Feed #4", inline = "f4", group = grpMtf)
+
+grpRisk = "10 · Risk: stop loss / take profit / position size"
+showTrade     = input.bool(true, "Draw entry / SL / TP lines on Buy/Sell", group = grpRisk)
+slMode        = input.string("Sweep High/Low", "Stop loss mode", options = ["Sweep High/Low", "IFVG High/Low"], group = grpRisk, tooltip = "Sweep High/Low: Long = lowest low of the SMT sweep leg (chart market), Short = highest high. IFVG High/Low: Long = bottom of the IFVG box, Short = top of the IFVG box.")
+slBufTicks    = input.int(2, "Stop loss buffer (ticks)", minval = 0, group = grpRisk)
+tpMode        = input.string("Fixed RR", "Take profit mode", options = ["Fixed RR", "HTF swing", "Fixed RR + HTF swing"], group = grpRisk, tooltip = "Fixed RR: TP1/TP2 at the risk:reward ratios below. HTF swing: the nearest UNSWEPT opposing liquidity beyond the entry (HTF swing / PDH / PDL / Asia / London, falling back to a feed swing, then to the last HTF pivot).")
+tp1RR         = input.float(2.0, "TP1 risk:reward (1:x)", minval = 0.1, step = 0.5, group = grpRisk)
+tp2RR         = input.float(3.0, "TP2 risk:reward (1:x, 0 = off)", minval = 0.0, step = 0.5, group = grpRisk)
+tradeMaxBars  = input.int(200, "Close an open trade plan after (chart bars)", minval = 5, group = grpRisk)
+maxPlans      = input.int(20, "Trade plans kept on the chart", minval = 1, maxval = 60, group = grpRisk)
+acctRisk      = input.float(100.0, "Account risk ($)", minval = 0.0, step = 10.0, group = grpRisk, tooltip = "Dollar amount you are willing to lose if the stop is hit.")
+pointValue    = input.float(2.0, "Point value ($ per 1.0 point per contract)", minval = 0.0, step = 0.5, group = grpRisk, tooltip = "MNQ = 2, NQ = 20, MES = 5, ES = 50, MYM = 0.5, YM = 5. Contracts = Account risk / (stop distance in points x point value), rounded DOWN.")
+autoPointValue = input.bool(false, "Use the symbol's own point value instead", group = grpRisk, tooltip = "On: ignores the field above and uses TradingView's syminfo.pointvalue for the chart symbol.")
+
+// ============================== TYPES ==============================
+type RawFVG
+    float top
+    float bottom
+    int   dir
+    int   age
+    float gapAtr
+    float bodyRatio
+    float rangeAtr
+    int   formT
+
+type IFVGZone
+    bool   isBull
+    float  top
+    float  bottom
+    int    invBar
+    string htfTag
+    bool   used = false
+    box    b
+
+type HtfFVG
+    bool   isBull
+    float  top
+    float  bottom
+    string tf
+    int    slot
+    bool   used = false
+    box    b
+
+type SMTSetup
+    bool   isBull
+    string refName
+    bool   isKey
+    int    sweeper
+    int    sweepBar
+    int    legBar
+    int    legTime
+    float  legExt
+    float  legPrice
+    float  sweepExt
+    float  lvlA
+    int    lvlTime
+    float  mssLevel
+    string kzName = ""
+    bool   kzOk = false
+    bool   htfTap = false
+    string htfTag = ""
+    bool   active = true
+    bool   confirmed = false
+    bool   dispDone = false
+    bool   fvgDone = false
+    bool   mssDone = false
+    bool   ifvgSeen = false
+    bool   dead = false
+    bool   expired = false
+    bool   used = false
+    string tip = ""
+    string note = ""
+    label  lbl
+    line   ln
+
+type LiqRef
+    string   name
+    bool     isHigh
+    int      kind = 0
+    float    lvlA
+    float    lvlB
+    int      lvlBar
+    int      lvlTime
+    int      state = 3
+    SMTSetup cur
+
+type SigMark
+    int   markBar
+    label lbl
+
+// one closed candle of ONE timeframe for BOTH markets (what an engine consumes)
+type Feed
+    bool   isNew
+    int    t
+    int    tMid
+    int    pivT
+    float  o
+    float  h
+    float  l
+    float  c
+    float  h2
+    float  l2
+    float  atr
+    float  phA
+    float  plA
+    float  winHiA
+    float  winLoA
+    float  postHiA
+    float  postLoA
+    float  ch
+    float  cl
+    float  phB
+    float  plB
+    float  winHiB
+    float  winLoB
+    float  postHiB
+    float  postLoB
+    float  corrTick
+
+// the complete state of one SMT + IFVG engine (one per feed timeframe)
+type Engine
+    string tfName
+    bool   enabled
+    bool   entryTf
+    bool   smtOk
+    int    idx = 0
+    array<RawFVG>   rawList
+    array<IFVGZone> ifvgList
+    array<SMTSetup> setups
+    array<LiqRef>   refs
+    int    lastRejBullBar
+    int    lastRejBearBar
+    int    lastBuyBar
+    int    lastSellBar
+    float  lastPHA
+    float  lastPLA
+    int    cntSmtDev = 0
+    int    cntSmtConf = 0
+    int    cntSmtInv = 0
+    int    cntSmtExp = 0
+    int    cntIfvgBull = 0
+    int    cntIfvgBear = 0
+    int    cntIfvgRej = 0
+    int    cntBuy = 0
+    int    cntSell = 0
+    string logSmt = "-"
+    string logIfvg = "-"
+    string logPair = "-"
+    string lastIfvgTag = ""
+
+// what an engine hands back when it fires a Buy/Sell
+type SigInfo
+    bool   isBull
+    string tfName
+    float  entry
+    float  slSweep
+    float  slIfvg
+    float  tpSwing
+    string info
+
+type TradePlan
+    bool   isBull
+    string tfName
+    int    startBar
+    float  entry
+    float  sl
+    float  tp1
+    float  tp2
+    float  tpSw
+    int    contracts
+    float  riskPts
+    float  riskUsd
+    string txt
+    bool   open = true
+    bool   tp1Hit = false
+    bool   tp2Hit = false
+    bool   swHit = false
+    string status = "OPEN"
+    line   lnE
+    line   lnS
+    line   lnT1
+    line   lnT2
+    line   lnSw
+    label  lbl
+
+// ============================== STATE ==============================
+var array<HtfFVG>    htfList = array.new<HtfFVG>()
+var array<SigMark>   sigList = array.new<SigMark>()
+var array<TradePlan> plans   = array.new<TradePlan>()
+var int    lastSigBar  = na
+var bool   lastSigBull = false
+var string lastSigTxt  = "No Trade"
+var string lastPlanTxt = "-"
+chartMs = timeframe.in_seconds() * 1000
+
+// ============================== HELPERS ==============================
+f_minGapAtr() =>
+    filterMode == "Off" ? 0.0 : filterMode == "Loose" ? 0.15 : filterMode == "Balanced" ? 0.25 : filterMode == "Strict" ? 0.40 : customMinGapAtr
+
+f_minBodyRatio() =>
+    filterMode == "Off" ? 0.0 : filterMode == "Loose" ? 0.40 : filterMode == "Balanced" ? 0.50 : filterMode == "Strict" ? 0.60 : customMinBodyRatio
+
+f_minRangeAtr() =>
+    filterMode == "Off" ? 0.0 : filterMode == "Loose" ? 0.40 : filterMode == "Balanced" ? 0.60 : filterMode == "Strict" ? 0.85 : customMinRangeAtr
+
+f_breakBufferAtr() =>
+    filterMode == "Off" ? 0.0 : filterMode == "Loose" ? 0.00 : filterMode == "Balanced" ? 0.05 : filterMode == "Strict" ? 0.10 : customBreakAtr
+
+f_qualityPass(float gapAtrIn, float bodyRatioIn, float rangeAtrIn) =>
+    bool gapOk = gapAtrIn >= f_minGapAtr()
+    bool bodyOk = bodyRatioIn >= f_minBodyRatio()
+    bool rangeOk = rangeAtrIn >= f_minRangeAtr()
+    filterMode == "Off" or (gapOk and bodyOk and rangeOk)
+
+// "30s", "1m", "3m", "15m", "1H", "4H", "1D", "1W" from any timeframe string
+f_tfName(string tf) =>
+    int sec = timeframe.in_seconds(tf)
+    string out = tf
+    if sec < 60
+        out := str.tostring(sec) + "s"
+    else if sec < 3600
+        out := str.tostring(sec / 60) + "m"
+    else if sec < 86400
+        out := str.tostring(sec / 3600) + "H"
+    else if sec < 604800
+        out := str.tostring(sec / 86400) + "D"
+    else if sec < 2419200
+        out := str.tostring(sec / 604800) + "W"
+    else
+        out := "M"
+    out
+
+// label size from the dropdown text
+f_size(string s) =>
+    s == "Tiny" ? size.tiny : s == "Small" ? size.small : s == "Normal" ? size.normal : size.large
+
+// entry timeframes: 30s, 1m, 2m, 3m, 5m
+f_isEntryTf(int sec) =>
+    sec == 30 or sec == 60 or sec == 120 or sec == 180 or sec == 300
+
+nameSw = f_tfName(swTf)
+
+// tags are stored as |5m|15m| so that "5m" is never confused with "15m"
+f_tagAdd(string tag, string name) =>
+    string out = tag
+    if not str.contains(tag, "|" + name + "|")
+        out := tag == "" ? "|" + name + "|" : tag + name + "|"
+    out
+
+f_tagText(string tag) =>
+    string out = ""
+    if tag != ""
+        out := str.replace_all(str.substring(tag, 1, str.length(tag) - 1), "|", "+")
+    out
+
+// does this SMT pass the enabled validity filters (killzone + key level)?
+f_passes(SMTSetup s) =>
+    bool timeOk = not kzFilter or s.kzOk
+    bool keyOk = s.isKey or (keyHtfTap and s.htfTap)
+    bool levelOk = not keyFilter or keyOk
+    timeOk and levelOk
+
+// tags of active HTF FVGs whose zone overlaps [lo, hi] (a "tap")
+f_htfOverlap(float lo, float hi, bool isBull) =>
+    string tag = ""
+    if array.size(htfList) > 0
+        for i = 0 to array.size(htfList) - 1
+            HtfFVG z = array.get(htfList, i)
+            bool dirOk = not htfMatchDir or z.isBull == isBull
+            bool hit = hi >= z.bottom and lo <= z.top
+            if dirOk and hit
+                tag := f_tagAdd(tag, z.tf)
+    tag
+
+// tags of active HTF FVGs that contain the IFVG box (overlapping or fully inside)
+f_htfContain(float top, float bot, bool isBull) =>
+    string tag = ""
+    if array.size(htfList) > 0
+        for i = 0 to array.size(htfList) - 1
+            HtfFVG z = array.get(htfList, i)
+            bool dirOk = not htfMatchDir or z.isBull == isBull
+            bool inside = bot >= z.bottom and top <= z.top
+            bool overlap = top >= z.bottom and bot <= z.top
+            bool posOk = htfContain == "Fully inside" ? inside : overlap
+            if dirOk and posOk
+                tag := f_tagAdd(tag, z.tf)
+    tag
+
+// remember which HTF FVGs a signal used (so their boxes can stay on the chart)
+f_markHtfUsed(float top, float bot, bool isBull) =>
+    if array.size(htfList) > 0
+        for i = 0 to array.size(htfList) - 1
+            HtfFVG z = array.get(htfList, i)
+            bool dirOk = not htfMatchDir or z.isBull == isBull
+            bool inside = bot >= z.bottom and top <= z.top
+            bool overlap = top >= z.bottom and bot <= z.top
+            bool posOk = htfContain == "Fully inside" ? inside : overlap
+            if dirOk and posOk
+                z.used := true
+    true
+
+// an HTF FVG box leaves the active list: freeze it at the current bar (keep) or delete it.
+// Boxes are time-anchored (xloc.bar_time), so the right edge is a TIME, never a bar_index.
+f_retireHtfBox(box b, bool keep) =>
+    if not na(b)
+        if keep
+            if htfExtendMode == "Extend with price"
+                box.set_right(b, time)
+        else
+            box.delete(b)
+    true
+
+// keep only the newest htfMaxPerTf zones of one HTF slot
+f_capHtf(int slot) =>
+    int kept = 0
+    if array.size(htfList) > 0
+        for i = array.size(htfList) - 1 to 0
+            HtfFVG z = array.get(htfList, i)
+            if z.slot == slot
+                kept += 1
+                if kept > htfMaxPerTf
+                    f_retireHtfBox(z.b, keepHistory and z.used)
+                    array.remove(htfList, i)
+    true
+
+// remove zones of ONE HTF slot only when THAT slot's own just-closed bar invalidates them.
+// isNew is only true once per closed bar of that specific timeframe, so a 1m candle can never
+// trigger this for a 1H zone -- only an actual closed 1H candle (hC/lC/cC = that 1H bar's own
+// high/low/close) can.
+f_invalidateHtf(int slot, bool isNew, float hC, float lC, float cC) =>
+    if isNew and array.size(htfList) > 0
+        for i = array.size(htfList) - 1 to 0
+            HtfFVG hz = array.get(htfList, i)
+            if hz.slot == slot
+                bool hzMit = false
+                if htfInvalidate == "Close through"
+                    hzMit := hz.isBull ? cC < hz.bottom : cC > hz.top
+                else
+                    hzMit := hz.isBull ? lC < hz.bottom : hC > hz.top
+                if hzMit
+                    f_retireHtfBox(hz.b, keepHistory and hz.used)
+                    array.remove(htfList, i)
+    true
+
+// a new HTF bar just opened -> look at the three closed HTF bars before it
+//   hC / lC   = candle 3 (last closed HTF bar),   hA / lA = candle 1 (two bars before it)
+//   tA / tM   = OPEN time of candle 1 / candle 2,  tcC     = CLOSE time of candle 3
+// The box is anchored with xloc.bar_time on those historical candles, so it sits on the gap
+// candle on ANY chart timeframe instead of starting at the current bar and floating ahead of price.
+f_addHtf(bool isNew, bool en, string name, int slot, float hC, float lC, float hA, float lA, int tA, int tM, int tcC) =>
+    bool valid = isNew and en and not na(hC) and not na(lC) and not na(hA) and not na(lA) and not na(tA) and not na(tM) and not na(tcC)
+    float minGap = htfMinGapTicks * syminfo.mintick
+    bool bullGap = false
+    bool bearGap = false
+    box hbBull = na
+    box hbBear = na
+    int leftT = htfAnchor == "Candle 1 (first of the 3)" ? tA : tM
+    int rightT = htfExtendMode == "Extend with price" ? time + fvgExtend * chartMs : tcC
+    if valid
+        bullGap := lC > hA and (lC - hA) >= minGap
+        bearGap := hC < lA and (lA - hC) >= minGap
+    if bullGap
+        if showHTF
+            hbBull := box.new(left = leftT, top = lC, right = rightT, bottom = hA, xloc = xloc.bar_time, border_color = htfBull, bgcolor = htfBull, text = name, text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
+        array.push(htfList, HtfFVG.new(isBull = true, top = lC, bottom = hA, tf = name, slot = slot, b = hbBull))
+    if bearGap
+        if showHTF
+            hbBear := box.new(left = leftT, top = lA, right = rightT, bottom = hC, xloc = xloc.bar_time, border_color = htfBear, bgcolor = htfBear, text = name, text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
+        array.push(htfList, HtfFVG.new(isBull = false, top = lA, bottom = hC, tf = name, slot = slot, b = hbBear))
+    if bullGap or bearGap
+        f_capHtf(slot)
+    true
+
+// session range for BOTH markets. Returns the last COMPLETED range (frozen at session end).
+f_sessRange(bool inS, bool started, bool ended, float hA, float lA, float hB, float lB) =>
+    var float cHA = na
+    var float cLA = na
+    var float cHB = na
+    var float cLB = na
+    var float dHA = na
+    var float dLA = na
+    var float dHB = na
+    var float dLB = na
+    if started
+        cHA := hA
+        cLA := lA
+        cHB := hB
+        cLB := lB
+    else if inS
+        cHA := math.max(nz(cHA, hA), hA)
+        cLA := math.min(nz(cLA, lA), lA)
+        cHB := math.max(nz(cHB, hB), nz(hB, cHB))
+        cLB := math.min(nz(cLB, lB), nz(lB, cLB))
+    if ended
+        dHA := cHA
+        dLA := cLA
+        dHB := cHB
+        dLB := cLB
+    [ended, dHA, dLA, dHB, dLB]
+
+withinLookback(int refBar) =>
+    not na(refBar) and (bar_index - refBar) <= confluenceBars
+
+// is an IFVG that formed on invBar close enough in time to this SMT?
+f_timingOk(SMTSetup s, int invBar) =>
+    bool okAfter = invBar >= s.sweepBar and invBar - s.legBar <= confluenceBars
+    bool okBefore = invBar < s.sweepBar and s.sweepBar - invBar <= confluenceBars
+    bool ok = okAfter
+    if not ifvgAfterSweep
+        ok := okAfter or okBefore
+    ok
+
+// is there already an unswept reference at (about) this level pair?
+f_hasRef(array<LiqRef> refs, bool isHigh, int kind, float a, float b, float tA, float tB) =>
+    bool found = false
+    if array.size(refs) > 0
+        for i = 0 to array.size(refs) - 1
+            LiqRef q = array.get(refs, i)
+            if q.kind == kind and q.isHigh == isHigh and q.state == 0
+                if math.abs(q.lvlA - a) <= tA and math.abs(q.lvlB - b) <= tB
+                    found := true
+    found
+
+// add a swing reference (kind 1 = feed-TF swing, 2 = HTF swing) and trim the pool
+f_addSwingRef(array<LiqRef> refs, bool isHigh, int kind, float a, float b, int atBar, int atTime, float tA, float tB) =>
+    bool dup = f_hasRef(refs, isHigh, kind, a, b, tA, tB)
+    string nm = "Swing"
+    int cap = swingMaxRefs
+    int kept = 0
+    if kind == 2
+        nm := nameSw + " Swing"
+        cap := htfSwingMaxRefs
+    if not dup
+        array.push(refs, LiqRef.new(name = nm, isHigh = isHigh, kind = kind, lvlA = a, lvlB = b, lvlBar = atBar, lvlTime = atTime, state = 0))
+        for i = array.size(refs) - 1 to 0
+            LiqRef q = array.get(refs, i)
+            if q.kind == kind and q.isHigh == isHigh
+                kept += 1
+                if kept > cap and q.state != 1
+                    array.remove(refs, i)
+    true
+
+// TAKE-PROFIT TARGET from liquidity: the nearest UNSWEPT opposing level beyond the entry.
+//   long  -> nearest unswept high above entry, short -> nearest unswept low below entry
+//   priority: major (HTF swing / PDH / PDL / Asia / London) > feed swing > last HTF pivot (fbH / fbL)
+f_swingTarget(array<LiqRef> refs, bool isBull, float entry, float fbH, float fbL) =>
+    float major = na
+    float minor = na
+    if array.size(refs) > 0
+        for i = 0 to array.size(refs) - 1
+            LiqRef q = array.get(refs, i)
+            bool sideOk = q.isHigh == isBull
+            bool beyond = isBull ? q.lvlA > entry : q.lvlA < entry
+            if sideOk and beyond and q.state == 0 and not na(q.lvlA)
+                if q.kind != 1
+                    major := na(major) ? q.lvlA : (isBull ? math.min(major, q.lvlA) : math.max(major, q.lvlA))
+                else
+                    minor := na(minor) ? q.lvlA : (isBull ? math.min(minor, q.lvlA) : math.max(minor, q.lvlA))
+    float out = major
+    if na(out)
+        out := minor
+    if na(out)
+        float fb = isBull ? fbH : fbL
+        if not na(fb) and (isBull ? fb > entry : fb < entry)
+            out := fb
+    out
+
+// why has this SMT not produced a signal (yet)?
+f_reason(Engine e, SMTSetup s) =>
+    string out = ""
+    int rej = s.isBull ? e.lastRejBullBar : e.lastRejBearBar
+    bool rejHit = not na(rej) and rej >= s.sweepBar and rej - s.legBar <= confluenceBars
+    bool keyOk = s.isKey or (keyHtfTap and s.htfTap)
+    if reqConfirmedSMT and not s.confirmed
+        out += "SMT not confirmed yet; "
+    if kzFilter and not s.kzOk
+        out += "outside killzone; "
+    if keyFilter and not keyOk
+        out += "not at key level; "
+    if reqDisp and not s.dispDone
+        out += "no displacement; "
+    if reqSetupFvg and not s.fvgDone
+        out += "no FVG after sweep; "
+    if reqMSS and not s.mssDone
+        out += "no MSS; "
+    if s.note != ""
+        out += s.note + "; "
+    else if not s.ifvgSeen
+        if rejHit
+            out += "IFVG failed quality filter; "
+        else
+            out += "no IFVG yet; "
+    if out == ""
+        out := "IFVG closed back through or expired; "
+    out
+
+// one-line status of an engine for the tables
+f_engSummary(Engine e) =>
+    string out = e.tfName + ": off"
+    if e.enabled
+        out := e.tfName + ": smt " + str.tostring(e.cntSmtConf) + "/" + str.tostring(e.cntSmtDev) + (e.entryTf ? " buy " + str.tostring(e.cntBuy) + " sell " + str.tostring(e.cntSell) : " (SMT only)")
+    out
+
+// ---- methods that change objects ----
+method kill(SMTSetup this) =>
+    this.dead := true
+    if not na(this.lbl)
+        label.delete(this.lbl)
+        this.lbl := na
+    if not na(this.ln)
+        line.delete(this.ln)
+        this.ln := na
+    true
+
+// (re)arm a fixed level reference (PDH, PWH, Asia, London...) with fresh levels
+method arm(LiqRef this, float a, float b, int atBar, int atTime) =>
+    bool ok = not na(a) and not na(b)
+    if ok and this.state == 1
+        if not na(this.cur)
+            this.cur.kill()
+        this.state := 3
+    if ok
+        this.lvlA := a
+        this.lvlB := b
+        this.lvlBar := atBar
+        this.lvlTime := atTime
+        this.state := 0
+    true
+
+// draw / update / remove the label + connector of one SMT depending on the filters.
+// Everything is TIME-anchored (xloc.bar_time) so an SMT found by a 15m feed lands on the right
+// candle of a 1m chart.  With 'Show SMT label shapes' OFF the label keeps its text (in the SMT
+// color) but uses label.style_none, so nothing else (line, tooltip, logs, engine) changes.
+method draw(SMTSetup this, Engine e) =>
+    bool keyOk = this.isKey or (keyHtfTap and this.htfTap)
+    bool pass = f_passes(this)
+    bool showOk = showSMT and e.smtOk and not this.dead and pass and (this.confirmed or showDeveloping)
+    bool showRej = showSMT and e.smtOk and not this.dead and not pass and showRejected
+    color base = this.isBull ? smtBullClr : smtBearClr
+    if showRej
+        base := color.gray
+    color col = base
+    if not this.confirmed and not showRej
+        col := color.new(base, 60)
+    string rejTxt = (kzFilter and not this.kzOk ? "KZ " : "") + (keyFilter and not keyOk ? "KEY " : "")
+    string head = "SMT" + (this.confirmed ? "" : "?")
+    if showRej
+        head := "SMT✗ " + rejTxt
+    string txt = head + " [" + e.tfName + "] · " + this.refName + (this.kzName != "" ? " · " + this.kzName : "") + (this.htfTag != "" ? " · @" + f_tagText(this.htfTag) : "")
+    string tt = "Timeframe: " + e.tfName + "\n" + this.tip + (showRej ? "\nHIDDEN BY FILTER: " + rejTxt : "")
+    string sty = label.style_none
+    if showSmtShapes
+        sty := this.isBull ? label.style_label_up : label.style_label_down
+    color txtCol = showSmtShapes ? color.white : col
+    if showOk or showRej
+        if na(this.lbl)
+            this.lbl := label.new(x = this.legTime, y = this.legPrice, text = txt, xloc = xloc.bar_time, style = sty, color = col, textcolor = txtCol, size = f_size(smtLabelSize), tooltip = tt)
+        else
+            label.set_xy(this.lbl, this.legTime, this.legPrice)
+            label.set_text(this.lbl, txt)
+            label.set_color(this.lbl, col)
+            label.set_textcolor(this.lbl, txtCol)
+            label.set_tooltip(this.lbl, tt)
+        if showOk and showSmtLines and not na(this.lvlTime)
+            if na(this.ln)
+                this.ln := line.new(this.lvlTime, this.lvlA, this.legTime, this.legPrice, xloc = xloc.bar_time, color = col, width = 1, style = line.style_dotted)
+            else
+                line.set_xy1(this.ln, this.lvlTime, this.lvlA)
+                line.set_xy2(this.ln, this.legTime, this.legPrice)
+                line.set_color(this.ln, col)
+        else
+            if not na(this.ln)
+                line.delete(this.ln)
+                this.ln := na
+    else
+        if not na(this.lbl)
+            label.delete(this.lbl)
+            this.lbl := na
+        if not na(this.ln)
+            line.delete(this.ln)
+            this.ln := na
+    true
+
+// a fresh engine with its 8 fixed liquidity references
+f_newEngine(string name, bool enabled, bool entryTf, bool smtOk) =>
+    Engine e = Engine.new(tfName = name, enabled = enabled, entryTf = entryTf, smtOk = smtOk, rawList = array.new<RawFVG>(), ifvgList = array.new<IFVGZone>(), setups = array.new<SMTSetup>(), refs = array.new<LiqRef>())
+    array.push(e.refs, LiqRef.new(name = "PDH", isHigh = true, kind = 0))
+    array.push(e.refs, LiqRef.new(name = "PDL", isHigh = false, kind = 0))
+    array.push(e.refs, LiqRef.new(name = "PWH", isHigh = true, kind = 0))
+    array.push(e.refs, LiqRef.new(name = "PWL", isHigh = false, kind = 0))
+    array.push(e.refs, LiqRef.new(name = "Asia H", isHigh = true, kind = 0))
+    array.push(e.refs, LiqRef.new(name = "Asia L", isHigh = false, kind = 0))
+    array.push(e.refs, LiqRef.new(name = "LON H", isHigh = true, kind = 0))
+    array.push(e.refs, LiqRef.new(name = "LON L", isHigh = false, kind = 0))
+    e
+
+// ============================== DATA (runs on every bar) ==============================
+chartSec = timeframe.in_seconds()
+minSmtSec = timeframe.in_seconds(minSmtTf)
+allowedEntryTF = f_isEntryTf(chartSec)
+
+atrValue = ta.atr(atrLen)
+
+// the correlated market on the chart timeframe (only read on closed bars)
+[corrHigh, corrLow, corrTickRaw] = request.security(correlatedSym, timeframe.period, [high, low, syminfo.mintick], lookahead = barmerge.lookahead_off)
+corrTick = nz(corrTickRaw, syminfo.mintick)
+corrName = str.contains(correlatedSym, ":") ? array.get(str.split(correlatedSym, ":"), 1) : correlatedSym
+
+// chart-TF swings. Both markets can anchor a swing; the other market's level = its extreme within +/- syncEff bars
+syncEff = math.min(syncBars, pivotRight)
+postLen = math.max(pivotRight - syncEff, 1)
+phA = ta.pivothigh(high, pivotLeft, pivotRight)
+plA = ta.pivotlow(low, pivotLeft, pivotRight)
+phB = ta.pivothigh(corrHigh, pivotLeft, pivotRight)
+plB = ta.pivotlow(corrLow, pivotLeft, pivotRight)
+winHiA = ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff]
+winLoA = ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff]
+winHiB = ta.highest(corrHigh, 2 * syncEff + 1)[pivotRight - syncEff]
+winLoB = ta.lowest(corrLow, 2 * syncEff + 1)[pivotRight - syncEff]
+postHiA = ta.highest(high, postLen)
+postLoA = ta.lowest(low, postLen)
+postHiB = ta.highest(corrHigh, postLen)
+postLoB = ta.lowest(corrLow, postLen)
+
+// HTF swings (confirmed HTF pivots, last closed HTF bar only: [1] + lookahead_on = no future data)
+swSyncEff = math.min(swSync, swR)
+swPostLen = math.max(swR - swSyncEff, 1)
+[aPH, aPL, aWinH, aWinL, aPostH, aPostL, aPT, aTc] = request.security(syminfo.tickerid, swTf, [ta.pivothigh(high, swL, swR)[1], ta.pivotlow(low, swL, swR)[1], ta.highest(high, 2 * swSyncEff + 1)[swR - swSyncEff + 1], ta.lowest(low, 2 * swSyncEff + 1)[swR - swSyncEff + 1], ta.highest(high, swPostLen)[1], ta.lowest(low, swPostLen)[1], time[swR + 1], time[1]], lookahead = barmerge.lookahead_on)
+[bPH, bPL, bWinH, bWinL, bPostH, bPostL] = request.security(correlatedSym, swTf, [ta.pivothigh(high, swL, swR)[1], ta.pivotlow(low, swL, swR)[1], ta.highest(high, 2 * swSyncEff + 1)[swR - swSyncEff + 1], ta.lowest(low, 2 * swSyncEff + 1)[swR - swSyncEff + 1], ta.highest(high, swPostLen)[1], ta.lowest(low, swPostLen)[1]], lookahead = barmerge.lookahead_on)
+newSw = not na(aTc) and (na(aTc[1]) or aTc != aTc[1])
+
+// previous day / week levels of BOTH markets (last CLOSED bar, same on history and realtime)
+[pdhA, pdlA] = request.security(syminfo.tickerid, "D", [high[1], low[1]], lookahead = barmerge.lookahead_on)
+[pdhB, pdlB] = request.security(correlatedSym, "D", [high[1], low[1]], lookahead = barmerge.lookahead_on)
+[pwhA, pwlA] = request.security(syminfo.tickerid, "W", [high[1], low[1]], lookahead = barmerge.lookahead_on)
+[pwhB, pwlB] = request.security(correlatedSym, "W", [high[1], low[1]], lookahead = barmerge.lookahead_on)
+bool pdNew = not na(pdhA) and not na(pdlA) and not na(pdhB) and not na(pdlB) and (na(pdhA[1]) or pdhA != pdhA[1] or pdlA != pdlA[1] or pdhB != pdhB[1] or pdlB != pdlB[1])
+bool pwNew = not na(pwhA) and not na(pwlA) and not na(pwhB) and not na(pwlB) and (na(pwhA[1]) or pwhA != pwhA[1] or pwlA != pwlA[1] or pwhB != pwhB[1] or pwlB != pwlB[1])
+
+// sessions (explicit IANA zone, never the chart zone)
+asiaIn = not na(time(timeframe.period, asiaSess, tz))
+lonIn  = not na(time(timeframe.period, lonSess, tz))
+[asiaEnded, asiaHA, asiaLA, asiaHB, asiaLB] = f_sessRange(asiaIn, asiaIn and not asiaIn[1], not asiaIn and asiaIn[1], high, low, corrHigh, corrLow)
+[lonEnded, lonHA, lonLA, lonHB, lonLB]     = f_sessRange(lonIn, lonIn and not lonIn[1], not lonIn and lonIn[1], high, low, corrHigh, corrLow)
+
+inLdn = not na(time(timeframe.period, kzLdnSess, tz))
+inNy  = not na(time(timeframe.period, kzNySess, tz))
+inLc  = not na(time(timeframe.period, kzLcSess, tz))
+inCu  = not na(time(timeframe.period, kzCuSess, tz))
+kzOkNow = (useKzLdn and inLdn) or (useKzNy and inNy) or (useKzLc and inLc) or (useKzCu and inCu)
+kzTag = inLdn ? "LDN" : inNy ? "NY" : inLc ? "LC" : inCu ? "CUS" : ""
+
+// HTF FVG data: last CLOSED HTF bars only ([1] offsets + lookahead_on = no future data, same on history and realtime)
+//   [1] = candle 3 (last closed), [2] = candle 2 (the gap candle), [3] = candle 1
+//   time[3] / time[2] = open time of candle 1 / 2 (box anchors), time_close[1] = close of candle 3 (fixed-width box)
+nameH1 = f_tfName(htfTf1)
+nameH2 = f_tfName(htfTf2)
+nameH3 = f_tfName(htfTf3)
+nameH4 = f_tfName(htfTf4)
+nameH5 = f_tfName(htfTf5)
+nameH6 = f_tfName(htfTf6)
+nameH7 = f_tfName(htfTf7)
+nameH8 = f_tfName(htfTf8)
+[hC1, lC1, cC1, hA1, lA1, tC1, tA1, tM1, tX1] = request.security(syminfo.tickerid, htfTf1, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
+[hC2, lC2, cC2, hA2, lA2, tC2, tA2, tM2, tX2] = request.security(syminfo.tickerid, htfTf2, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
+[hC3, lC3, cC3, hA3, lA3, tC3, tA3, tM3, tX3] = request.security(syminfo.tickerid, htfTf3, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
+[hC4, lC4, cC4, hA4, lA4, tC4, tA4, tM4, tX4] = request.security(syminfo.tickerid, htfTf4, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
+[hC5, lC5, cC5, hA5, lA5, tC5, tA5, tM5, tX5] = request.security(syminfo.tickerid, htfTf5, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
+[hC6, lC6, cC6, hA6, lA6, tC6, tA6, tM6, tX6] = request.security(syminfo.tickerid, htfTf6, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
+[hC7, lC7, cC7, hA7, lA7, tC7, tA7, tM7, tX7] = request.security(syminfo.tickerid, htfTf7, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
+[hC8, lC8, cC8, hA8, lA8, tC8, tA8, tM8, tX8] = request.security(syminfo.tickerid, htfTf8, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
+newH1 = not na(tC1) and (na(tC1[1]) or tC1 != tC1[1])
+newH2 = not na(tC2) and (na(tC2[1]) or tC2 != tC2[1])
+newH3 = not na(tC3) and (na(tC3[1]) or tC3 != tC3[1])
+newH4 = not na(tC4) and (na(tC4[1]) or tC4 != tC4[1])
+newH5 = not na(tC5) and (na(tC5[1]) or tC5 != tC5[1])
+newH6 = not na(tC6) and (na(tC6[1]) or tC6 != tC6[1])
+newH7 = not na(tC7) and (na(tC7[1]) or tC7 != tC7[1])
+newH8 = not na(tC8) and (na(tC8[1]) or tC8 != tC8[1])
+
+// ============================== FEEDS ==============================
+// chart feed = the current confirmed chart bar, every bar
+Feed fChart = Feed.new(isNew = true, t = time, tMid = time[1], pivT = time[pivotRight], o = open, h = high, l = low, c = close, h2 = high[2], l2 = low[2], atr = atrValue, phA = phA, plA = plA, winHiA = winHiA, winLoA = winLoA, postHiA = postHiA, postLoA = postLoA, ch = corrHigh, cl = corrLow, phB = phB, plB = plB, winHiB = winHiB, winLoB = winLoB, postHiB = postHiB, postLoB = postLoB, corrTick = corrTick)
+
+// higher-timeframe feeds: the LAST CLOSED candle of that timeframe ([1] + lookahead_on = no future data)
+// for both the chart symbol and the correlated symbol, with the same pivot / window / ATR values the
+// chart engine uses, computed ON that timeframe.  A feed only runs when it is higher than the chart TF.
+enF1 = useMtf and useF1 and timeframe.in_seconds(tfF1) > chartSec
+enF2 = useMtf and useF2 and timeframe.in_seconds(tfF2) > chartSec
+enF3 = useMtf and useF3 and timeframe.in_seconds(tfF3) > chartSec
+enF4 = useMtf and useF4 and timeframe.in_seconds(tfF4) > chartSec
+[a1o, a1h, a1l, a1c, a1h2, a1l2, a1t, a1tm, a1pt, a1atr, a1ph, a1pl, a1wh, a1wl, a1posh, a1posl] = request.security(syminfo.tickerid, tfF1, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[b1h, b1l, b1ph, b1pl, b1wh, b1wl, b1posh, b1posl, b1tick] = request.security(correlatedSym, tfF1, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick], lookahead = barmerge.lookahead_on)
+[a2o, a2h, a2l, a2c, a2h2, a2l2, a2t, a2tm, a2pt, a2atr, a2ph, a2pl, a2wh, a2wl, a2posh, a2posl] = request.security(syminfo.tickerid, tfF2, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[b2h, b2l, b2ph, b2pl, b2wh, b2wl, b2posh, b2posl, b2tick] = request.security(correlatedSym, tfF2, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick], lookahead = barmerge.lookahead_on)
+[a3o, a3h, a3l, a3c, a3h2, a3l2, a3t, a3tm, a3pt, a3atr, a3ph, a3pl, a3wh, a3wl, a3posh, a3posl] = request.security(syminfo.tickerid, tfF3, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[b3h, b3l, b3ph, b3pl, b3wh, b3wl, b3posh, b3posl, b3tick] = request.security(correlatedSym, tfF3, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick], lookahead = barmerge.lookahead_on)
+[a4o, a4h, a4l, a4c, a4h2, a4l2, a4t, a4tm, a4pt, a4atr, a4ph, a4pl, a4wh, a4wl, a4posh, a4posl] = request.security(syminfo.tickerid, tfF4, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[b4h, b4l, b4ph, b4pl, b4wh, b4wl, b4posh, b4posl, b4tick] = request.security(correlatedSym, tfF4, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick], lookahead = barmerge.lookahead_on)
+newF1 = enF1 and not na(a1t) and (na(a1t[1]) or a1t != a1t[1])
+newF2 = enF2 and not na(a2t) and (na(a2t[1]) or a2t != a2t[1])
+newF3 = enF3 and not na(a3t) and (na(a3t[1]) or a3t != a3t[1])
+newF4 = enF4 and not na(a4t) and (na(a4t[1]) or a4t != a4t[1])
+Feed fF1 = Feed.new(isNew = newF1, t = a1t, tMid = a1tm, pivT = a1pt, o = a1o, h = a1h, l = a1l, c = a1c, h2 = a1h2, l2 = a1l2, atr = a1atr, phA = a1ph, plA = a1pl, winHiA = a1wh, winLoA = a1wl, postHiA = a1posh, postLoA = a1posl, ch = b1h, cl = b1l, phB = b1ph, plB = b1pl, winHiB = b1wh, winLoB = b1wl, postHiB = b1posh, postLoB = b1posl, corrTick = nz(b1tick, syminfo.mintick))
+Feed fF2 = Feed.new(isNew = newF2, t = a2t, tMid = a2tm, pivT = a2pt, o = a2o, h = a2h, l = a2l, c = a2c, h2 = a2h2, l2 = a2l2, atr = a2atr, phA = a2ph, plA = a2pl, winHiA = a2wh, winLoA = a2wl, postHiA = a2posh, postLoA = a2posl, ch = b2h, cl = b2l, phB = b2ph, plB = b2pl, winHiB = b2wh, winLoB = b2wl, postHiB = b2posh, postLoB = b2posl, corrTick = nz(b2tick, syminfo.mintick))
+Feed fF3 = Feed.new(isNew = newF3, t = a3t, tMid = a3tm, pivT = a3pt, o = a3o, h = a3h, l = a3l, c = a3c, h2 = a3h2, l2 = a3l2, atr = a3atr, phA = a3ph, plA = a3pl, winHiA = a3wh, winLoA = a3wl, postHiA = a3posh, postLoA = a3posl, ch = b3h, cl = b3l, phB = b3ph, plB = b3pl, winHiB = b3wh, winLoB = b3wl, postHiB = b3posh, postLoB = b3posl, corrTick = nz(b3tick, syminfo.mintick))
+Feed fF4 = Feed.new(isNew = newF4, t = a4t, tMid = a4tm, pivT = a4pt, o = a4o, h = a4h, l = a4l, c = a4c, h2 = a4h2, l2 = a4l2, atr = a4atr, phA = a4ph, plA = a4pl, winHiA = a4wh, winLoA = a4wl, postHiA = a4posh, postLoA = a4posl, ch = b4h, cl = b4l, phB = b4ph, plB = b4pl, winHiB = b4wh, winLoB = b4wl, postHiB = b4posh, postLoB = b4posl, corrTick = nz(b4tick, syminfo.mintick))
+
+// one engine per feed (state lives across bars)
+var Engine eC = f_newEngine(f_tfName(timeframe.period), true, allowedEntryTF, chartSec >= minSmtSec)
+var Engine e1 = f_newEngine(f_tfName(tfF1), enF1, f_isEntryTf(timeframe.in_seconds(tfF1)), timeframe.in_seconds(tfF1) >= minSmtSec)
+var Engine e2 = f_newEngine(f_tfName(tfF2), enF2, f_isEntryTf(timeframe.in_seconds(tfF2)), timeframe.in_seconds(tfF2) >= minSmtSec)
+var Engine e3 = f_newEngine(f_tfName(tfF3), enF3, f_isEntryTf(timeframe.in_seconds(tfF3)), timeframe.in_seconds(tfF3) >= minSmtSec)
+var Engine e4 = f_newEngine(f_tfName(tfF4), enF4, f_isEntryTf(timeframe.in_seconds(tfF4)), timeframe.in_seconds(tfF4) >= minSmtSec)
+
+// ============================== ENGINE (one call = one feed) ==============================
+// Runs the complete SMT + IFVG logic for ONE timeframe.  Fixed references (PDH/PDL, sessions, HTF
+// swings) are armed on every chart bar because their events come from chart bars; everything else
+// only runs when the feed has a NEW closed candle (f.isNew).  Bar counts (confirmation, lifetime,
+// ages) use e.idx = the feed's own bar counter; drawings use the feed candle's TIME.
+f_runEngine(Engine e, Feed f) =>
+    SigInfo sig = na
+    bool bullDet = false
+    bool bearDet = false
+    bool bullConf = false
+    bool bearConf = false
+    if e.enabled
+        bool corrOkF = not na(f.ch) and not na(f.cl)
+        float tolA = tolTicks * syminfo.mintick
+        float tolB = tolTicks * nz(f.corrTick, syminfo.mintick)
+        float safeAtrF = na(f.atr) or f.atr <= 0.0 ? syminfo.mintick : f.atr
+
+        // ---------- C1. fixed / HTF-swing liquidity references (every chart bar) ----------
+        LiqRef rPDH = array.get(e.refs, 0)
+        LiqRef rPDL = array.get(e.refs, 1)
+        LiqRef rPWH = array.get(e.refs, 2)
+        LiqRef rPWL = array.get(e.refs, 3)
+        LiqRef rAsH = array.get(e.refs, 4)
+        LiqRef rAsL = array.get(e.refs, 5)
+        LiqRef rLnH = array.get(e.refs, 6)
+        LiqRef rLnL = array.get(e.refs, 7)
+        if usePD and pdNew
+            rPDH.arm(pdhA, pdhB, e.idx, time)
+            rPDL.arm(pdlA, pdlB, e.idx, time)
+        if usePW and pwNew
+            rPWH.arm(pwhA, pwhB, e.idx, time)
+            rPWL.arm(pwlA, pwlB, e.idx, time)
+        if useAsia and asiaEnded
+            rAsH.arm(asiaHA, asiaHB, e.idx, time)
+            rAsL.arm(asiaLA, asiaLB, e.idx, time)
+        if useLon and lonEnded
+            rLnH.arm(lonHA, lonHB, e.idx, time)
+            rLnL.arm(lonLA, lonLB, e.idx, time)
+        if useHtfSwing and newSw
+            if not na(aPH) and not na(bWinH) and not na(bPostH)
+                if bPostH <= bWinH + tolB
+                    f_addSwingRef(e.refs, true, 2, aPH, bWinH, e.idx, aPT, tolA, tolB)
+            if not na(aPL) and not na(bWinL) and not na(bPostL)
+                if bPostL >= bWinL - tolB
+                    f_addSwingRef(e.refs, false, 2, aPL, bWinL, e.idx, aPT, tolA, tolB)
+            if not na(bPH) and not na(aWinH) and not na(aPostH)
+                if aPostH <= aWinH + tolA
+                    f_addSwingRef(e.refs, true, 2, aWinH, bPH, e.idx, aPT, tolA, tolB)
+            if not na(bPL) and not na(aWinL) and not na(aPostL)
+                if aPostL >= aWinL - tolA
+                    f_addSwingRef(e.refs, false, 2, aWinL, bPL, e.idx, aPT, tolA, tolB)
+
+        if f.isNew
+            e.idx := e.idx + 1
+            if not na(f.phA)
+                e.lastPHA := f.phA
+            if not na(f.plA)
+                e.lastPLA := f.plA
+            int pivIdx = e.idx - pivotRight
+
+            // ---------- C2. feed-TF swings ----------
+            if corrOkF and useSwing
+                if not na(f.phA) and not na(f.winHiB) and not na(f.postHiB)
+                    if f.postHiB <= f.winHiB + tolB
+                        f_addSwingRef(e.refs, true, 1, f.phA, f.winHiB, pivIdx, f.pivT, tolA, tolB)
+                if not na(f.plA) and not na(f.winLoB) and not na(f.postLoB)
+                    if f.postLoB >= f.winLoB - tolB
+                        f_addSwingRef(e.refs, false, 1, f.plA, f.winLoB, pivIdx, f.pivT, tolA, tolB)
+                if not na(f.phB) and not na(f.winHiA) and not na(f.postHiA)
+                    if f.postHiA <= f.winHiA + tolA
+                        f_addSwingRef(e.refs, true, 1, f.winHiA, f.phB, pivIdx, f.pivT, tolA, tolB)
+                if not na(f.plB) and not na(f.winLoA) and not na(f.postLoA)
+                    if f.postLoA >= f.winLoA - tolA
+                        f_addSwingRef(e.refs, false, 1, f.winLoA, f.plB, pivIdx, f.pivT, tolA, tolB)
+
+            // ---------- D. SMT state machine over every reference ----------
+            if corrOkF
+                SMTSetup devBullS = na
+                SMTSetup devBearS = na
+                if array.size(e.setups) > 0
+                    for i = 0 to array.size(e.setups) - 1
+                        SMTSetup q = array.get(e.setups, i)
+                        if q.active and not q.dead
+                            if q.isBull
+                                devBullS := q
+                            else
+                                devBearS := q
+                for i = 0 to array.size(e.refs) - 1
+                    LiqRef r = array.get(e.refs, i)
+                    bool tkA = false
+                    bool tkB = false
+                    bool otherTakes = false
+                    bool newExt = false
+                    bool sBull = false
+                    bool rKey = false
+                    int sw = 0
+                    float ext = 0.0
+                    float swExt = 0.0
+                    string swName = ""
+                    string flName = ""
+                    string tap = ""
+                    string tg = ""
+                    SMTSetup ex = na
+                    SMTSetup ns = na
+                    SMTSetup cs = na
+                    if r.state == 0
+                        if r.isHigh
+                            tkA := f.h > r.lvlA + tolA
+                            tkB := f.ch > r.lvlB + tolB
+                        else
+                            tkA := f.l < r.lvlA - tolA
+                            tkB := f.cl < r.lvlB - tolB
+                        if tkA and tkB
+                            r.state := 3
+                        else if tkA or tkB
+                            sw := tkA ? 1 : 2
+                            sBull := not r.isHigh
+                            rKey := r.kind != 1
+                            if sBull
+                                ex := devBullS
+                            else
+                                ex := devBearS
+                            if not na(ex)
+                                ex.tip := ex.tip + " | also swept " + r.name
+                                if ex.sweeper == sw and rKey and not ex.isKey
+                                    ex.isKey := true
+                                    ex.refName := r.name
+                                    ex.lvlA := r.lvlA
+                                    ex.lvlTime := r.lvlTime
+                                r.state := 3
+                            else
+                                if sw == 1
+                                    ext := r.isHigh ? f.h : f.l
+                                    swName := syminfo.ticker
+                                    flName := corrName
+                                else
+                                    ext := r.isHigh ? f.ch : f.cl
+                                    swName := corrName
+                                    flName := syminfo.ticker
+                                tap := f_htfOverlap(f.l, f.h, sBull)
+                                ns := SMTSetup.new(isBull = sBull, refName = r.name, isKey = rKey, sweeper = sw, sweepBar = e.idx, legBar = e.idx, legTime = f.t, legExt = ext, legPrice = r.isHigh ? f.h : f.l, sweepExt = r.isHigh ? f.h : f.l, lvlA = r.lvlA, lvlTime = r.lvlTime, mssLevel = r.isHigh ? e.lastPLA : e.lastPHA, kzName = kzTag, kzOk = kzOkNow, htfTap = tap != "", htfTag = tap, tip = (sBull ? "Bullish" : "Bearish") + " SMT [" + e.tfName + "] at " + r.name + ": " + swName + " took the level, " + flName + " did not")
+                                array.push(e.setups, ns)
+                                r.cur := ns
+                                r.state := 1
+                                e.cntSmtDev := e.cntSmtDev + 1
+                                e.logSmt := (sBull ? "Bull" : "Bear") + " SMT developing @" + r.name + " (" + swName + " swept)"
+                                if sBull
+                                    devBullS := ns
+                                else
+                                    devBearS := ns
+                                ns.draw(e)
+                                if f_passes(ns)
+                                    if sBull
+                                        bullDet := true
+                                    else
+                                        bearDet := true
+                    else if r.state == 1
+                        cs := r.cur
+                        if na(cs)
+                            r.state := 3
+                        else if cs.dead or cs.expired
+                            cs.active := false
+                            r.state := 3
+                        else
+                            if cs.sweeper == 1
+                                if r.isHigh
+                                    otherTakes := f.ch > r.lvlB + tolB
+                                else
+                                    otherTakes := f.cl < r.lvlB - tolB
+                            else
+                                if r.isHigh
+                                    otherTakes := f.h > r.lvlA + tolA
+                                else
+                                    otherTakes := f.l < r.lvlA - tolA
+                            if otherTakes
+                                cs.active := false
+                                r.state := 3
+                                e.cntSmtInv := e.cntSmtInv + 1
+                                if not cs.confirmed
+                                    e.logSmt := (cs.isBull ? "Bull" : "Bear") + " SMT @" + r.name + " INVALIDATED: other market took its level"
+                                else
+                                    e.logSmt := (cs.isBull ? "Bull" : "Bear") + " SMT @" + r.name + " INVALIDATED after confirmation: other market took its level"
+                                if removeInvalidatedSMT
+                                    cs.kill()
+                            else
+                                if cs.sweeper == 1
+                                    swExt := r.isHigh ? f.h : f.l
+                                else
+                                    swExt := r.isHigh ? f.ch : f.cl
+                                if r.isHigh
+                                    newExt := swExt > cs.legExt
+                                else
+                                    newExt := swExt < cs.legExt
+                                if newExt
+                                    cs.legExt := swExt
+                                    cs.legBar := e.idx
+                                    cs.legTime := f.t
+                                    cs.legPrice := r.isHigh ? f.h : f.l
+                                if not cs.htfTap
+                                    tg := f_htfOverlap(f.l, f.h, cs.isBull)
+                                    if tg != ""
+                                        cs.htfTap := true
+                                        cs.htfTag := tg
+                                if not cs.confirmed
+                                    if e.idx - cs.sweepBar >= smtConfirmBars
+                                        cs.confirmed := true
+                                        e.cntSmtConf := e.cntSmtConf + 1
+                                        e.logSmt := (cs.isBull ? "Bull" : "Bear") + " SMT confirmed @" + cs.refName
+                                        if f_passes(cs)
+                                            if cs.isBull
+                                                bullConf := true
+                                            else
+                                                bearConf := true
+                                else
+                                    if e.idx - cs.legBar >= smtConfirmBars
+                                        cs.active := false
+                                        r.state := 3
+                                cs.draw(e)
+                // drop used-up swing references (fixed levels stay)
+                for i = array.size(e.refs) - 1 to 0
+                    LiqRef q2 = array.get(e.refs, i)
+                    bool agedOut = q2.kind == 1 and e.idx - q2.lvlBar > swingRefMaxAge
+                    bool dropRef = q2.kind != 0 and q2.state != 1 and (q2.state == 3 or agedOut)
+                    if dropRef
+                        array.remove(e.refs, i)
+
+            // ---------- B. IFVG engine (hidden FVG memory -> inversion) ----------
+            SMTSetup newestLive = na
+            if array.size(e.setups) > 0
+                for i = array.size(e.setups) - 1 to 0
+                    SMTSetup ql = array.get(e.setups, i)
+                    if na(newestLive) and not ql.dead and not ql.expired
+                        newestLive := ql
+
+            if array.size(e.rawList) > 0
+                for i = array.size(e.rawList) - 1 to 0
+                    RawFVG rfa = array.get(e.rawList, i)
+                    rfa.age := rfa.age + 1
+                    if rfa.age > maxFvgAge
+                        array.remove(e.rawList, i)
+
+            float minGap = minGapTicks * syminfo.mintick
+            float candleBody = math.abs(f.c - f.o)
+            float candleRange = math.max(f.h - f.l, syminfo.mintick)
+            float candleBodyRatio = candleBody / candleRange
+            float candleRangeAtr = candleRange / safeAtrF
+            bool rawBullFVG = false
+            bool rawBearFVG = false
+            if e.entryTf and not na(f.h2) and not na(f.l2)
+                rawBullFVG := f.l > f.h2 and (f.l - f.h2) >= minGap
+                rawBearFVG := f.h < f.l2 and (f.l2 - f.h) >= minGap
+            if rawBullFVG
+                array.push(e.rawList, RawFVG.new(top = f.l, bottom = f.h2, dir = 1, age = 0, gapAtr = (f.l - f.h2) / safeAtrF, bodyRatio = candleBodyRatio, rangeAtr = candleRangeAtr, formT = f.tMid))
+            if rawBearFVG
+                array.push(e.rawList, RawFVG.new(top = f.l2, bottom = f.h, dir = -1, age = 0, gapAtr = (f.l2 - f.h) / safeAtrF, bodyRatio = candleBodyRatio, rangeAtr = candleRangeAtr, formT = f.tMid))
+            while array.size(e.rawList) > maxHiddenFVG
+                array.shift(e.rawList)
+
+            // inversion: a failed quality check drops that FVG but the loop keeps looking, so a valid older FVG is not lost
+            float cleanBreakBuffer = safeAtrF * f_breakBufferAtr()
+            bool foundInv = false
+            bool newBullIFVG = false
+            bool newBearIFVG = false
+            float newTop = na
+            float newBot = na
+            int newFormT = na
+            if array.size(e.rawList) > 0
+                for i = array.size(e.rawList) - 1 to 0
+                    RawFVG rf = array.get(e.rawList, i)
+                    bool bullInv = rf.dir == -1 and f.c > rf.top + cleanBreakBuffer
+                    bool bearInv = rf.dir == 1 and f.c < rf.bottom - cleanBreakBuffer
+                    bool qOk = false
+                    if (bullInv or bearInv) and not foundInv
+                        qOk := f_qualityPass(rf.gapAtr, rf.bodyRatio, rf.rangeAtr)
+                        if qOk
+                            foundInv := true
+                            newBullIFVG := bullInv
+                            newBearIFVG := bearInv
+                            newTop := rf.top
+                            newBot := rf.bottom
+                            newFormT := rf.formT
+                        else
+                            e.cntIfvgRej := e.cntIfvgRej + 1
+                            if bullInv
+                                e.lastRejBullBar := e.idx
+                            else
+                                e.lastRejBearBar := e.idx
+                            e.logIfvg := (bullInv ? "Bull" : "Bear") + " IFVG rejected by quality filter (" + filterMode + ")"
+                        array.remove(e.rawList, i)
+
+            string ifTag = ""
+            string ifDir = newBullIFVG ? "Bull" : "Bear"
+            string pairMsg = ""
+            bool showNote = false
+            color zClr = newBullIFVG ? ifvgBullClr : ifvgBearClr
+            box zoneBox = na
+            if newBullIFVG or newBearIFVG
+                ifTag := f_htfContain(newTop, newBot, newBullIFVG)
+                e.lastIfvgTag := ifTag
+                if newBullIFVG
+                    e.cntIfvgBull := e.cntIfvgBull + 1
+                else
+                    e.cntIfvgBear := e.cntIfvgBear + 1
+                e.logIfvg := ifDir + " IFVG formed, in HTF: " + (ifTag != "" ? f_tagText(ifTag) : "none")
+                if showIFVG
+                    // time-anchored: left = the feed candle that inverted the gap (or the original gap candle)
+                    int leftT = ifvgAnchor == "Inversion candle" or na(newFormT) ? f.t : newFormT
+                    zoneBox := box.new(left = leftT, top = newTop, right = time + fvgExtend * chartMs, bottom = newBot, xloc = xloc.bar_time, border_color = color.new(zClr, ifTag != "" ? 0 : 20), border_width = ifTag != "" ? 2 : 1, bgcolor = zClr, text = e.tfName + (ifTag != "" ? " in " + f_tagText(ifTag) : ""), text_size = size.tiny, text_color = color.white)
+                array.push(e.ifvgList, IFVGZone.new(isBull = newBullIFVG, top = newTop, bottom = newBot, invBar = e.idx, htfTag = ifTag, b = zoneBox))
+                // pairing diagnostics against every live SMT of the same direction
+                if array.size(e.setups) > 0
+                    for i = 0 to array.size(e.setups) - 1
+                        SMTSetup qn = array.get(e.setups, i)
+                        bool liveQ = not qn.dead and not qn.used and not qn.expired
+                        bool tOk = false
+                        if liveQ and qn.isBull == newBullIFVG
+                            tOk := f_timingOk(qn, e.idx)
+                            if not tOk
+                                if e.idx < qn.sweepBar
+                                    qn.note := "IFVG formed BEFORE the SMT (rule: at/after)"
+                                else
+                                    qn.note := "IFVG too far from SMT: " + str.tostring(e.idx - qn.legBar) + " bars (max " + str.tostring(confluenceBars) + ")"
+                            else if requireHTF and ifTag == ""
+                                qn.note := "IFVG not in an HTF FVG (" + htfContain + ")"
+                            else
+                                qn.note := ""
+                                qn.ifvgSeen := true
+                if not na(newestLive)
+                    if newestLive.isBull != newBullIFVG
+                        pairMsg := "IFVG " + ifDir + " but live SMT is " + (newestLive.isBull ? "Bull" : "Bear") + ": DIRECTION MISMATCH"
+                    else if newestLive.note != ""
+                        pairMsg := newestLive.note
+                    else
+                        pairMsg := "IFVG pairs with live SMT (timing + HTF ok)"
+                    e.logPair := pairMsg
+                    showNote := showDebug and (newestLive.note != "" or newestLive.isBull != newBullIFVG)
+                    if showNote
+                        label.new(x = f.t, y = newBullIFVG ? f.l : f.h, text = "[" + e.tfName + "] " + pairMsg, xloc = xloc.bar_time, style = newBullIFVG ? label.style_label_up : label.style_label_down, color = color.new(color.gray, 20), textcolor = color.white, size = size.tiny)
+
+            if array.size(e.ifvgList) > 0
+                for i = array.size(e.ifvgList) - 1 to 0
+                    IFVGZone iz = array.get(e.ifvgList, i)
+                    bool zoneInvalid = iz.isBull ? f.c < iz.bottom : f.c > iz.top
+                    bool zoneExpired = e.idx - iz.invBar > ifvgMaxAge
+                    if zoneInvalid or zoneExpired
+                        if not na(iz.b)
+                            if keepAllIfvg or (keepHistory and iz.used)
+                                box.set_right(iz.b, time)
+                            else
+                                box.delete(iz.b)
+                        array.remove(e.ifvgList, i)
+
+            // ---------- E. per-setup structure flags, sweep extreme, expiry, clean-up ----------
+            float dispBody = math.abs(f.c - f.o)
+            float dispRng = math.max(f.h - f.l, syminfo.mintick)
+            bool dispOkF = dispBody >= dispAtrMult * safeAtrF and dispBody / dispRng >= dispBodyRatio
+            bool bullDispF = f.c > f.o and dispOkF
+            bool bearDispF = f.c < f.o and dispOkF
+            bool bullFvgF = not na(f.h2) and f.l > f.h2
+            bool bearFvgF = not na(f.l2) and f.h < f.l2
+            if array.size(e.setups) > 0
+                for i = array.size(e.setups) - 1 to 0
+                    SMTSetup se = array.get(e.setups, i)
+                    bool removeIt = false
+                    if se.dead
+                        removeIt := true
+                    else
+                        if not se.expired
+                            if not se.used
+                                // chart-market extreme of the sweep leg = the "Sweep High/Low" stop
+                                se.sweepExt := se.isBull ? math.min(se.sweepExt, f.l) : math.max(se.sweepExt, f.h)
+                            if e.idx > se.sweepBar
+                                if se.isBull
+                                    if not se.dispDone and bullDispF
+                                        se.dispDone := true
+                                    if not se.fvgDone and bullFvgF and e.idx - 2 >= se.sweepBar
+                                        se.fvgDone := true
+                                    if not se.mssDone and not na(se.mssLevel) and f.c > se.mssLevel
+                                        se.mssDone := true
+                                else
+                                    if not se.dispDone and bearDispF
+                                        se.dispDone := true
+                                    if not se.fvgDone and bearFvgF and e.idx - 2 >= se.sweepBar
+                                        se.fvgDone := true
+                                    if not se.mssDone and not na(se.mssLevel) and f.c < se.mssLevel
+                                        se.mssDone := true
+                            if e.idx - se.legBar > smtLifeBars
+                                se.expired := true
+                                if not se.used
+                                    e.cntSmtExp := e.cntSmtExp + 1
+                                    e.logSmt := (se.isBull ? "Bull" : "Bear") + " SMT @" + se.refName + " expired: " + f_reason(e, se)
+                                    if not na(se.lbl)
+                                        label.set_tooltip(se.lbl, "Timeframe: " + e.tfName + "\n" + se.tip + "\nNO SIGNAL: " + f_reason(e, se))
+                        if keepHistory
+                            if se.expired
+                                removeIt := true
+                        else
+                            if e.idx - se.legBar > smtMaxAge
+                                se.kill()
+                                removeIt := true
+                    if removeIt
+                        array.remove(e.setups, i)
+
+            // ---------- F. Buy / Sell: valid SMT + IFVG that sits in an HTF FVG ----------
+            if e.entryTf and array.size(e.setups) > 0 and array.size(e.ifvgList) > 0
+                for i = array.size(e.setups) - 1 to 0
+                    SMTSetup sf = array.get(e.setups, i)
+                    bool stateOk = not sf.dead and not sf.expired and not sf.used
+                    bool smtOk = sf.confirmed or not reqConfirmedSMT
+                    bool filtersOk = f_passes(sf) and (not reqDisp or sf.dispDone) and (not reqSetupFvg or sf.fvgDone) and (not reqMSS or sf.mssDone)
+                    if stateOk and smtOk and filtersOk
+                        for j = array.size(e.ifvgList) - 1 to 0
+                            IFVGZone zf = array.get(e.ifvgList, j)
+                            bool sameDir = zf.isBull == sf.isBull
+                            bool timeOk = f_timingOk(sf, zf.invBar)
+                            bool htfOkF = not requireHTF or zf.htfTag != ""
+                            string info = ""
+                            if sameDir and not zf.used and timeOk and htfOkF
+                                sf.used := true
+                                zf.used := true
+                                f_markHtfUsed(zf.top, zf.bottom, zf.isBull)
+                                info := sf.refName + (sf.kzName != "" ? " · " + sf.kzName : "") + " · IFVG in " + (zf.htfTag != "" ? f_tagText(zf.htfTag) : "n/a") + " · sweeper " + (sf.sweeper == 1 ? syminfo.ticker : corrName)
+                                if not na(sf.lbl)
+                                    label.set_tooltip(sf.lbl, "Timeframe: " + e.tfName + "\n" + sf.tip + "\nSIGNAL: " + info)
+                                // everything the risk module needs: entry = feed close, both stop candidates, swing target
+                                sig := SigInfo.new(isBull = sf.isBull, tfName = e.tfName, entry = f.c, slSweep = sf.sweepExt, slIfvg = sf.isBull ? zf.bottom : zf.top, tpSwing = f_swingTarget(e.refs, sf.isBull, f.c, aPH, aPL), info = info)
+                                if sf.isBull
+                                    e.lastBuyBar := e.idx
+                                    e.cntBuy := e.cntBuy + 1
+                                    e.logPair := "BUY fired: " + info
+                                else
+                                    e.lastSellBar := e.idx
+                                    e.cntSell := e.cntSell + 1
+                                    e.logPair := "SELL fired: " + info
+                                break
+                    if not na(sig)
+                        break
+
+        // IFVG boxes follow price on every chart bar (also between feed candles)
+        if array.size(e.ifvgList) > 0
+            for i = 0 to array.size(e.ifvgList) - 1
+                IFVGZone izx = array.get(e.ifvgList, i)
+                if not na(izx.b)
+                    box.set_right(izx.b, time + fvgExtend * chartMs)
+    [sig, bullDet, bearDet, bullConf, bearConf]
+
+// ============================== RISK MODULE: stop / targets / position size ==============================
+// Called once per Buy/Sell.  Draws the ▲/▼ mark (with sizing in its tooltip) and the entry / SL / TP
+// lines + a plan label, and returns a one-line summary for the info table.
+//   Contract size = Account risk / (stop distance in points x point value), rounded DOWN.
+f_onSignal(SigInfo s) =>
+    // ----- stop loss -----
+    float buf = slBufTicks * syminfo.mintick
+    float slRaw = slMode == "Sweep High/Low" ? s.slSweep : s.slIfvg
+    if na(slRaw)
+        slRaw := slMode == "Sweep High/Low" ? s.slIfvg : s.slSweep
+    float sl = s.isBull ? slRaw - buf : slRaw + buf
+    float riskPts = math.abs(s.entry - sl)
+    if na(riskPts) or riskPts < syminfo.mintick
+        riskPts := syminfo.mintick
+        sl := s.isBull ? s.entry - riskPts : s.entry + riskPts
+    // ----- position size -----
+    float pv = autoPointValue ? syminfo.pointvalue : pointValue
+    float riskPerCt = riskPts * pv
+    int ct = riskPerCt > 0 ? int(math.floor(acctRisk / riskPerCt)) : 0
+    float riskUsd = ct * riskPerCt
+    // ----- targets -----
+    bool useRR = tpMode != "HTF swing"
+    bool useSw = tpMode != "Fixed RR"
+    float tp1 = na
+    float tp2 = na
+    float tpSw = na
+    if useRR
+        tp1 := s.isBull ? s.entry + riskPts * tp1RR : s.entry - riskPts * tp1RR
+        if tp2RR > 0
+            tp2 := s.isBull ? s.entry + riskPts * tp2RR : s.entry - riskPts * tp2RR
+    if useSw
+        tpSw := s.tpSwing
+    // ----- texts -----
+    string dirTxt = s.isBull ? "BUY" : "SELL"
+    string sizeTxt = ct > 0 ? str.tostring(ct) + " contract" + (ct > 1 ? "s" : "") + " · risk $" + str.tostring(riskUsd, "#.##") + " of $" + str.tostring(acctRisk, "#.##") : "0 contracts (1 contract risks $" + str.tostring(riskPerCt, "#.##") + " > $" + str.tostring(acctRisk, "#.##") + ")"
+    string tpTxt = ""
+    if not na(tp1)
+        tpTxt += "TP1 " + str.tostring(tp1, format.mintick) + " (1:" + str.tostring(tp1RR, "#.#") + ")"
+    if not na(tp2)
+        tpTxt += (tpTxt != "" ? " · " : "") + "TP2 " + str.tostring(tp2, format.mintick) + " (1:" + str.tostring(tp2RR, "#.#") + ")"
+    if useSw
+        tpTxt += (tpTxt != "" ? " · " : "") + (na(tpSw) ? "Swing TP: no unswept level " + (s.isBull ? "above" : "below") : "Swing TP " + str.tostring(tpSw, format.mintick) + " (1:" + str.tostring(math.abs(tpSw - s.entry) / riskPts, "#.#") + ")")
+    string planTxt = dirTxt + " " + s.tfName + " · " + sizeTxt + "\nEntry " + str.tostring(s.entry, format.mintick) + " · SL " + str.tostring(sl, format.mintick) + " (" + str.tostring(riskPts, format.mintick) + " pts = $" + str.tostring(riskPerCt, "#.##") + "/ct, " + slMode + ")\n" + tpTxt
+    string tt = "Signal timeframe: " + s.tfName + (s.tfName != eC.tfName ? " (drawn on the first " + eC.tfName + " bar after that " + s.tfName + " candle closed)" : "") + "\n" + s.info + "\n" + planTxt
+    // ----- ▲ / ▼ mark -----
+    if showSignalMarks
+        label mk = na
+        if s.isBull
+            mk := label.new(bar_index, low, "▲\n" + dirTxt + " " + s.tfName, yloc = yloc.belowbar, style = label.style_none, textcolor = color.lime, size = f_size(sigMarkSize), tooltip = tt)
+        else
+            mk := label.new(bar_index, high, dirTxt + " " + s.tfName + "\n▼", yloc = yloc.abovebar, style = label.style_none, textcolor = color.red, size = f_size(sigMarkSize), tooltip = tt)
+        array.push(sigList, SigMark.new(markBar = bar_index, lbl = mk))
+    // ----- entry / SL / TP lines + plan label (bar_index anchored: these are chart-native objects) -----
+    if showTrade
+        int x2 = bar_index + 1
+        line lnE = line.new(bar_index, s.entry, x2, s.entry, color = color.gray, style = line.style_dashed)
+        line lnS = line.new(bar_index, sl, x2, sl, color = color.red, width = 2)
+        line lnT1 = na
+        line lnT2 = na
+        line lnSw = na
+        if not na(tp1)
+            lnT1 := line.new(bar_index, tp1, x2, tp1, color = color.green, width = 1)
+        if not na(tp2)
+            lnT2 := line.new(bar_index, tp2, x2, tp2, color = color.green, width = 1, style = line.style_dotted)
+        if not na(tpSw)
+            lnSw := line.new(bar_index, tpSw, x2, tpSw, color = color.blue, width = 1, style = line.style_dashed)
+        label pl = label.new(x2, sl, planTxt, style = label.style_label_left, color = color.new(s.isBull ? color.green : color.red, 25), textcolor = color.white, size = size.small, tooltip = tt)
+        array.push(plans, TradePlan.new(isBull = s.isBull, tfName = s.tfName, startBar = bar_index, entry = s.entry, sl = sl, tp1 = tp1, tp2 = tp2, tpSw = tpSw, contracts = ct, riskPts = riskPts, riskUsd = riskUsd, txt = planTxt, lnE = lnE, lnS = lnS, lnT1 = lnT1, lnT2 = lnT2, lnSw = lnSw, lbl = pl))
+    dirTxt + " " + s.tfName + " · " + str.tostring(ct) + " ct · SL " + str.tostring(riskPts, format.mintick) + " pts · $" + str.tostring(riskUsd, "#.##")
+
+// ============================== MAIN (closed bars only) ==============================
+bool buySignal   = false
+bool sellSignal  = false
+bool bullSmtDet  = false
+bool bearSmtDet  = false
+bool bullSmtConf = false
+bool bearSmtConf = false
+string buyMsg  = ""
+string sellMsg = ""
+
+if barstate.isconfirmed
+    // ---------- A. HTF FVG zones: invalidate using EACH slot's OWN closed bar, then add any new zone ----------
+    f_invalidateHtf(1, newH1, hC1, lC1, cC1)
+    f_invalidateHtf(2, newH2, hC2, lC2, cC2)
+    f_invalidateHtf(3, newH3, hC3, lC3, cC3)
+    f_invalidateHtf(4, newH4, hC4, lC4, cC4)
+    f_invalidateHtf(5, newH5, hC5, lC5, cC5)
+    f_invalidateHtf(6, newH6, hC6, lC6, cC6)
+    f_invalidateHtf(7, newH7, hC7, lC7, cC7)
+    f_invalidateHtf(8, newH8, hC8, lC8, cC8)
+    f_addHtf(newH1, useHtf1, nameH1, 1, hC1, lC1, hA1, lA1, tA1, tM1, tX1)
+    f_addHtf(newH2, useHtf2, nameH2, 2, hC2, lC2, hA2, lA2, tA2, tM2, tX2)
+    f_addHtf(newH3, useHtf3, nameH3, 3, hC3, lC3, hA3, lA3, tA3, tM3, tX3)
+    f_addHtf(newH4, useHtf4, nameH4, 4, hC4, lC4, hA4, lA4, tA4, tM4, tX4)
+    f_addHtf(newH5, useHtf5, nameH5, 5, hC5, lC5, hA5, lA5, tA5, tM5, tX5)
+    f_addHtf(newH6, useHtf6, nameH6, 6, hC6, lC6, hA6, lA6, tA6, tM6, tX6)
+    f_addHtf(newH7, useHtf7, nameH7, 7, hC7, lC7, hA7, lA7, tA7, tM7, tX7)
+    f_addHtf(newH8, useHtf8, nameH8, 8, hC8, lC8, hA8, lA8, tA8, tM8, tX8)
+    // "Extend with price": the right edge follows the current bar; "Fixed": the box never moves
+    if htfExtendMode == "Extend with price" and array.size(htfList) > 0
+        for i = 0 to array.size(htfList) - 1
+            HtfFVG hzExt = array.get(htfList, i)
+            if not na(hzExt.b)
+                box.set_right(hzExt.b, time + fvgExtend * chartMs)
+
+    // ---------- run every engine: chart feed + up to four higher-TF feeds ----------
+    [sigC, bdC, beC, bcC, bccC] = f_runEngine(eC, fChart)
+    [sig1, bd1, be1, bc1, bcc1] = f_runEngine(e1, fF1)
+    [sig2, bd2, be2, bc2, bcc2] = f_runEngine(e2, fF2)
+    [sig3, bd3, be3, bc3, bcc3] = f_runEngine(e3, fF3)
+    [sig4, bd4, be4, bc4, bcc4] = f_runEngine(e4, fF4)
+    bullSmtDet  := bdC or bd1 or bd2 or bd3 or bd4
+    bearSmtDet  := beC or be1 or be2 or be3 or be4
+    bullSmtConf := bcC or bc1 or bc2 or bc3 or bc4
+    bearSmtConf := bccC or bcc1 or bcc2 or bcc3 or bcc4
+
+    // ---------- signals -> marks, stop / targets, contracts ----------
+    array<SigInfo> sigs = array.new<SigInfo>()
+    if not na(sigC)
+        array.push(sigs, sigC)
+    if not na(sig1)
+        array.push(sigs, sig1)
+    if not na(sig2)
+        array.push(sigs, sig2)
+    if not na(sig3)
+        array.push(sigs, sig3)
+    if not na(sig4)
+        array.push(sigs, sig4)
+    if array.size(sigs) > 0
+        for i = 0 to array.size(sigs) - 1
+            SigInfo s = array.get(sigs, i)
+            string summary = f_onSignal(s)
+            lastSigBar := bar_index
+            lastSigBull := s.isBull
+            lastSigTxt := (s.isBull ? "BUY " : "SELL ") + s.tfName
+            lastPlanTxt := summary
+            if s.isBull
+                buySignal := true
+                buyMsg += (buyMsg != "" ? " | " : "") + summary + " · " + s.info
+            else
+                sellSignal := true
+                sellMsg += (sellMsg != "" ? " | " : "") + summary + " · " + s.info
+
+    // ---------- trade plans: follow price, mark SL / TP hits, freeze when done ----------
+    if array.size(plans) > 0
+        for i = array.size(plans) - 1 to 0
+            TradePlan p = array.get(plans, i)
+            if p.open and bar_index > p.startBar
+                bool slHit = p.isBull ? low <= p.sl : high >= p.sl
+                bool hasTarget = not na(p.tp1) or not na(p.tp2) or not na(p.tpSw)
+                if slHit
+                    p.open := false
+                    p.status := (p.tp1Hit or p.tp2Hit or p.swHit) ? "STOPPED (after a target)" : "STOPPED"
+                else
+                    if not na(p.tp1) and not p.tp1Hit and (p.isBull ? high >= p.tp1 : low <= p.tp1)
+                        p.tp1Hit := true
+                    if not na(p.tp2) and not p.tp2Hit and (p.isBull ? high >= p.tp2 : low <= p.tp2)
+                        p.tp2Hit := true
+                    if not na(p.tpSw) and not p.swHit and (p.isBull ? high >= p.tpSw : low <= p.tpSw)
+                        p.swHit := true
+                    string hitTxt = (p.tp1Hit ? "TP1 ✓ " : "") + (p.tp2Hit ? "TP2 ✓ " : "") + (p.swHit ? "Swing ✓ " : "")
+                    bool allDone = hasTarget and (na(p.tp1) or p.tp1Hit) and (na(p.tp2) or p.tp2Hit) and (na(p.tpSw) or p.swHit)
+                    if allDone
+                        p.open := false
+                        p.status := "DONE " + hitTxt
+                    else if bar_index - p.startBar > tradeMaxBars
+                        p.open := false
+                        p.status := "EXPIRED " + hitTxt
+                    else
+                        p.status := "OPEN " + hitTxt
+                int xr = bar_index + 1
+                line.set_x2(p.lnE, xr)
+                line.set_x2(p.lnS, xr)
+                if not na(p.lnT1)
+                    line.set_x2(p.lnT1, xr)
+                if not na(p.lnT2)
+                    line.set_x2(p.lnT2, xr)
+                if not na(p.lnSw)
+                    line.set_x2(p.lnSw, xr)
+                label.set_x(p.lbl, xr)
+                label.set_text(p.lbl, p.status + "\n" + p.txt)
+                if not p.open
+                    label.set_color(p.lbl, color.new(color.gray, 30))
+    while array.size(plans) > maxPlans
+        TradePlan old = array.shift(plans)
+        line.delete(old.lnE)
+        line.delete(old.lnS)
+        if not na(old.lnT1)
+            line.delete(old.lnT1)
+        if not na(old.lnT2)
+            line.delete(old.lnT2)
+        if not na(old.lnSw)
+            line.delete(old.lnSw)
+        label.delete(old.lbl)
+
+    // ---------- signal marks clean-up ----------
+    if array.size(sigList) > 0
+        for i = array.size(sigList) - 1 to 0
+            SigMark sm = array.get(sigList, i)
+            if not keepHistory and bar_index - sm.markBar > signalMaxAge
+                label.delete(sm.lbl)
+                array.remove(sigList, i)
+    while array.size(sigList) > 300
+        array.shift(sigList)
+
+// ============================== ALERTS ==============================
+alertcondition(bullSmtDet,  title = "Bullish SMT developing", message = "Bullish SMT developing on {{ticker}} ({{interval}} chart, any feed)")
+alertcondition(bearSmtDet,  title = "Bearish SMT developing", message = "Bearish SMT developing on {{ticker}} ({{interval}} chart, any feed)")
+alertcondition(bullSmtConf, title = "Bullish SMT confirmed", message = "Bullish SMT confirmed on {{ticker}} ({{interval}} chart, any feed)")
+alertcondition(bearSmtConf, title = "Bearish SMT confirmed", message = "Bearish SMT confirmed on {{ticker}} ({{interval}} chart, any feed)")
+alertcondition(buySignal,   title = "BUY (SMT + IFVG in HTF FVG)", message = "BUY: bullish SMT + bullish IFVG in HTF FVG on {{ticker}} ({{interval}} chart)")
+alertcondition(sellSignal,  title = "SELL (SMT + IFVG in HTF FVG)", message = "SELL: bearish SMT + bearish IFVG in HTF FVG on {{ticker}} ({{interval}} chart)")
+// dynamic alerts (choose "Any alert() function call" in the alert dialog): include timeframe, contracts, SL distance
+if buySignal
+    alert("BUY " + syminfo.ticker + ": " + buyMsg, alert.freq_once_per_bar_close)
+if sellSignal
+    alert("SELL " + syminfo.ticker + ": " + sellMsg, alert.freq_once_per_bar_close)
+
+// ============================== TABLES (last bar) ==============================
+if barstate.islast
+    var table infoTable = table.new(position.top_right, 2, 7, border_width = 1)
+    color grayBg = color.new(color.gray, 50)
+    array<int> cnt = array.new_int(9, 0)
+    string htfTxt = ""
+    string kzTxt = kzTag == "" ? "Outside" : (kzOkNow ? kzTag : kzTag + " (off)")
+    string smtTxt = "None"
+    color smtBg = grayBg
+    string ifvgTxt = allowedEntryTF ? "None" : "N/A (TF)"
+    SMTSetup newestS = na
+
+    if array.size(htfList) > 0
+        for i = 0 to array.size(htfList) - 1
+            HtfFVG zc = array.get(htfList, i)
+            array.set(cnt, zc.slot, array.get(cnt, zc.slot) + 1)
+    if useHtf1
+        htfTxt += nameH1 + ":" + str.tostring(array.get(cnt, 1)) + " "
+    if useHtf2
+        htfTxt += nameH2 + ":" + str.tostring(array.get(cnt, 2)) + " "
+    if useHtf3
+        htfTxt += nameH3 + ":" + str.tostring(array.get(cnt, 3)) + " "
+    if useHtf4
+        htfTxt += nameH4 + ":" + str.tostring(array.get(cnt, 4)) + " "
+    if useHtf5
+        htfTxt += nameH5 + ":" + str.tostring(array.get(cnt, 5)) + " "
+    if useHtf6
+        htfTxt += nameH6 + ":" + str.tostring(array.get(cnt, 6)) + " "
+    if useHtf7
+        htfTxt += nameH7 + ":" + str.tostring(array.get(cnt, 7)) + " "
+    if useHtf8
+        htfTxt += nameH8 + ":" + str.tostring(array.get(cnt, 8))
+
+    if array.size(eC.setups) > 0
+        for i = array.size(eC.setups) - 1 to 0
+            SMTSetup ts = array.get(eC.setups, i)
+            if na(newestS) and not ts.dead and not ts.expired
+                newestS := ts
+    if not na(newestS)
+        smtTxt := (newestS.isBull ? "Bullish" : "Bearish") + (newestS.confirmed ? " ✔ " : " … ") + newestS.refName
+        smtBg := color.new(newestS.isBull ? smtBullClr : smtBearClr, 30)
+
+    IFVGZone tl = na
+    if allowedEntryTF and array.size(eC.ifvgList) > 0
+        tl := array.get(eC.ifvgList, array.size(eC.ifvgList) - 1)
+        ifvgTxt := (tl.isBull ? "Bullish" : "Bearish") + (tl.htfTag != "" ? " in " + f_tagText(tl.htfTag) : " (no HTF)")
+
+    bool sigRecent = withinLookback(lastSigBar)
+    string sigTxt = sigRecent ? lastSigTxt : "No Trade"
+    color sigBg = sigRecent ? (lastSigBull ? color.new(color.green, 20) : color.new(color.red, 20)) : grayBg
+    string filtTxt = (kzFilter ? "KZ " : "") + (keyFilter ? "KEY " : "") + (reqDisp ? "DISP " : "") + (reqSetupFvg ? "FVG " : "") + (reqMSS ? "MSS " : "")
+    if filtTxt == ""
+        filtTxt := "RAW SMT"
+    string feedTxt = eC.tfName + " (chart)" + (enF1 ? ", " + e1.tfName : "") + (enF2 ? ", " + e2.tfName : "") + (enF3 ? ", " + e3.tfName : "") + (enF4 ? ", " + e4.tfName : "")
+
+    table.cell(infoTable, 0, 0, "Killzone", bgcolor = color.gray, text_color = color.white)
+    table.cell(infoTable, 1, 0, kzTxt, bgcolor = grayBg, text_color = color.white)
+    table.cell(infoTable, 0, 1, "HTF FVGs", bgcolor = color.gray, text_color = color.white)
+    table.cell(infoTable, 1, 1, htfTxt, bgcolor = grayBg, text_color = color.white)
+    table.cell(infoTable, 0, 2, "SMT (" + eC.tfName + ")", bgcolor = color.gray, text_color = color.white)
+    table.cell(infoTable, 1, 2, smtTxt, bgcolor = smtBg, text_color = color.white)
+    table.cell(infoTable, 0, 3, "IFVG (" + eC.tfName + ")", bgcolor = color.gray, text_color = color.white)
+    table.cell(infoTable, 1, 3, ifvgTxt, bgcolor = grayBg, text_color = color.white)
+    table.cell(infoTable, 0, 4, "Signal", bgcolor = color.gray, text_color = color.white)
+    table.cell(infoTable, 1, 4, sigTxt, bgcolor = sigBg, text_color = color.white)
+    table.cell(infoTable, 0, 5, "Last position", bgcolor = color.gray, text_color = color.white)
+    table.cell(infoTable, 1, 5, lastPlanTxt, bgcolor = grayBg, text_color = color.white)
+    table.cell(infoTable, 0, 6, "Engines", bgcolor = color.gray, text_color = color.white)
+    table.cell(infoTable, 1, 6, feedTxt, bgcolor = grayBg, text_color = color.white)
+
+    if showDebug
+        var table dbgTable = table.new(position.bottom_right, 2, 10, border_width = 1)
+        string htfChk = ""
+        string liveTxt = "none live"
+        string blockTxt = "-"
+        string lastTag = eC.lastIfvgTag
+        if useHtf1
+            htfChk += nameH1 + (str.contains(lastTag, "|" + nameH1 + "|") ? "✓ " : "✗ ")
+        if useHtf2
+            htfChk += nameH2 + (str.contains(lastTag, "|" + nameH2 + "|") ? "✓ " : "✗ ")
+        if useHtf3
+            htfChk += nameH3 + (str.contains(lastTag, "|" + nameH3 + "|") ? "✓ " : "✗ ")
+        if useHtf4
+            htfChk += nameH4 + (str.contains(lastTag, "|" + nameH4 + "|") ? "✓ " : "✗ ")
+        if useHtf5
+            htfChk += nameH5 + (str.contains(lastTag, "|" + nameH5 + "|") ? "✓ " : "✗ ")
+        if useHtf6
+            htfChk += nameH6 + (str.contains(lastTag, "|" + nameH6 + "|") ? "✓ " : "✗ ")
+        if useHtf7
+            htfChk += nameH7 + (str.contains(lastTag, "|" + nameH7 + "|") ? "✓ " : "✗ ")
+        if useHtf8
+            htfChk += nameH8 + (str.contains(lastTag, "|" + nameH8 + "|") ? "✓ " : "✗ ")
+        if not na(newestS)
+            liveTxt := (newestS.isBull ? "Bull " : "Bear ") + (newestS.confirmed ? "confirmed" : "developing") + " @" + newestS.refName + " · " + (newestS.sweeper == 1 ? syminfo.ticker : corrName) + " swept" + (newestS.used ? " · SIGNAL FIRED" : "")
+            blockTxt := newestS.used ? "signal fired" : f_reason(eC, newestS)
+        string cntSmtTxt = "dev " + str.tostring(eC.cntSmtDev) + "  conf " + str.tostring(eC.cntSmtConf) + "  inval " + str.tostring(eC.cntSmtInv) + "  exp " + str.tostring(eC.cntSmtExp)
+        string cntIfvgTxt = "bull " + str.tostring(eC.cntIfvgBull) + "  bear " + str.tostring(eC.cntIfvgBear) + "  rejected(quality) " + str.tostring(eC.cntIfvgRej)
+        string cntSigTxt = "buy " + str.tostring(eC.cntBuy) + "  sell " + str.tostring(eC.cntSell)
+        string feedDbg = f_engSummary(e1) + " | " + f_engSummary(e2) + " | " + f_engSummary(e3) + " | " + f_engSummary(e4)
+        table.cell(dbgTable, 0, 0, "SMT log (" + eC.tfName + ")", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 0, eC.logSmt, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 1, "SMT live", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 1, liveTxt, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 2, "Blocker", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 2, blockTxt, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 3, "IFVG log", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 3, eC.logIfvg, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 4, "Last IFVG in", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 4, htfChk, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 5, "Pairing", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 5, eC.logPair, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 6, "SMT counts", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 6, cntSmtTxt, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 7, "IFVG counts", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 7, cntIfvgTxt, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 8, "Signals / filters", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 8, cntSigTxt + "  |  " + filtTxt, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 9, "MTF feeds", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 9, feedDbg, bgcolor = grayBg, text_color = color.white)
