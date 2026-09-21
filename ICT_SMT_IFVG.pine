@@ -30,6 +30,13 @@ indicator("ICT SMT + IFVG in HTF FVG", shorttitle = "ICT SMT/IFVG", overlay = tr
 //   * Every Buy/Sell gets a stop (sweep extreme or IFVG far side), fixed-RR and/or HTF-swing targets,
 //     and a contract count = Account risk / (stop distance in points x point value).
 // FILTERS (all optional, OFF by default): killzone, key level, displacement, FVG, MSS.
+// HTF ZONES (Phase 1 enhanced)
+//   * HTF FVGs and NDOGs (new day opening gaps) share one lifecycle: FRESH -> TOUCHED -> PARTIALLY_MITIGATED
+//     -> CE_50_MITIGATED -> DEFENDED / FILLED -> INVALIDATED.  CE = fixed 50% of the ORIGINAL gap.
+//   * A zone that is DEFENDED (price reached the CE and rejected it), FILLED or INVALIDATED stays on the
+//     chart under the existing box rules but is no longer ELIGIBLE for HTF confluence (IFVG-in-HTF test).
+//   * An LTF FVG must invert within 'Max Bars from FVG to Inversion' feed bars, or it is expired.
+//   * Retention of old marks is measured in DAYS (timestamps), SMT labels at the same extreme are merged.
 // DEBUG: table + gray notes on the chart + tooltips on SMT labels tell you WHY there was no signal.
 // =====================================================================================
 
@@ -52,6 +59,7 @@ keepAllIfvg    = input.bool(false, "Keep ALL IFVG boxes on past bars", group = g
 grpIFVG = "1 · IFVG (entry TFs only: 30s / 1m / 2m / 3m / 5m)"
 maxHiddenFVG = input.int(120, "Hidden FVG memory", minval = 10, maxval = 500, group = grpIFVG, tooltip = "How many not-yet-inverted FVGs are remembered (per feed).")
 maxFvgAge    = input.int(60, "Max hidden FVG age (bars)", minval = 5, maxval = 500, group = grpIFVG, tooltip = "An FVG that has not inverted within this many bars (of its own feed timeframe) expires.")
+maxFvgToIfvgBars = input.int(30, "Max Bars from FVG to Inversion", minval = 1, group = grpIFVG, tooltip = "An FVG must be inverted within this many bars of its formation to count as a valid IFVG. Counted in the feed's own bars from the candle that completed the FVG. An FVG that price closes through LATER than this is treated as expired: no IFVG box and no Buy/Sell.")
 minGapTicks  = input.int(0, "Minimum FVG size (ticks)", minval = 0, group = grpIFVG)
 fvgExtend    = input.int(15, "Extend boxes (chart bars)", minval = 0, group = grpIFVG)
 ifvgMaxAge   = input.int(50, "IFVG max age (bars)", minval = 1, group = grpIFVG, tooltip = "Counted (in feed bars) from the bar the FVG inverted. After this an IFVG can no longer be used for a signal.")
@@ -71,7 +79,11 @@ grpHTF = "2 · HTF FVG (the IFVG must sit in one)"
 requireHTF    = input.bool(true, "Require HTF FVG for Buy/Sell", group = grpHTF)
 htfContain    = input.string("Overlapping", "IFVG counts as in the HTF FVG when it is", options = ["Overlapping", "Fully inside"], group = grpHTF, tooltip = "Overlapping: any overlap between the IFVG box and the HTF FVG. Fully inside: the whole IFVG box lies inside the HTF FVG.")
 htfMatchDir   = input.bool(false, "HTF FVG direction must match the setup", group = grpHTF, tooltip = "On: bullish setups only use bullish HTF FVGs, bearish setups only bearish ones. Off: either direction counts.")
-htfInvalidate = input.string("Close through", "HTF FVG is removed when price", options = ["Close through", "Wick through"], group = grpHTF, tooltip = "Close through: a candle closes beyond the far side of the gap. Wick through: any wick passes the far side.")
+htfInvalidate = input.string("Close through", "HTF FVG is removed when price", options = ["Close through", "Wick through"], group = grpHTF, tooltip = "Close through: a candle closes beyond the far side of the gap. Wick through: any wick passes the far side. (Unchanged: this still removes the zone. The 50% CE state machine below only decides ELIGIBILITY.)")
+htfEligOn     = input.bool(true, "Only ELIGIBLE zones count for HTF confluence (50% CE state)", group = grpHTF, tooltip = "Every HTF FVG / NDOG runs a lifecycle on confirmed chart bars: FRESH -> TOUCHED -> PARTIALLY_MITIGATED -> CE_50_MITIGATED -> DEFENDED / FILLED -> INVALIDATED. CE = the fixed 50% of the ORIGINAL gap. A zone that is DEFENDED (price reached the CE and rejected it), FILLED (a wick traded through the whole gap) or INVALIDATED is no longer eligible: it stays on the chart (dashed border, state in its text) but an IFVG inside it no longer counts as 'in HTF FVG'. Off: every zone in the list counts, as before.")
+htfCeMethod   = input.string("Close Back Across CE", "50% CE Rejection Method", options = ["Wick Rejection", "Close Back Across CE", "Displacement Away From CE", "Close + Displacement"], group = grpHTF, tooltip = "How a zone becomes DEFENDED once price has reached its 50% CE (checked on the CE-hit bar and every confirmed chart bar after it). Wick Rejection: a bar wicks to/through the CE and closes back on the gap's defending side on that same bar. Close Back Across CE: any bar after the CE hit closes on the defending side of the CE. Displacement Away From CE: a displacement candle (section 7 'Displacement' thresholds, chart ATR) moving away from the CE. Close + Displacement: a close back across the CE AND a displacement candle away from it.")
+htfMaxDays    = input.int(7, "HTF FVG / NDOG max age (days)", minval = 1, group = grpHTF, tooltip = "A zone older than this (measured from the chart bar that created it, by timestamp) leaves the active list. Its box follows the existing keep / delete rules.")
+useNdog       = input.bool(true, "Use NDOG (New Day Opening Gap) as an HTF zone", group = grpHTF, tooltip = "NDOG = the gap between the last close of the previous trading day and the first open of the new day, read from the chart's own confirmed bars (no request.security). Gap up = bullish zone (support), gap down = bearish zone (resistance). It uses the same 50% CE lifecycle, the same 'removed when price' rule (checked on chart bars) and the same 'Max active per timeframe' cap as the HTF FVGs.")
 htfAnchor     = input.string("Candle 2 (gap candle)", "Anchor HTF FVG box at", options = ["Candle 1 (first of the 3)", "Candle 2 (gap candle)"], group = grpHTF, tooltip = "The LEFT edge of the box is drawn on the historical HTF candle where the 3-candle FVG formed (time-anchored, so it sits on the right candles on any chart timeframe) instead of floating ahead of price.")
 htfExtendMode = input.string("Extend with price", "HTF FVG box width", options = ["Extend with price", "Fixed to the 3 candles"], group = grpHTF, tooltip = "Extend with price: the right edge follows the current bar (+ 'Extend boxes' bars) until the gap is mitigated, then freezes. Fixed: the box only covers the 3-candle sequence (candle 1/2 to the close of candle 3).")
 htfMaxPerTf   = input.int(6, "Max active FVGs per timeframe", minval = 1, maxval = 20, group = grpHTF)
@@ -103,7 +115,9 @@ pivotRight     = input.int(5, "Feed swing: bars right", minval = 1, group = grpS
 syncBars       = input.int(3, "Swing sync window (bars)", minval = 0, group = grpSMT, tooltip = "The other market's level for a swing = its extreme within +/- this many bars of the swing. Used up to a maximum of the 'bars right' value.")
 smtConfirmBars = input.int(3, "SMT confirmation bars", minval = 1, group = grpSMT, tooltip = "An SMT becomes CONFIRMED this many bars after the sweep if the other market has not taken its level. The sweeper can keep making new extremes meanwhile; it does not reset the count.")
 smtLifeBars    = input.int(30, "SMT setup lifetime (bars)", minval = 1, group = grpSMT, tooltip = "Counted from the sweeper's latest extreme. After this the SMT can no longer produce a signal.")
-smtMaxAge      = input.int(500, "Remove SMT marks after (bars)", minval = 1, group = grpSMT, tooltip = "Only used when 'Keep marks on past bars' is OFF.")
+smtMaxDays     = input.int(7, "Remove SMT marks after (days)", minval = 1, group = grpSMT, tooltip = "Only used when 'Keep marks on past bars' is OFF. Measured by timestamp from the SMT's sweep candle.")
+smtMerge       = input.bool(true, "Merge SMT labels that share the same extreme (high / low)", group = grpSMT, tooltip = "When several liquidity sweeps (other references, other engine timeframes) produce SMTs anchored to the SAME price extreme, only one label is drawn and the others are appended to it ('+PDL[3m]'). Detection, alerts, tables and the state machine are not affected: this is label de-duplication only.")
+smtMergeTicks  = input.int(0, "  merge tolerance (ticks)", minval = 0, group = grpSMT, tooltip = "Two SMT extremes count as the same edge when they are within this many ticks of each other. 0 = exactly the same price.")
 smtBullClr     = input.color(color.teal, "Bullish SMT", group = grpSMT)
 smtBearClr     = input.color(color.red, "Bearish SMT", group = grpSMT)
 removeInvalidatedSMT = input.bool(true, "Remove an SMT immediately once it's broken/invalidated", group = grpSMT, tooltip = "On: the moment the other market also takes the level (whether that happens before or after the SMT confirmed), its label/connector line is deleted right away instead of lingering until it naturally expires. Off: restores the old behavior.")
@@ -153,7 +167,7 @@ grpSignal = "8 · Buy / Sell signal"
 reqConfirmedSMT = input.bool(true, "Require confirmed SMT for Buy/Sell", group = grpSignal, tooltip = "On: the SMT must be CONFIRMED. Off: a developing SMT is enough (the SMT can still disappear later).")
 confluenceBars  = input.int(10, "Max bars from SMT to IFVG", minval = 1, group = grpSignal)
 ifvgAfterSweep  = input.bool(true, "IFVG must form at/after the SMT", group = grpSignal, tooltip = "Off: the IFVG may also have formed up to N bars BEFORE the SMT appeared.")
-signalMaxAge    = input.int(150, "Remove Buy/Sell marks after (bars)", minval = 1, group = grpSignal, tooltip = "Only used when 'Keep marks on past bars' is OFF.")
+signalMaxDays   = input.int(7, "Remove Buy/Sell marks after (days)", minval = 1, group = grpSignal, tooltip = "Only used when 'Keep marks on past bars' is OFF. Measured by timestamp from the signal bar.")
 
 grpMtf = "9 · Multi-timeframe feeds (higher-TF SMTs & signals on lower charts)"
 useMtf = input.bool(true, "Run the engine on extra (higher) timeframes", group = grpMtf, tooltip = "Each enabled feed runs the FULL SMT + IFVG engine on that timeframe's CLOSED candles (both markets) and draws its SMTs, IFVGs and Buy/Sell marks on the chart you are viewing, tagged with the feed timeframe (e.g. 'BUY 3m' on a 1m chart). A feed is skipped when it is not higher than the chart timeframe. Buy/Sell only fire from entry timeframes (30s/1/2/3/5m); a 15m feed still shows its SMTs. Feed marks appear on the first chart bar after the feed candle closes.")
@@ -207,6 +221,18 @@ type HtfFVG
     int    slot
     bool   used = false
     box    b
+    // lifecycle (HZ_* constants) + HTF confluence eligibility.  top / bottom are the ORIGINAL
+    // creation boundaries and are never changed; ce = (top + bottom) / 2 at creation.
+    int    state = 0
+    bool   eligible = true
+    float  ce
+    int    bornT
+    int    firstTouchTime
+    int    firstTouchBar
+    float  firstTouchPrice
+    int    firstCEHitTime
+    int    firstCEHitBar
+    bool   ceCloseBack = false
 
 type SMTSetup
     bool   isBull
@@ -239,6 +265,17 @@ type SMTSetup
     string note = ""
     label  lbl
     line   ln
+    int    anchorId = -1
+    int    hostId = -1
+
+// one drawn SMT label per (direction, extreme price): other SMTs at the same edge join it
+type SmtAnchor
+    int    id
+    bool   isBull
+    float  price
+    label  lbl
+    string extra = ""
+    bool   alive = true
 
 type LiqRef
     string   name
@@ -253,6 +290,7 @@ type LiqRef
 
 type SigMark
     int   markBar
+    int   markTime
     label lbl
 
 // one closed candle of ONE timeframe for BOTH markets (what an engine consumes)
@@ -308,6 +346,7 @@ type Engine
     int    cntIfvgBull = 0
     int    cntIfvgBear = 0
     int    cntIfvgRej = 0
+    int    cntIfvgOld = 0
     int    cntBuy = 0
     int    cntSell = 0
     string logSmt = "-"
@@ -352,6 +391,8 @@ type TradePlan
 
 // ============================== STATE ==============================
 var array<HtfFVG>    htfList = array.new<HtfFVG>()
+var array<SmtAnchor> smtAnchors = array.new<SmtAnchor>()
+var array<int>       smtAnchorSeq = array.new_int(1, 0)
 var array<SigMark>   sigList = array.new<SigMark>()
 var array<TradePlan> plans   = array.new<TradePlan>()
 var int    lastSigBar  = na
@@ -359,6 +400,15 @@ var bool   lastSigBull = false
 var string lastSigTxt  = "No Trade"
 var string lastPlanTxt = "-"
 chartMs = timeframe.in_seconds() * 1000
+dayMs = 24 * 60 * 60 * 1000
+// HTF FVG / NDOG lifecycle states
+HZ_FRESH = 0
+HZ_TOUCHED = 1
+HZ_PARTIAL = 2
+HZ_CE50 = 3
+HZ_DEFENDED = 4
+HZ_FILLED = 5
+HZ_INVALID = 6
 
 // ============================== HELPERS ==============================
 f_minGapAtr() =>
@@ -427,7 +477,79 @@ f_passes(SMTSetup s) =>
     bool levelOk = not keyFilter or keyOk
     timeOk and levelOk
 
-// tags of active HTF FVGs whose zone overlaps [lo, hi] (a "tap")
+// ---- HTF FVG / NDOG lifecycle ----
+//   FRESH -> TOUCHED -> PARTIALLY_MITIGATED -> CE_50_MITIGATED -> DEFENDED / FILLED (-> INVALIDATED)
+// Evaluated on every CONFIRMED chart bar with that bar's own OHLC (no lookahead).  CE is the fixed
+// 50% of the ORIGINAL gap.  DEFENDED / FILLED / INVALIDATED zones keep their box (existing rules)
+// but lose HTF-confluence eligibility.  Existing 'removed when price' invalidation is untouched.
+f_hzStateName(int st) =>
+    st == HZ_FRESH ? "FRESH" : st == HZ_TOUCHED ? "TOUCHED" : st == HZ_PARTIAL ? "PARTIAL" : st == HZ_CE50 ? "CE50" : st == HZ_DEFENDED ? "DEFENDED" : st == HZ_FILLED ? "FILLED" : "INVALIDATED"
+
+f_hzVisual(HtfFVG z) =>
+    if not na(z.b)
+        box.set_text(z.b, z.tf + " · " + f_hzStateName(z.state))
+        if not z.eligible
+            box.set_border_style(z.b, line.style_dashed)
+    true
+
+f_hzSetState(HtfFVG z, int st) =>
+    if st != z.state
+        z.state := st
+        if st >= HZ_DEFENDED
+            z.eligible := false
+        f_hzVisual(z)
+    true
+
+// one confirmed chart bar (o/h/l/c, chart ATR) against one zone
+f_hzUpdate(HtfFVG z, float o, float h, float l, float c, float atrV) =>
+    if z.state < HZ_FILLED
+        bool touched = z.isBull ? l <= z.top : h >= z.bottom
+        bool ceHit = z.isBull ? l <= z.ce : h >= z.ce
+        bool filled = z.isBull ? l <= z.bottom : h >= z.top
+        bool closedInGap = c <= z.top and c >= z.bottom
+        float edge = z.isBull ? l : h
+        // first interaction / first CE hit: recorded once, never overwritten
+        if touched and na(z.firstTouchBar)
+            z.firstTouchTime := time
+            z.firstTouchBar := bar_index
+            z.firstTouchPrice := edge
+        if ceHit and na(z.firstCEHitBar)
+            z.firstCEHitTime := time
+            z.firstCEHitBar := bar_index
+        if filled
+            f_hzSetState(z, HZ_FILLED)
+        else if z.state < HZ_DEFENDED
+            if ceHit and z.state < HZ_CE50
+                f_hzSetState(z, HZ_CE50)
+            else if touched and z.state < HZ_CE50
+                f_hzSetState(z, closedInGap ? HZ_PARTIAL : math.max(z.state, HZ_TOUCHED))
+            // rejection / defense test: on the CE-hit bar and every bar after it
+            if z.state == HZ_CE50
+                bool defSide = z.isBull ? c > z.ce : c < z.ce
+                float body = math.abs(c - o)
+                float rng = math.max(h - l, syminfo.mintick)
+                float safeAtr = na(atrV) or atrV <= 0.0 ? syminfo.mintick : atrV
+                bool dispAway = body >= dispAtrMult * safeAtr and body / rng >= dispBodyRatio and (z.isBull ? c > o : c < o)
+                bool defended = false
+                if htfCeMethod == "Wick Rejection"
+                    defended := ceHit and defSide
+                else if htfCeMethod == "Close Back Across CE"
+                    defended := defSide
+                else if htfCeMethod == "Displacement Away From CE"
+                    defended := dispAway
+                else
+                    defended := dispAway and (defSide or z.ceCloseBack)
+                if defSide
+                    z.ceCloseBack := true
+                if defended
+                    f_hzSetState(z, HZ_DEFENDED)
+    true
+
+// does this zone count for HTF confluence right now?
+f_hzEligible(HtfFVG z) =>
+    not htfEligOn or z.eligible
+
+// tags of ELIGIBLE HTF zones whose area overlaps [lo, hi] (a "tap")
 f_htfOverlap(float lo, float hi, bool isBull) =>
     string tag = ""
     if array.size(htfList) > 0
@@ -435,11 +557,11 @@ f_htfOverlap(float lo, float hi, bool isBull) =>
             HtfFVG z = array.get(htfList, i)
             bool dirOk = not htfMatchDir or z.isBull == isBull
             bool hit = hi >= z.bottom and lo <= z.top
-            if dirOk and hit
+            if dirOk and hit and f_hzEligible(z)
                 tag := f_tagAdd(tag, z.tf)
     tag
 
-// tags of active HTF FVGs that contain the IFVG box (overlapping or fully inside)
+// tags of ELIGIBLE HTF zones that contain the IFVG box (overlapping or fully inside)
 f_htfContain(float top, float bot, bool isBull) =>
     string tag = ""
     if array.size(htfList) > 0
@@ -449,11 +571,11 @@ f_htfContain(float top, float bot, bool isBull) =>
             bool inside = bot >= z.bottom and top <= z.top
             bool overlap = top >= z.bottom and bot <= z.top
             bool posOk = htfContain == "Fully inside" ? inside : overlap
-            if dirOk and posOk
+            if dirOk and posOk and f_hzEligible(z)
                 tag := f_tagAdd(tag, z.tf)
     tag
 
-// remember which HTF FVGs a signal used (so their boxes can stay on the chart)
+// remember which HTF zones a signal used (so their boxes can stay on the chart)
 f_markHtfUsed(float top, float bot, bool isBull) =>
     if array.size(htfList) > 0
         for i = 0 to array.size(htfList) - 1
@@ -462,7 +584,7 @@ f_markHtfUsed(float top, float bot, bool isBull) =>
             bool inside = bot >= z.bottom and top <= z.top
             bool overlap = top >= z.bottom and bot <= z.top
             bool posOk = htfContain == "Fully inside" ? inside : overlap
-            if dirOk and posOk
+            if dirOk and posOk and f_hzEligible(z)
                 z.used := true
     true
 
@@ -490,6 +612,16 @@ f_capHtf(int slot) =>
                     array.remove(htfList, i)
     true
 
+// zones older than htfMaxDays (timestamp from the chart bar that created them) leave the active list
+f_expireHtfByDays() =>
+    if array.size(htfList) > 0
+        for i = array.size(htfList) - 1 to 0
+            HtfFVG z = array.get(htfList, i)
+            if not na(z.bornT) and time - z.bornT > htfMaxDays * dayMs
+                f_retireHtfBox(z.b, keepHistory and z.used)
+                array.remove(htfList, i)
+    true
+
 // remove zones of ONE HTF slot only when THAT slot's own just-closed bar invalidates them.
 // isNew is only true once per closed bar of that specific timeframe, so a 1m candle can never
 // trigger this for a 1H zone -- only an actual closed 1H candle (hC/lC/cC = that 1H bar's own
@@ -505,6 +637,7 @@ f_invalidateHtf(int slot, bool isNew, float hC, float lC, float cC) =>
                 else
                     hzMit := hz.isBull ? lC < hz.bottom : hC > hz.top
                 if hzMit
+                    f_hzSetState(hz, HZ_INVALID)
                     f_retireHtfBox(hz.b, keepHistory and hz.used)
                     array.remove(htfList, i)
     true
@@ -529,13 +662,32 @@ f_addHtf(bool isNew, bool en, string name, int slot, float hC, float lC, float h
     if bullGap
         if showHTF
             hbBull := box.new(left = leftT, top = lC, right = rightT, bottom = hA, xloc = xloc.bar_time, border_color = htfBull, bgcolor = htfBull, text = name, text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
-        array.push(htfList, HtfFVG.new(isBull = true, top = lC, bottom = hA, tf = name, slot = slot, b = hbBull))
+        array.push(htfList, HtfFVG.new(isBull = true, top = lC, bottom = hA, tf = name, slot = slot, b = hbBull, ce = (lC + hA) / 2, bornT = time))
     if bearGap
         if showHTF
             hbBear := box.new(left = leftT, top = lA, right = rightT, bottom = hC, xloc = xloc.bar_time, border_color = htfBear, bgcolor = htfBear, text = name, text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
-        array.push(htfList, HtfFVG.new(isBull = false, top = lA, bottom = hC, tf = name, slot = slot, b = hbBear))
+        array.push(htfList, HtfFVG.new(isBull = false, top = lA, bottom = hC, tf = name, slot = slot, b = hbBear, ce = (lA + hC) / 2, bornT = time))
     if bullGap or bearGap
         f_capHtf(slot)
+    true
+
+// NDOG = New Day Opening Gap: previous day's last close -> new day's first open, read from the chart's
+// own confirmed bars (slot 9).  Gap up = bullish zone (support), gap down = bearish (resistance).
+f_addNdog(bool newDay, float prevClose, float dayOpen) =>
+    bool valid = useNdog and newDay and not na(prevClose) and not na(dayOpen)
+    float minGap = htfMinGapTicks * syminfo.mintick
+    bool gapUp = valid and dayOpen > prevClose and (dayOpen - prevClose) >= minGap
+    bool gapDn = valid and dayOpen < prevClose and (prevClose - dayOpen) >= minGap
+    if gapUp or gapDn
+        float top = gapUp ? dayOpen : prevClose
+        float bot = gapUp ? prevClose : dayOpen
+        color clr = gapUp ? htfBull : htfBear
+        int rightT = htfExtendMode == "Extend with price" ? time + fvgExtend * chartMs : time_close
+        box nb = na
+        if showHTF
+            nb := box.new(left = time, top = top, right = rightT, bottom = bot, xloc = xloc.bar_time, border_color = clr, bgcolor = clr, text = "NDOG", text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
+        array.push(htfList, HtfFVG.new(isBull = gapUp, top = top, bottom = bot, tf = "NDOG", slot = 9, b = nb, ce = (top + bot) / 2, bornT = time))
+        f_capHtf(9)
     true
 
 // session range for BOTH markets. Returns the last COMPLETED range (frozen at session end).
@@ -668,6 +820,47 @@ f_engSummary(Engine e) =>
         out := e.tfName + ": smt " + str.tostring(e.cntSmtConf) + "/" + str.tostring(e.cntSmtDev) + (e.entryTf ? " buy " + str.tostring(e.cntBuy) + " sell " + str.tostring(e.cntSell) : " (SMT only)")
     out
 
+// ---- SMT label de-duplication by extreme edge ----
+// One label per (direction, extreme price).  A later SMT at the same edge (another reference, another
+// engine timeframe) is appended to that label instead of drawing an overlapping one.  Labels only.
+f_anchorGet(int id) =>
+    SmtAnchor out = na
+    if id >= 0 and array.size(smtAnchors) > 0
+        for i = 0 to array.size(smtAnchors) - 1
+            SmtAnchor a = array.get(smtAnchors, i)
+            if a.id == id
+                out := a
+    out
+
+f_anchorFind(bool isBull, float price) =>
+    int out = -1
+    float tol = smtMergeTicks * syminfo.mintick + syminfo.mintick * 0.01
+    if array.size(smtAnchors) > 0
+        for i = 0 to array.size(smtAnchors) - 1
+            SmtAnchor a = array.get(smtAnchors, i)
+            if out < 0 and a.alive and a.isBull == isBull and not na(a.lbl) and math.abs(a.price - price) <= tol
+                out := a.id
+    out
+
+f_anchorNew(bool isBull, float price, label lb) =>
+    if array.size(smtAnchors) > 0
+        for i = array.size(smtAnchors) - 1 to 0
+            SmtAnchor a = array.get(smtAnchors, i)
+            if not a.alive
+                array.remove(smtAnchors, i)
+    int id = array.get(smtAnchorSeq, 0) + 1
+    array.set(smtAnchorSeq, 0, id)
+    array.push(smtAnchors, SmtAnchor.new(id = id, isBull = isBull, price = price, lbl = lb))
+    while array.size(smtAnchors) > 200
+        array.shift(smtAnchors)
+    id
+
+f_anchorKill(int id) =>
+    SmtAnchor a = f_anchorGet(id)
+    if not na(a)
+        a.alive := false
+    true
+
 // ---- methods that change objects ----
 method kill(SMTSetup this) =>
     this.dead := true
@@ -677,6 +870,7 @@ method kill(SMTSetup this) =>
     if not na(this.ln)
         line.delete(this.ln)
         this.ln := na
+    f_anchorKill(this.anchorId)
     true
 
 // (re)arm a fixed level reference (PDH, PWH, Asia, London...) with fresh levels
@@ -720,14 +914,44 @@ method draw(SMTSetup this, Engine e) =>
         sty := this.isBull ? label.style_label_up : label.style_label_down
     color txtCol = showSmtShapes ? color.white : col
     if showOk or showRej
-        if na(this.lbl)
-            this.lbl := label.new(x = this.legTime, y = this.legPrice, text = txt, xloc = xloc.bar_time, style = sty, color = col, textcolor = txtCol, size = f_size(smtLabelSize), tooltip = tt)
-        else
-            label.set_xy(this.lbl, this.legTime, this.legPrice)
-            label.set_text(this.lbl, txt)
-            label.set_color(this.lbl, col)
-            label.set_textcolor(this.lbl, txtCol)
-            label.set_tooltip(this.lbl, tt)
+        // de-duplication: a new label at an extreme that already carries a live SMT label joins that label
+        if smtMerge and showOk and na(this.lbl) and this.hostId < 0
+            int hid = f_anchorFind(this.isBull, this.legPrice)
+            if hid >= 0 and hid != this.anchorId
+                SmtAnchor host = f_anchorGet(hid)
+                if not na(host)
+                    this.hostId := hid
+                    string add = " +" + this.refName + "[" + e.tfName + "]"
+                    host.extra := host.extra + add
+                    label.set_text(host.lbl, label.get_text(host.lbl) + add)
+        if this.hostId >= 0
+            SmtAnchor hostA = f_anchorGet(this.hostId)
+            if na(hostA) or not hostA.alive or na(hostA.lbl)
+                this.hostId := -1
+        if this.hostId < 0
+            string extraTxt = ""
+            if this.anchorId >= 0
+                SmtAnchor own = f_anchorGet(this.anchorId)
+                if not na(own)
+                    extraTxt := own.extra
+            string txtAll = txt + extraTxt
+            if na(this.lbl)
+                this.lbl := label.new(x = this.legTime, y = this.legPrice, text = txtAll, xloc = xloc.bar_time, style = sty, color = col, textcolor = txtCol, size = f_size(smtLabelSize), tooltip = tt)
+            else
+                label.set_xy(this.lbl, this.legTime, this.legPrice)
+                label.set_text(this.lbl, txtAll)
+                label.set_color(this.lbl, col)
+                label.set_textcolor(this.lbl, txtCol)
+                label.set_tooltip(this.lbl, tt)
+            if smtMerge and showOk
+                if this.anchorId < 0
+                    this.anchorId := f_anchorNew(this.isBull, this.legPrice, this.lbl)
+                else
+                    SmtAnchor own2 = f_anchorGet(this.anchorId)
+                    if not na(own2)
+                        own2.price := this.legPrice
+                        own2.lbl := this.lbl
+                        own2.alive := true
         if showOk and showSmtLines and not na(this.lvlTime)
             if na(this.ln)
                 this.ln := line.new(this.lvlTime, this.lvlA, this.legTime, this.legPrice, xloc = xloc.bar_time, color = col, width = 1, style = line.style_dotted)
@@ -746,6 +970,7 @@ method draw(SMTSetup this, Engine e) =>
         if not na(this.ln)
             line.delete(this.ln)
             this.ln := na
+        f_anchorKill(this.anchorId)
     true
 
 // a fresh engine with its 8 fixed liquidity references
@@ -801,6 +1026,9 @@ newSw = not na(aTc) and (na(aTc[1]) or aTc != aTc[1])
 [pdhB, pdlB] = request.security(correlatedSym, "D", [high[1], low[1]], lookahead = barmerge.lookahead_on)
 [pwhA, pwlA] = request.security(syminfo.tickerid, "W", [high[1], low[1]], lookahead = barmerge.lookahead_on)
 [pwhB, pwlB] = request.security(correlatedSym, "W", [high[1], low[1]], lookahead = barmerge.lookahead_on)
+// first confirmed chart bar of a new trading day (chart's own daily session, no request.security)
+dayT = time("D")
+bool newDay = not na(dayT) and not na(dayT[1]) and dayT != dayT[1]
 bool pdNew = not na(pdhA) and not na(pdlA) and not na(pdhB) and not na(pdlB) and (na(pdhA[1]) or pdhA != pdhA[1] or pdlA != pdlA[1] or pdhB != pdhB[1] or pdlB != pdlB[1])
 bool pwNew = not na(pwhA) and not na(pwlA) and not na(pwhB) and not na(pwlB) and (na(pwhA[1]) or pwhA != pwhA[1] or pwlA != pwlA[1] or pwhB != pwhB[1] or pwlB != pwlB[1])
 
@@ -1153,21 +1381,26 @@ f_runEngine(Engine e, Feed f) =>
                     bool bearInv = rf.dir == 1 and f.c < rf.bottom - cleanBreakBuffer
                     bool qOk = false
                     if (bullInv or bearInv) and not foundInv
-                        qOk := f_qualityPass(rf.gapAtr, rf.bodyRatio, rf.rangeAtr)
-                        if qOk
-                            foundInv := true
-                            newBullIFVG := bullInv
-                            newBearIFVG := bearInv
-                            newTop := rf.top
-                            newBot := rf.bottom
-                            newFormT := rf.formT
+                        if rf.age > maxFvgToIfvgBars
+                            // inverted too long after it formed: expired, no IFVG box, no Buy/Sell
+                            e.cntIfvgOld := e.cntIfvgOld + 1
+                            e.logIfvg := (bullInv ? "Bull" : "Bear") + " inversion ignored: FVG too old (" + str.tostring(rf.age) + " > " + str.tostring(maxFvgToIfvgBars) + " bars)"
                         else
-                            e.cntIfvgRej := e.cntIfvgRej + 1
-                            if bullInv
-                                e.lastRejBullBar := e.idx
+                            qOk := f_qualityPass(rf.gapAtr, rf.bodyRatio, rf.rangeAtr)
+                            if qOk
+                                foundInv := true
+                                newBullIFVG := bullInv
+                                newBearIFVG := bearInv
+                                newTop := rf.top
+                                newBot := rf.bottom
+                                newFormT := rf.formT
                             else
-                                e.lastRejBearBar := e.idx
-                            e.logIfvg := (bullInv ? "Bull" : "Bear") + " IFVG rejected by quality filter (" + filterMode + ")"
+                                e.cntIfvgRej := e.cntIfvgRej + 1
+                                if bullInv
+                                    e.lastRejBullBar := e.idx
+                                else
+                                    e.lastRejBearBar := e.idx
+                                e.logIfvg := (bullInv ? "Bull" : "Bear") + " IFVG rejected by quality filter (" + filterMode + ")"
                         array.remove(e.rawList, i)
 
             string ifTag = ""
@@ -1277,7 +1510,7 @@ f_runEngine(Engine e, Feed f) =>
                             if se.expired
                                 removeIt := true
                         else
-                            if e.idx - se.legBar > smtMaxAge
+                            if time - se.legTime > smtMaxDays * dayMs
                                 se.kill()
                                 removeIt := true
                     if removeIt
@@ -1377,7 +1610,7 @@ f_onSignal(SigInfo s) =>
             mk := label.new(bar_index, low, "▲\n" + dirTxt + " " + s.tfName, yloc = yloc.belowbar, style = label.style_none, textcolor = color.lime, size = f_size(sigMarkSize), tooltip = tt)
         else
             mk := label.new(bar_index, high, dirTxt + " " + s.tfName + "\n▼", yloc = yloc.abovebar, style = label.style_none, textcolor = color.red, size = f_size(sigMarkSize), tooltip = tt)
-        array.push(sigList, SigMark.new(markBar = bar_index, lbl = mk))
+        array.push(sigList, SigMark.new(markBar = bar_index, markTime = time, lbl = mk))
     // ----- entry / SL / TP lines + plan label (bar_index anchored: these are chart-native objects) -----
     if showTrade
         int x2 = bar_index + 1
@@ -1407,7 +1640,8 @@ string buyMsg  = ""
 string sellMsg = ""
 
 if barstate.isconfirmed
-    // ---------- A. HTF FVG zones: invalidate using EACH slot's OWN closed bar, then add any new zone ----------
+    // ---------- A. HTF FVG / NDOG zones: age out, invalidate using EACH slot's OWN closed bar, then add any new zone ----------
+    f_expireHtfByDays()
     f_invalidateHtf(1, newH1, hC1, lC1, cC1)
     f_invalidateHtf(2, newH2, hC2, lC2, cC2)
     f_invalidateHtf(3, newH3, hC3, lC3, cC3)
@@ -1416,6 +1650,7 @@ if barstate.isconfirmed
     f_invalidateHtf(6, newH6, hC6, lC6, cC6)
     f_invalidateHtf(7, newH7, hC7, lC7, cC7)
     f_invalidateHtf(8, newH8, hC8, lC8, cC8)
+    f_invalidateHtf(9, useNdog, high, low, close)
     f_addHtf(newH1, useHtf1, nameH1, 1, hC1, lC1, hA1, lA1, tA1, tM1, tX1)
     f_addHtf(newH2, useHtf2, nameH2, 2, hC2, lC2, hA2, lA2, tA2, tM2, tX2)
     f_addHtf(newH3, useHtf3, nameH3, 3, hC3, lC3, hA3, lA3, tA3, tM3, tX3)
@@ -1424,6 +1659,7 @@ if barstate.isconfirmed
     f_addHtf(newH6, useHtf6, nameH6, 6, hC6, lC6, hA6, lA6, tA6, tM6, tX6)
     f_addHtf(newH7, useHtf7, nameH7, 7, hC7, lC7, hA7, lA7, tA7, tM7, tX7)
     f_addHtf(newH8, useHtf8, nameH8, 8, hC8, lC8, hA8, lA8, tA8, tM8, tX8)
+    f_addNdog(newDay, close[1], open)
     // "Extend with price": the right edge follows the current bar; "Fixed": the box never moves
     if htfExtendMode == "Extend with price" and array.size(htfList) > 0
         for i = 0 to array.size(htfList) - 1
@@ -1441,6 +1677,13 @@ if barstate.isconfirmed
     bearSmtDet  := beC or be1 or be2 or be3 or be4
     bullSmtConf := bcC or bc1 or bc2 or bc3 or bc4
     bearSmtConf := bccC or bcc1 or bcc2 or bcc3 or bcc4
+
+    // ---------- HTF zone lifecycle / 50% CE eligibility on this confirmed chart bar ----------
+    // Runs AFTER the engines so an IFVG that forms on the very bar that defends a zone still sees it as
+    // eligible; from the next bar on the zone is DEFENDED and no longer counts.
+    if array.size(htfList) > 0
+        for i = 0 to array.size(htfList) - 1
+            f_hzUpdate(array.get(htfList, i), open, high, low, close, atrValue)
 
     // ---------- signals -> marks, stop / targets, contracts ----------
     array<SigInfo> sigs = array.new<SigInfo>()
@@ -1525,7 +1768,7 @@ if barstate.isconfirmed
     if array.size(sigList) > 0
         for i = array.size(sigList) - 1 to 0
             SigMark sm = array.get(sigList, i)
-            if not keepHistory and bar_index - sm.markBar > signalMaxAge
+            if not keepHistory and time - sm.markTime > signalMaxDays * dayMs
                 label.delete(sm.lbl)
                 array.remove(sigList, i)
     while array.size(sigList) > 300
@@ -1548,7 +1791,8 @@ if sellSignal
 if barstate.islast
     var table infoTable = table.new(position.top_right, 2, 7, border_width = 1)
     color grayBg = color.new(color.gray, 50)
-    array<int> cnt = array.new_int(9, 0)
+    array<int> cnt = array.new_int(10, 0)
+    array<int> cntE = array.new_int(10, 0)
     string htfTxt = ""
     string kzTxt = kzTag == "" ? "Outside" : (kzOkNow ? kzTag : kzTag + " (off)")
     string smtTxt = "None"
@@ -1556,26 +1800,31 @@ if barstate.islast
     string ifvgTxt = allowedEntryTF ? "None" : "N/A (TF)"
     SMTSetup newestS = na
 
+    // eligible / total per slot
     if array.size(htfList) > 0
         for i = 0 to array.size(htfList) - 1
             HtfFVG zc = array.get(htfList, i)
             array.set(cnt, zc.slot, array.get(cnt, zc.slot) + 1)
+            if f_hzEligible(zc)
+                array.set(cntE, zc.slot, array.get(cntE, zc.slot) + 1)
     if useHtf1
-        htfTxt += nameH1 + ":" + str.tostring(array.get(cnt, 1)) + " "
+        htfTxt += nameH1 + ":" + str.tostring(array.get(cntE, 1)) + "/" + str.tostring(array.get(cnt, 1)) + " "
     if useHtf2
-        htfTxt += nameH2 + ":" + str.tostring(array.get(cnt, 2)) + " "
+        htfTxt += nameH2 + ":" + str.tostring(array.get(cntE, 2)) + "/" + str.tostring(array.get(cnt, 2)) + " "
     if useHtf3
-        htfTxt += nameH3 + ":" + str.tostring(array.get(cnt, 3)) + " "
+        htfTxt += nameH3 + ":" + str.tostring(array.get(cntE, 3)) + "/" + str.tostring(array.get(cnt, 3)) + " "
     if useHtf4
-        htfTxt += nameH4 + ":" + str.tostring(array.get(cnt, 4)) + " "
+        htfTxt += nameH4 + ":" + str.tostring(array.get(cntE, 4)) + "/" + str.tostring(array.get(cnt, 4)) + " "
     if useHtf5
-        htfTxt += nameH5 + ":" + str.tostring(array.get(cnt, 5)) + " "
+        htfTxt += nameH5 + ":" + str.tostring(array.get(cntE, 5)) + "/" + str.tostring(array.get(cnt, 5)) + " "
     if useHtf6
-        htfTxt += nameH6 + ":" + str.tostring(array.get(cnt, 6)) + " "
+        htfTxt += nameH6 + ":" + str.tostring(array.get(cntE, 6)) + "/" + str.tostring(array.get(cnt, 6)) + " "
     if useHtf7
-        htfTxt += nameH7 + ":" + str.tostring(array.get(cnt, 7)) + " "
+        htfTxt += nameH7 + ":" + str.tostring(array.get(cntE, 7)) + "/" + str.tostring(array.get(cnt, 7)) + " "
     if useHtf8
-        htfTxt += nameH8 + ":" + str.tostring(array.get(cnt, 8))
+        htfTxt += nameH8 + ":" + str.tostring(array.get(cntE, 8)) + "/" + str.tostring(array.get(cnt, 8)) + " "
+    if useNdog
+        htfTxt += "NDOG:" + str.tostring(array.get(cntE, 9)) + "/" + str.tostring(array.get(cnt, 9))
 
     if array.size(eC.setups) > 0
         for i = array.size(eC.setups) - 1 to 0
@@ -1601,7 +1850,7 @@ if barstate.islast
 
     table.cell(infoTable, 0, 0, "Killzone", bgcolor = color.gray, text_color = color.white)
     table.cell(infoTable, 1, 0, kzTxt, bgcolor = grayBg, text_color = color.white)
-    table.cell(infoTable, 0, 1, "HTF FVGs", bgcolor = color.gray, text_color = color.white)
+    table.cell(infoTable, 0, 1, "HTF zones (eligible/all)", bgcolor = color.gray, text_color = color.white)
     table.cell(infoTable, 1, 1, htfTxt, bgcolor = grayBg, text_color = color.white)
     table.cell(infoTable, 0, 2, "SMT (" + eC.tfName + ")", bgcolor = color.gray, text_color = color.white)
     table.cell(infoTable, 1, 2, smtTxt, bgcolor = smtBg, text_color = color.white)
@@ -1615,7 +1864,7 @@ if barstate.islast
     table.cell(infoTable, 1, 6, feedTxt, bgcolor = grayBg, text_color = color.white)
 
     if showDebug
-        var table dbgTable = table.new(position.bottom_right, 2, 10, border_width = 1)
+        var table dbgTable = table.new(position.bottom_right, 2, 11, border_width = 1)
         string htfChk = ""
         string liveTxt = "none live"
         string blockTxt = "-"
@@ -1636,11 +1885,25 @@ if barstate.islast
             htfChk += nameH7 + (str.contains(lastTag, "|" + nameH7 + "|") ? "✓ " : "✗ ")
         if useHtf8
             htfChk += nameH8 + (str.contains(lastTag, "|" + nameH8 + "|") ? "✓ " : "✗ ")
+        if useNdog
+            htfChk += "NDOG" + (str.contains(lastTag, "|NDOG|") ? "✓ " : "✗ ")
+        // lifecycle state of every active zone (newest first)
+        string hzTxt = "none"
+        if array.size(htfList) > 0
+            hzTxt := ""
+            int shown = 0
+            for i = array.size(htfList) - 1 to 0
+                HtfFVG zs = array.get(htfList, i)
+                if shown < 12
+                    hzTxt += (hzTxt != "" ? ", " : "") + zs.tf + (zs.isBull ? "▲" : "▼") + " " + f_hzStateName(zs.state)
+                shown += 1
+            if shown > 12
+                hzTxt += " … +" + str.tostring(shown - 12)
         if not na(newestS)
             liveTxt := (newestS.isBull ? "Bull " : "Bear ") + (newestS.confirmed ? "confirmed" : "developing") + " @" + newestS.refName + " · " + (newestS.sweeper == 1 ? syminfo.ticker : corrName) + " swept" + (newestS.used ? " · SIGNAL FIRED" : "")
             blockTxt := newestS.used ? "signal fired" : f_reason(eC, newestS)
         string cntSmtTxt = "dev " + str.tostring(eC.cntSmtDev) + "  conf " + str.tostring(eC.cntSmtConf) + "  inval " + str.tostring(eC.cntSmtInv) + "  exp " + str.tostring(eC.cntSmtExp)
-        string cntIfvgTxt = "bull " + str.tostring(eC.cntIfvgBull) + "  bear " + str.tostring(eC.cntIfvgBear) + "  rejected(quality) " + str.tostring(eC.cntIfvgRej)
+        string cntIfvgTxt = "bull " + str.tostring(eC.cntIfvgBull) + "  bear " + str.tostring(eC.cntIfvgBear) + "  rejected(quality) " + str.tostring(eC.cntIfvgRej) + "  too old " + str.tostring(eC.cntIfvgOld)
         string cntSigTxt = "buy " + str.tostring(eC.cntBuy) + "  sell " + str.tostring(eC.cntSell)
         string feedDbg = f_engSummary(e1) + " | " + f_engSummary(e2) + " | " + f_engSummary(e3) + " | " + f_engSummary(e4)
         table.cell(dbgTable, 0, 0, "SMT log (" + eC.tfName + ")", bgcolor = color.gray, text_color = color.white)
@@ -1663,3 +1926,5 @@ if barstate.islast
         table.cell(dbgTable, 1, 8, cntSigTxt + "  |  " + filtTxt, bgcolor = grayBg, text_color = color.white)
         table.cell(dbgTable, 0, 9, "MTF feeds", bgcolor = color.gray, text_color = color.white)
         table.cell(dbgTable, 1, 9, feedDbg, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 10, "HTF zone states", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 10, hzTxt, bgcolor = grayBg, text_color = color.white)

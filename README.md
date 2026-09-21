@@ -1,8 +1,35 @@
 # ICT SMT + IFVG in HTF FVG (Pine Script v5)
 
+> The script header is `//@version=5`. All Phase 1 code uses constructs that are valid in both v5 and v6; the version line was left unchanged to avoid an unverifiable migration.
+
 `ICT_SMT_IFVG.pine` is the full indicator. Paste it into the TradingView Pine editor and add it to the chart.
 
-## What changed in this version
+## Phase 1 enhanced (this version)
+
+| Feature | Input group | Where in the script |
+|---|---|---|
+| HTF FVG / NDOG lifecycle: `FRESH -> TOUCHED -> PARTIALLY_MITIGATED -> CE_50_MITIGATED -> DEFENDED / FILLED -> INVALIDATED`, fixed 50% CE, first-touch / first-CE-hit tracking, HTF-confluence eligibility | `2 · HTF FVG` | `HtfFVG` type, `HZ_*` constants, `f_hzUpdate()` / `f_hzSetState()`, the "HTF zone lifecycle" loop in `MAIN` |
+| `50% CE Rejection Method` (Wick Rejection / Close Back Across CE / Displacement Away From CE / Close + Displacement) | `2 · HTF FVG` | `f_hzUpdate()` |
+| NDOG (New Day Opening Gap) as an HTF zone, slot 9, read from the chart's own confirmed bars | `2 · HTF FVG` | `f_addNdog()`, `newDay` in `DATA`, `f_invalidateHtf(9, …)` |
+| `Max Bars from FVG to Inversion`: an FVG inverted later than this is expired (no IFVG box, no signal) on every feed | `1 · IFVG` | inversion loop in `f_runEngine()` (`rf.age > maxFvgToIfvgBars`) |
+| Retention in days: `Remove SMT marks after (days)`, `Remove Buy/Sell marks after (days)`, `HTF FVG / NDOG max age (days)` | `3 · SMT engine`, `8 · Buy / Sell signal`, `2 · HTF FVG` | `SigMark.markTime`, `SMTSetup.legTime`, `HtfFVG.bornT`, `f_expireHtfByDays()` |
+| SMT label de-duplication by extreme edge: SMTs anchored to the same high / low share one label | `3 · SMT engine` | `SmtAnchor` type, `f_anchor*()`, `method draw()` |
+
+### How eligibility reaches the signal
+
+`f_htfContain()` is called once when an IFVG forms and its result is frozen into `IFVGZone.htfTag`; section F of the engine then tests `htfOkF = not requireHTF or zf.htfTag != ""`. That call (and the SMT "tap" in `f_htfOverlap()`) now skips zones that are not eligible, so a DEFENDED / FILLED / INVALIDATED zone can still be on the chart while an IFVG inside it no longer counts. The lifecycle loop runs **after** the engines on each confirmed chart bar, so an IFVG that forms on the very bar that defends a zone still pairs; from the next bar on the zone is out. Set `Only ELIGIBLE zones count for HTF confluence` OFF to restore the old "every zone in the list counts" behaviour.
+
+State rules (all on confirmed chart bars, CE = `(top + bottom) / 2` of the original gap):
+
+* **TOUCHED**: a wick enters the gap. **PARTIALLY_MITIGATED**: a bar closes inside the gap without reaching the CE.
+* **CE_50_MITIGATED**: a wick reaches the CE. `firstTouch*` and `firstCEHit*` are set once and never overwritten.
+* **DEFENDED**: after the CE hit, the selected rejection method is satisfied. Eligibility off.
+* **FILLED**: a wick trades through the far side of the gap. Eligibility off, box stays (existing rules).
+* **INVALIDATED**: the existing `HTF FVG is removed when price` rule (still evaluated on that slot's own closed candle, on chart bars for NDOG) removes the zone as before.
+
+Not changed: LTF IFVG detection and inversion logic, the SMT detection algorithm, Buy/Sell entry conditions, alerts, the MTF feeds, and every `request.security` call (no new lookahead requests were added; the NDOG uses `time("D")` and the chart's own `open` / `close[1]`).
+
+## What changed in the previous version
 
 | Feature | Input group | Where in the script |
 |---|---|---|
