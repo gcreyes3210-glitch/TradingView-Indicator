@@ -45,7 +45,11 @@ indicator("ICT SMT + IFVG in HTF FVG", shorttitle = "ICT SMT/IFVG", overlay = tr
 //   * Retention of old marks is measured in DAYS (timestamps), SMT labels at the same extreme are merged.
 //   PHASE 2: first-retest tracking (OUTSIDE -> INSIDE transition), age in the zone's OWN timeframe bars
 //   with an optional max age, and a deterministic PRIMARY zone when several eligible zones overlap.
-//   Final eligibility = lifecycle AND age AND first-retest; the primary is context only, never a filter.
+//   Candidate = lifecycle AND age AND first-retest; the primary is context only, never a filter.
+//   SELECTION ENGINE (section 2b): when candidate zones overlap / nest / stack, exactly ONE of them is
+//   SELECTED (composite probability score, or strictly highest / lowest timeframe, or closest CE).
+//   Eligible = candidate AND selected -> only the winner reaches the IFVG / SMT / signal engine; the
+//   losers keep their lifecycle but are hidden and inactive until the winner drops out.
 // DEBUG: table + gray notes on the chart + tooltips on SMT labels tell you WHY there was no signal.
 // =====================================================================================
 
@@ -119,6 +123,21 @@ useHtf8 = input.bool(false, "Use", inline = "h8", group = grpHTF)
 htfTf8  = input.timeframe("W", "HTF #8", inline = "h8", group = grpHTF, tooltip = "HTF slot #8 (see HTF #1).")
 htfBull = input.color(color.new(color.blue, 75), "HTF bullish FVG", group = grpHTF, tooltip = "Color of bullish HTF FVG / NDOG boxes.")
 htfBear = input.color(color.new(color.orange, 75), "HTF bearish FVG", group = grpHTF, tooltip = "Color of bearish HTF FVG / NDOG boxes.")
+
+grpSel = "2b · HTF FVG selection engine (one winner among overlapping zones)"
+i_htfSelectionMode = input.string("Highest Probability (Auto Engine)", "HTF FVG Selection Mode", options = ["Highest Probability (Auto Engine)", "Strictly Highest Timeframe", "Strictly Lowest HTF (Refinement)", "Deepest Consequent Encroachment (CE)"], group = grpSel, tooltip = "When several candidate HTF FVGs / NDOGs overlap, nest or stack, exactly ONE is selected and only that one counts for the IFVG-in-HTF test, the SMT tap, the primary context and the Buy/Sell. Highest Probability: the highest composite score (freshness, liquidity confluence, displacement quality, timeframe weight). Strictly Highest Timeframe: the largest timeframe wins, whatever the score. Strictly Lowest HTF: the smallest timeframe wins (refinement). Deepest CE: the zone whose 50% consequent encroachment is closest to the current confirmed close. Every mode falls through the same deterministic tie-breaker chain (score, freshness, timeframe, displacement, most recent, list order).")
+i_htfSelectScope   = input.string("Overlapping zones only", "Selection scope", options = ["Overlapping zones only", "All candidate zones (one winner)"], group = grpSel, tooltip = "Overlapping zones only: candidates are grouped into clusters of mutually overlapping zones (a 1H inside a 4H, two partially overlapping gaps, a 4H/2H/1H stack) and one winner is picked per cluster; a zone that overlaps nothing does not compete and stays active. All candidate zones: one single winner across every candidate on the chart, whatever its price level.")
+i_htfScoring       = input.bool(true, "Enable Probability Scoring", group = grpSel, tooltip = "Computes the composite score for every candidate (shown in the debug tables). OFF: the Auto mode and every tie use only the deterministic chain (fresher, higher timeframe, larger displacement, most recent). The strict / CE modes are unaffected by this switch except for their tie-breaks.")
+i_wFresh           = input.float(0.35, "Freshness Weight", minval = 0.0, step = 0.05, group = grpSel, tooltip = "Weight of the freshness / mitigation component. Freshness = state score (FRESH 1.0, TOUCHED 0.8, PARTIALLY_MITIGATED 0.55, CE_50_MITIGATED 0.3) x (1 - 0.5 x deepest penetration of the gap so far). DEFENDED / FILLED / INVALIDATED zones are never candidates (existing lifecycle). The four weights are normalised: score = sum(weight x component) / sum(weights), always 0..1.")
+i_wConf            = input.float(0.20, "Liquidity/Confluence Weight", minval = 0.0, step = 0.05, group = grpSel, tooltip = "Weight of the liquidity confluence component: PDH / PDL (1.0 each), PWH / PWL (1.0 each), previous-day and previous-week 50% equilibrium (0.5 each) and every unswept HTF swing of the chart engine (0.75 each) that lies inside the zone or within the proximity below. Points are divided by 'points for full score' and capped at 1.")
+i_wDisp            = input.float(0.20, "Displacement Weight", minval = 0.0, step = 0.05, group = grpSel, tooltip = "Weight of the displacement / gap-quality component, measured on the closed HTF candles that formed the gap and normalised by that timeframe's own ATR: gap / ATR (1.0 at 0.75 ATR), displacement-candle range / ATR (1.0 at 2 ATR), body / range of the displacement candle, and optionally relative volume. The average of the available sub-scores is used (an NDOG has a gap only).")
+i_wTf              = input.float(0.25, "Timeframe Weight", minval = 0.0, step = 0.05, group = grpSel, tooltip = "Weight of the structural timeframe component: log-scaled rank of the zone's timeframe between the smallest and the largest ENABLED HTF slot (NDOG counts as 1 day), so it works for any HTF configuration. Structural preference only: a deeply mitigated 4H loses to a fresh, high-quality 1H under the default weights.")
+i_confProxAtr      = input.float(0.5, "Level proximity (x chart ATR)", minval = 0.0, step = 0.1, group = grpSel, tooltip = "A liquidity level counts as confluence when it lies inside the zone or within this many chart ATRs of its edges. 0 = inside only.")
+i_confSat          = input.float(2.0, "Confluence points for full score", minval = 0.5, step = 0.5, group = grpSel, tooltip = "Confluence points at which the confluence component reaches 1.0 (2.0 = two major levels, or one major level plus one equilibrium and one HTF swing).")
+i_useRelVol        = input.bool(false, "Use relative volume in the displacement score", group = grpSel, tooltip = "Adds volume of the displacement candle / its 20-candle average (1.0 at 2x) to the displacement component. Off by default: only enable on symbols with real exchange volume (index futures yes, spot FX no). Missing volume is ignored, never scored.")
+i_ceTieTicks       = input.int(4, "CE mode: proximity tie tolerance (ticks)", minval = 0, group = grpSel, tooltip = "Deepest CE mode: candidates whose CE distance to the current close differs by at most this many ticks are treated as equally close and the composite score / tie chain decides.")
+i_htfHideLosers    = input.bool(true, "Hide non-selected overlapping zones", group = grpSel, tooltip = "Non-selected candidates keep their box object and lifecycle but are drawn fully transparent until they are selected (e.g. when the winner becomes DEFENDED or FILLED). The selected zone gets a 2-px border. No boxes are created or deleted by the selection engine.")
+i_htfSelDebug      = input.bool(false, "Debug Selection Engine", group = grpSel, tooltip = "Table (middle left): every candidate with cluster, selected flag, composite score, freshness / confluence / displacement / timeframe components, state and CE. Off by default.")
 
 grpSMT = "3 · SMT engine"
 correlatedSym  = input.symbol("CME_MINI:ES1!", "Correlated symbol", group = grpSMT, tooltip = "ES for an NQ chart, NQ for an ES chart. Either market can be the one that takes the liquidity or makes the new swing.")
@@ -279,6 +298,22 @@ type HtfFVG
     int    firstRetestBar
     int    retestCount = 0
     bool   isPrimary = false
+    // Selection engine (section 2b).  Displacement metrics are frozen at creation from the CLOSED HTF candles
+    // that formed the gap (own-TF ATR); the scores are recomputed on every confirmed chart bar.
+    bool   candidate = false
+    bool   selected = true
+    bool   hiddenBySel = false
+    int    cluster = -1
+    float  deepest = 0.0
+    float  gapAtr
+    float  rangeAtr
+    float  bodyRatio
+    float  relVol
+    float  freshS = 0.0
+    float  confS = 0.0
+    float  dispS = 0.0
+    float  tfS = 0.0
+    float  score = 0.0
 
 type SMTSetup
     bool   isBull
@@ -659,7 +694,7 @@ f_hzStateName(int st) =>
     st == HZ_FRESH ? "FRESH" : st == HZ_TOUCHED ? "TOUCHED" : st == HZ_PARTIAL ? "PARTIAL" : st == HZ_CE50 ? "CE50" : st == HZ_DEFENDED ? "DEFENDED" : st == HZ_FILLED ? "FILLED" : "INVALIDATED"
 
 f_hzVisual(HtfFVG z) =>
-    if not na(z.b)
+    if not na(z.b) and not z.hiddenBySel
         box.set_text(z.b, z.tf + " · " + f_hzStateName(z.state) + (z.ageExpired ? " · AGED" : ""))
         if not z.eligible or z.ageExpired
             box.set_border_style(z.b, line.style_dashed)
@@ -675,6 +710,11 @@ f_hzSetState(HtfFVG z, int st) =>
 
 // one confirmed chart bar (o/h/l/c, chart ATR) against one zone
 f_hzUpdate(HtfFVG z, float o, float h, float l, float c, float atrV) =>
+    // deepest penetration of the ORIGINAL gap so far (0 = untouched, 1 = traded through), for the freshness score
+    float gapH = math.max(z.top - z.bottom, syminfo.mintick)
+    float pen = z.isBull ? (z.top - l) / gapH : (h - z.bottom) / gapH
+    if pen > z.deepest
+        z.deepest := math.min(1.0, pen)
     if z.state < HZ_FILLED
         bool touched = z.isBull ? l <= z.top : h >= z.bottom
         bool ceHit = z.isBull ? l <= z.ce : h >= z.ce
@@ -752,9 +792,43 @@ f_hzAgeOk(HtfFVG z) =>
 f_hzRetestOk(HtfFVG z) =>
     not htfFirstRetest or (z.firstRetestAvailable and not z.firstRetestUsed)
 
-// does this zone count for HTF confluence right now?
-f_hzEligible(HtfFVG z) =>
+// candidate for the selection engine = the existing lifecycle AND age AND first-retest rules
+f_hzCandidate(HtfFVG z) =>
     f_hzLifeOk(z) and f_hzAgeOk(z) and f_hzRetestOk(z)
+
+// does this zone count for HTF confluence right now?  candidate AND selected by the selection engine
+// (section 2b): this is the single gate every downstream consumer (IFVG-in-HTF test, SMT tap, primary
+// context, used-marking, checklist) goes through, so a non-selected overlapping zone can never fire anything.
+f_hzEligible(HtfFVG z) =>
+    f_hzCandidate(z) and z.selected
+
+// 50% consequent encroachment of a zone (fixed at creation, kept as a function for the CE selection mode)
+f_getConsequentEncroachment(HtfFVG z) =>
+    z.ce
+
+// two zones overlap (touching at one boundary is NOT overlap)
+f_isOverlapping(HtfFVG a, HtfFVG b) =>
+    math.max(a.bottom, b.bottom) < math.min(a.top, b.top)
+
+// selection visuals: reuse the existing box, never create / delete.  Hidden = fully transparent, no text;
+// selected candidate = 2-px border; everything else = the existing lifecycle visuals (f_hzVisual).
+f_hzApplySelection(HtfFVG z) =>
+    if not na(z.b)
+        color clr = z.isBull ? htfBull : htfBear
+        bool hide = i_htfHideLosers and z.candidate and not z.selected
+        if hide != z.hiddenBySel
+            z.hiddenBySel := hide
+            if hide
+                box.set_bgcolor(z.b, color.new(clr, 100))
+                box.set_border_color(z.b, color.new(clr, 100))
+                box.set_text(z.b, "")
+            else
+                box.set_bgcolor(z.b, clr)
+                box.set_border_color(z.b, clr)
+                f_hzVisual(z)
+        if not hide
+            box.set_border_width(z.b, z.candidate and z.selected ? 2 : 1)
+    true
 
 // ---- Phase 2c: PRIMARY zone among eligible zones overlapping [bot, top] at reference price 'px' ----
 // Deterministic hierarchy: (1) eligible, (2) higher timeframe, (3) more recent creation,
@@ -896,8 +970,14 @@ f_invalidateHtf(int slot, bool isNew, float hC, float lC, float cC) =>
 //   tA / tM   = OPEN time of candle 1 / candle 2,  tcC     = CLOSE time of candle 3
 // The box is anchored with xloc.bar_time on those historical candles, so it sits on the gap
 // candle on ANY chart timeframe instead of starting at the current bar and floating ahead of price.
-f_addHtf(bool isNew, bool en, string name, int slot, float hC, float lC, float hA, float lA, int tA, int tM, int tcC) =>
+f_addHtf(bool isNew, bool en, string name, int slot, float hC, float lC, float hA, float lA, int tA, int tM, int tcC, float o2, float h2, float l2, float c2, float atr2, float v2, float va2) =>
     bool valid = isNew and en and not na(hC) and not na(lC) and not na(hA) and not na(lA) and not na(tA) and not na(tM) and not na(tcC)
+    // displacement metrics of the gap candle (candle 2), normalised by that timeframe's own ATR
+    float atrS = na(atr2) or atr2 <= 0.0 ? na : atr2
+    float rng2 = na(h2) or na(l2) ? na : math.max(h2 - l2, syminfo.mintick)
+    float rangeAtr2 = na(atrS) or na(rng2) ? na : rng2 / atrS
+    float bodyR2 = na(rng2) or na(o2) or na(c2) ? na : math.abs(c2 - o2) / rng2
+    float relV2 = na(v2) or na(va2) or va2 <= 0.0 ? na : v2 / va2
     float minGap = htfMinGapTicks * syminfo.mintick
     bool bullGap = false
     bool bearGap = false
@@ -911,18 +991,18 @@ f_addHtf(bool isNew, bool en, string name, int slot, float hC, float lC, float h
     if bullGap
         if showHTF
             hbBull := box.new(left = leftT, top = lC, right = rightT, bottom = hA, xloc = xloc.bar_time, border_color = htfBull, bgcolor = htfBull, text = name, text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
-        array.push(htfList, HtfFVG.new(isBull = true, top = lC, bottom = hA, tf = name, slot = slot, b = hbBull, ce = (lC + hA) / 2, bornT = time, tfSec = f_slotSec(slot), createdBar = bar_index, createdTime = time))
+        array.push(htfList, HtfFVG.new(isBull = true, top = lC, bottom = hA, tf = name, slot = slot, b = hbBull, ce = (lC + hA) / 2, bornT = time, tfSec = f_slotSec(slot), createdBar = bar_index, createdTime = time, gapAtr = na(atrS) ? na : (lC - hA) / atrS, rangeAtr = rangeAtr2, bodyRatio = bodyR2, relVol = relV2))
     if bearGap
         if showHTF
             hbBear := box.new(left = leftT, top = lA, right = rightT, bottom = hC, xloc = xloc.bar_time, border_color = htfBear, bgcolor = htfBear, text = name, text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
-        array.push(htfList, HtfFVG.new(isBull = false, top = lA, bottom = hC, tf = name, slot = slot, b = hbBear, ce = (lA + hC) / 2, bornT = time, tfSec = f_slotSec(slot), createdBar = bar_index, createdTime = time))
+        array.push(htfList, HtfFVG.new(isBull = false, top = lA, bottom = hC, tf = name, slot = slot, b = hbBear, ce = (lA + hC) / 2, bornT = time, tfSec = f_slotSec(slot), createdBar = bar_index, createdTime = time, gapAtr = na(atrS) ? na : (lA - hC) / atrS, rangeAtr = rangeAtr2, bodyRatio = bodyR2, relVol = relV2))
     if bullGap or bearGap
         f_capHtf(slot)
     true
 
 // NDOG = New Day Opening Gap: previous day's last close -> new day's first open, read from the chart's
 // own confirmed bars (slot 9).  Gap up = bullish zone (support), gap down = bearish (resistance).
-f_addNdog(bool newDay, float prevClose, float dayOpen) =>
+f_addNdog(bool newDay, float prevClose, float dayOpen, float atrC) =>
     bool valid = useNdog and newDay and not na(prevClose) and not na(dayOpen)
     float minGap = htfMinGapTicks * syminfo.mintick
     bool gapUp = valid and dayOpen > prevClose and (dayOpen - prevClose) >= minGap
@@ -935,7 +1015,7 @@ f_addNdog(bool newDay, float prevClose, float dayOpen) =>
         box nb = na
         if showHTF
             nb := box.new(left = time, top = top, right = rightT, bottom = bot, xloc = xloc.bar_time, border_color = clr, bgcolor = clr, text = "NDOG", text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
-        array.push(htfList, HtfFVG.new(isBull = gapUp, top = top, bottom = bot, tf = "NDOG", slot = 9, b = nb, ce = (top + bot) / 2, bornT = time, tfSec = 86400, createdBar = bar_index, createdTime = time))
+        array.push(htfList, HtfFVG.new(isBull = gapUp, top = top, bottom = bot, tf = "NDOG", slot = 9, b = nb, ce = (top + bot) / 2, bornT = time, tfSec = 86400, createdBar = bar_index, createdTime = time, gapAtr = na(atrC) or atrC <= 0.0 ? na : (top - bot) / atrC))
         f_capHtf(9)
     true
 
@@ -1336,6 +1416,8 @@ bool pwNew = not na(pwhA) and not na(pwlA) and not na(pwhB) and not na(pwlB) and
 // HTF FVG data: last CLOSED HTF bars only ([1] offsets + lookahead_on = no future data, same on history and realtime)
 //   [1] = candle 3 (last closed), [2] = candle 2 (the gap candle), [3] = candle 1
 //   time[3] / time[2] = open time of candle 1 / 2 (box anchors), time_close[1] = close of candle 3 (fixed-width box)
+//   o2/h2/l2/c2 = candle 2 OHLC, atr2 = ATR on that timeframe at candle 2, v2/va2 = its volume and 20-candle average
+//   (displacement metrics of the selection engine; all from CLOSED HTF candles, same on history and realtime)
 nameH1 = f_tfName(htfTf1)
 nameH2 = f_tfName(htfTf2)
 nameH3 = f_tfName(htfTf3)
@@ -1344,14 +1426,14 @@ nameH5 = f_tfName(htfTf5)
 nameH6 = f_tfName(htfTf6)
 nameH7 = f_tfName(htfTf7)
 nameH8 = f_tfName(htfTf8)
-[hC1, lC1, cC1, hA1, lA1, tC1, tA1, tM1, tX1] = request.security(syminfo.tickerid, htfTf1, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
-[hC2, lC2, cC2, hA2, lA2, tC2, tA2, tM2, tX2] = request.security(syminfo.tickerid, htfTf2, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
-[hC3, lC3, cC3, hA3, lA3, tC3, tA3, tM3, tX3] = request.security(syminfo.tickerid, htfTf3, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
-[hC4, lC4, cC4, hA4, lA4, tC4, tA4, tM4, tX4] = request.security(syminfo.tickerid, htfTf4, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
-[hC5, lC5, cC5, hA5, lA5, tC5, tA5, tM5, tX5] = request.security(syminfo.tickerid, htfTf5, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
-[hC6, lC6, cC6, hA6, lA6, tC6, tA6, tM6, tX6] = request.security(syminfo.tickerid, htfTf6, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
-[hC7, lC7, cC7, hA7, lA7, tC7, tA7, tM7, tX7] = request.security(syminfo.tickerid, htfTf7, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
-[hC8, lC8, cC8, hA8, lA8, tC8, tA8, tM8, tX8] = request.security(syminfo.tickerid, htfTf8, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1]], lookahead = barmerge.lookahead_on)
+[hC1, lC1, cC1, hA1, lA1, tC1, tA1, tM1, tX1, o21, h21, l21, c21, atr21, v21, va21] = request.security(syminfo.tickerid, htfTf1, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
+[hC2, lC2, cC2, hA2, lA2, tC2, tA2, tM2, tX2, o22, h22, l22, c22, atr22, v22, va22] = request.security(syminfo.tickerid, htfTf2, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
+[hC3, lC3, cC3, hA3, lA3, tC3, tA3, tM3, tX3, o23, h23, l23, c23, atr23, v23, va23] = request.security(syminfo.tickerid, htfTf3, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
+[hC4, lC4, cC4, hA4, lA4, tC4, tA4, tM4, tX4, o24, h24, l24, c24, atr24, v24, va24] = request.security(syminfo.tickerid, htfTf4, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
+[hC5, lC5, cC5, hA5, lA5, tC5, tA5, tM5, tX5, o25, h25, l25, c25, atr25, v25, va25] = request.security(syminfo.tickerid, htfTf5, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
+[hC6, lC6, cC6, hA6, lA6, tC6, tA6, tM6, tX6, o26, h26, l26, c26, atr26, v26, va26] = request.security(syminfo.tickerid, htfTf6, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
+[hC7, lC7, cC7, hA7, lA7, tC7, tA7, tM7, tX7, o27, h27, l27, c27, atr27, v27, va27] = request.security(syminfo.tickerid, htfTf7, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
+[hC8, lC8, cC8, hA8, lA8, tC8, tA8, tM8, tX8, o28, h28, l28, c28, atr28, v28, va28] = request.security(syminfo.tickerid, htfTf8, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
 newH1 = not na(tC1) and (na(tC1[1]) or tC1 != tC1[1])
 newH2 = not na(tC2) and (na(tC2[1]) or tC2 != tC2[1])
 newH3 = not na(tC3) and (na(tC3[1]) or tC3 != tC3[1])
@@ -2202,6 +2284,202 @@ f_onSignal(SigInfo s) =>
         array.push(plans, TradePlan.new(isBull = s.isBull, tfName = s.tfName, startBar = bar_index, entry = s.entry, sl = sl, tp1 = tp1, tp2 = tp2, tpSw = tpSw, contracts = ct, riskPts = riskPts, riskUsd = riskUsd, txt = planTxt, lnE = lnE, lnS = lnS, lnT1 = lnT1, lnT2 = lnT2, lnSw = lnSw, lbl = pl))
     dirTxt + " " + s.tfName + " · " + str.tostring(ct) + " ct · SL " + str.tostring(riskPts, format.mintick) + " pts · $" + str.tostring(riskUsd, "#.##")
 
+// ============================== HTF FVG SELECTION ENGINE (section 2b) ==============================
+// All HTF zones -> candidates (existing lifecycle / age / retest rules) -> clusters of overlapping candidates
+// -> ONE winner per cluster (composite score or strict mode) -> HtfFVG.selected -> f_hzEligible() gate.
+// Runs on confirmed chart bars only, from closed HTF candles, confirmed pivots and the confirmed close.
+
+// timeframe hierarchy: log-scaled rank between the smallest and the largest ENABLED HTF slot (NDOG = 1 day)
+htfSecMin = 0
+htfSecMax = 0
+if barstate.isfirst
+    array<int> secs = array.new_int()
+    if useHtf1
+        array.push(secs, timeframe.in_seconds(htfTf1))
+    if useHtf2
+        array.push(secs, timeframe.in_seconds(htfTf2))
+    if useHtf3
+        array.push(secs, timeframe.in_seconds(htfTf3))
+    if useHtf4
+        array.push(secs, timeframe.in_seconds(htfTf4))
+    if useHtf5
+        array.push(secs, timeframe.in_seconds(htfTf5))
+    if useHtf6
+        array.push(secs, timeframe.in_seconds(htfTf6))
+    if useHtf7
+        array.push(secs, timeframe.in_seconds(htfTf7))
+    if useHtf8
+        array.push(secs, timeframe.in_seconds(htfTf8))
+    if useNdog
+        array.push(secs, 86400)
+    if array.size(secs) > 0
+        htfSecMin := int(array.min(secs))
+        htfSecMax := int(array.max(secs))
+var int htfSecMinV = htfSecMin
+var int htfSecMaxV = htfSecMax
+
+f_clamp01(float x) =>
+    na(x) ? na : math.max(0.0, math.min(1.0, x))
+
+// A. freshness / mitigation: lifecycle state x depth of penetration.  DEFENDED / FILLED / INVALIDATED never get here.
+f_calculateFreshnessScore(HtfFVG z) =>
+    float base = z.state == HZ_FRESH ? 1.0 : z.state == HZ_TOUCHED ? 0.8 : z.state == HZ_PARTIAL ? 0.55 : z.state == HZ_CE50 ? 0.3 : 0.0
+    base * (1.0 - 0.5 * z.deepest)
+
+// one level inside the zone or within prox of its edges
+f_levelHit(float lvl, float top, float bot, float prox) =>
+    not na(lvl) and lvl >= bot - prox and lvl <= top + prox
+
+// B. liquidity / key-level confluence from the levels the script already has: PDH / PDL, PWH / PWL, their 50%
+// equilibrium, and the UNSWEPT HTF swings of the chart engine's reference pool.  (Asia / London ranges no
+// longer exist in this script; current-day extremes are not computed, so neither is used.)
+f_calculateConfluenceScore(HtfFVG z, float prox) =>
+    float pts = 0.0
+    if f_levelHit(pdhA, z.top, z.bottom, prox)
+        pts += 1.0
+    if f_levelHit(pdlA, z.top, z.bottom, prox)
+        pts += 1.0
+    if f_levelHit(pwhA, z.top, z.bottom, prox)
+        pts += 1.0
+    if f_levelHit(pwlA, z.top, z.bottom, prox)
+        pts += 1.0
+    if not na(pdhA) and not na(pdlA) and f_levelHit((pdhA + pdlA) / 2, z.top, z.bottom, prox)
+        pts += 0.5
+    if not na(pwhA) and not na(pwlA) and f_levelHit((pwhA + pwlA) / 2, z.top, z.bottom, prox)
+        pts += 0.5
+    if array.size(eC.refs) > 0
+        for i = 0 to array.size(eC.refs) - 1
+            LiqRef q = array.get(eC.refs, i)
+            if q.kind == 2 and q.state == 0 and f_levelHit(q.lvlA, z.top, z.bottom, prox)
+                pts += 0.75
+    math.min(1.0, pts / i_confSat)
+
+// C. displacement / gap quality from the frozen creation metrics (own-TF ATR normalised): average of the
+// available sub-scores, so a symbol's raw price scale never dominates and an NDOG (gap only) still scores.
+f_calculateDisplacementScore(HtfFVG z) =>
+    float sum = 0.0
+    int n = 0
+    if not na(z.gapAtr)
+        sum += f_clamp01(z.gapAtr / 0.75)
+        n += 1
+    if not na(z.rangeAtr)
+        sum += f_clamp01(z.rangeAtr / 2.0)
+        n += 1
+    if not na(z.bodyRatio)
+        sum += f_clamp01(z.bodyRatio)
+        n += 1
+    if i_useRelVol and not na(z.relVol)
+        sum += f_clamp01((z.relVol - 0.5) / 1.5)
+        n += 1
+    n > 0 ? sum / n : 0.0
+
+// D. timeframe hierarchy: 0 for the smallest enabled HTF, 1 for the largest, log-scaled in between
+f_calculateTimeframeScore(int sec) =>
+    float out = 1.0
+    if htfSecMaxV > htfSecMinV and htfSecMinV > 0 and sec > 0
+        out := f_clamp01(math.log(sec * 1.0 / htfSecMinV) / math.log(htfSecMaxV * 1.0 / htfSecMinV))
+    out
+
+// composite = weighted average of the four components (weights normalised -> 0..1); stored on the zone
+f_calculateFVGProbability(HtfFVG z, float prox) =>
+    z.freshS := f_calculateFreshnessScore(z)
+    z.confS := f_calculateConfluenceScore(z, prox)
+    z.dispS := f_calculateDisplacementScore(z)
+    z.tfS := f_calculateTimeframeScore(z.tfSec)
+    float wSum = i_wFresh + i_wConf + i_wDisp + i_wTf
+    z.score := wSum > 0.0 ? (i_wFresh * z.freshS + i_wConf * z.confS + i_wDisp * z.dispS + i_wTf * z.tfS) / wSum : 0.0
+    z.score
+
+// deterministic tie-breaker chain: fresher, higher timeframe, larger displacement, most recently created.
+// Returns +1 when a beats b, -1 when b beats a, 0 when identical (the caller then keeps the earlier list index).
+f_selChain(HtfFVG a, HtfFVG b) =>
+    int out = 0
+    if a.freshS != b.freshS
+        out := a.freshS > b.freshS ? 1 : -1
+    else if a.tfSec != b.tfSec
+        out := a.tfSec > b.tfSec ? 1 : -1
+    else if a.dispS != b.dispS
+        out := a.dispS > b.dispS ? 1 : -1
+    else if a.createdTime != b.createdTime
+        out := a.createdTime > b.createdTime ? 1 : -1
+    out
+
+// composite score comparison (only when scoring is enabled), then the chain
+f_selByScore(HtfFVG a, HtfFVG b) =>
+    int out = 0
+    if i_htfScoring and a.score != b.score
+        out := a.score > b.score ? 1 : -1
+    else
+        out := f_selChain(a, b)
+    out
+
+// does zone a beat zone b under the selected mode?  px = current confirmed close (CE mode)
+f_selBetter(HtfFVG a, HtfFVG b, float px) =>
+    int cmp = 0
+    if i_htfSelectionMode == "Strictly Highest Timeframe"
+        cmp := a.tfSec != b.tfSec ? (a.tfSec > b.tfSec ? 1 : -1) : f_selByScore(a, b)
+    else if i_htfSelectionMode == "Strictly Lowest HTF (Refinement)"
+        cmp := a.tfSec != b.tfSec ? (a.tfSec < b.tfSec ? 1 : -1) : f_selByScore(a, b)
+    else if i_htfSelectionMode == "Deepest Consequent Encroachment (CE)"
+        float da = math.abs(px - f_getConsequentEncroachment(a))
+        float db = math.abs(px - f_getConsequentEncroachment(b))
+        float tol = i_ceTieTicks * syminfo.mintick
+        cmp := math.abs(da - db) > tol ? (da < db ? 1 : -1) : f_selByScore(a, b)
+    else
+        cmp := f_selByScore(a, b)
+    cmp > 0
+
+// the selection pass: score every candidate, cluster the overlapping ones, pick ONE winner per cluster,
+// write HtfFVG.selected and apply the visuals.  O(n^2) on the active list (at most 'Max active per
+// timeframe' x 9 slots), no drawing objects created or deleted.
+f_selectBestHTFFVG(float px) =>
+    int n = array.size(htfList)
+    if n > 0
+        float prox = i_confProxAtr * nz(atrValue, 0.0)
+        bool allOne = i_htfSelectScope == "All candidate zones (one winner)"
+        for i = 0 to n - 1
+            HtfFVG z = array.get(htfList, i)
+            z.candidate := f_hzCandidate(z)
+            z.cluster := -1
+            if z.candidate
+                f_calculateFVGProbability(z, prox)
+            else
+                z.selected := true
+        // clusters = connected components of the overlap graph (scope 'all' = one component)
+        int nComp = 0
+        array<int> stack = array.new_int()
+        for i = 0 to n - 1
+            HtfFVG zi = array.get(htfList, i)
+            if zi.candidate and zi.cluster < 0
+                zi.cluster := nComp
+                array.clear(stack)
+                array.push(stack, i)
+                while array.size(stack) > 0
+                    int j = array.pop(stack)
+                    HtfFVG zj = array.get(htfList, j)
+                    for k = 0 to n - 1
+                        HtfFVG zk = array.get(htfList, k)
+                        if zk.candidate and zk.cluster < 0 and (allOne or f_isOverlapping(zj, zk))
+                            zk.cluster := nComp
+                            array.push(stack, k)
+                nComp += 1
+        // one deterministic winner per cluster
+        if nComp > 0
+            for c = 0 to nComp - 1
+                int best = -1
+                for i = 0 to n - 1
+                    HtfFVG zc = array.get(htfList, i)
+                    if zc.cluster == c
+                        if best < 0 or f_selBetter(zc, array.get(htfList, best), px)
+                            best := i
+                for i = 0 to n - 1
+                    HtfFVG zs = array.get(htfList, i)
+                    if zs.cluster == c
+                        zs.selected := i == best
+        for i = 0 to n - 1
+            f_hzApplySelection(array.get(htfList, i))
+    true
+
 // ============================== MAIN (closed bars only) ==============================
 bool buySignal   = false
 bool sellSignal  = false
@@ -2224,15 +2502,17 @@ if barstate.isconfirmed
     f_invalidateHtf(7, newH7, hC7, lC7, cC7)
     f_invalidateHtf(8, newH8, hC8, lC8, cC8)
     f_invalidateHtf(9, useNdog, high, low, close)
-    f_addHtf(newH1, useHtf1, nameH1, 1, hC1, lC1, hA1, lA1, tA1, tM1, tX1)
-    f_addHtf(newH2, useHtf2, nameH2, 2, hC2, lC2, hA2, lA2, tA2, tM2, tX2)
-    f_addHtf(newH3, useHtf3, nameH3, 3, hC3, lC3, hA3, lA3, tA3, tM3, tX3)
-    f_addHtf(newH4, useHtf4, nameH4, 4, hC4, lC4, hA4, lA4, tA4, tM4, tX4)
-    f_addHtf(newH5, useHtf5, nameH5, 5, hC5, lC5, hA5, lA5, tA5, tM5, tX5)
-    f_addHtf(newH6, useHtf6, nameH6, 6, hC6, lC6, hA6, lA6, tA6, tM6, tX6)
-    f_addHtf(newH7, useHtf7, nameH7, 7, hC7, lC7, hA7, lA7, tA7, tM7, tX7)
-    f_addHtf(newH8, useHtf8, nameH8, 8, hC8, lC8, hA8, lA8, tA8, tM8, tX8)
-    f_addNdog(newDay, close[1], open)
+    f_addHtf(newH1, useHtf1, nameH1, 1, hC1, lC1, hA1, lA1, tA1, tM1, tX1, o21, h21, l21, c21, atr21, v21, va21)
+    f_addHtf(newH2, useHtf2, nameH2, 2, hC2, lC2, hA2, lA2, tA2, tM2, tX2, o22, h22, l22, c22, atr22, v22, va22)
+    f_addHtf(newH3, useHtf3, nameH3, 3, hC3, lC3, hA3, lA3, tA3, tM3, tX3, o23, h23, l23, c23, atr23, v23, va23)
+    f_addHtf(newH4, useHtf4, nameH4, 4, hC4, lC4, hA4, lA4, tA4, tM4, tX4, o24, h24, l24, c24, atr24, v24, va24)
+    f_addHtf(newH5, useHtf5, nameH5, 5, hC5, lC5, hA5, lA5, tA5, tM5, tX5, o25, h25, l25, c25, atr25, v25, va25)
+    f_addHtf(newH6, useHtf6, nameH6, 6, hC6, lC6, hA6, lA6, tA6, tM6, tX6, o26, h26, l26, c26, atr26, v26, va26)
+    f_addHtf(newH7, useHtf7, nameH7, 7, hC7, lC7, hA7, lA7, tA7, tM7, tX7, o27, h27, l27, c27, atr27, v27, va27)
+    f_addHtf(newH8, useHtf8, nameH8, 8, hC8, lC8, hA8, lA8, tA8, tM8, tX8, o28, h28, l28, c28, atr28, v28, va28)
+    f_addNdog(newDay, close[1], open, atrValue)
+    // ---------- selection engine: ONE winner per cluster of overlapping candidates, before the engines run ----------
+    f_selectBestHTFFVG(close)
     // "Extend with price": the right edge follows the current bar; "Fixed": the box never moves
     if htfExtendMode == "Extend with price" and array.size(htfList) > 0
         for i = 0 to array.size(htfList) - 1
@@ -2258,6 +2538,8 @@ if barstate.isconfirmed
     if array.size(htfList) > 0
         for i = 0 to array.size(htfList) - 1
             f_hzUpdate(array.get(htfList, i), open, high, low, close, atrValue)
+        // re-select with the updated lifecycle states (a winner that just got DEFENDED / FILLED hands over now)
+        f_selectBestHTFFVG(close)
         // primary HTF context at the current close (debug / display only)
         int primIdx = f_htfPrimaryIdx(close, close, true, close)
         if htfMatchDir
@@ -2568,11 +2850,11 @@ if barstate.islast
 
     // ---- Phase 2 HTF zone table: one row per active zone (newest first, max 20) ----
     if showHtfDebug
-        var table hzTable = table.new(position.bottom_left, 10, 21, border_width = 1)
-        table.clear(hzTable, 0, 0, 9, 20)
-        string hdr = "TF|Type|Dir|State|Elig|Age|AgeExp|Retest|Used|Primary"
+        var table hzTable = table.new(position.bottom_left, 12, 21, border_width = 1)
+        table.clear(hzTable, 0, 0, 11, 20)
+        string hdr = "TF|Type|Dir|State|Elig|Age|AgeExp|Retest|Used|Primary|Sel|Score"
         array<string> hdrs = str.split(hdr, "|")
-        for c = 0 to 9
+        for c = 0 to 11
             table.cell(hzTable, c, 0, array.get(hdrs, c), bgcolor = color.gray, text_color = color.white, text_size = size.tiny)
         if array.size(htfList) > 0
             int row = 1
@@ -2585,10 +2867,42 @@ if barstate.islast
                     table.cell(hzTable, 1, row, zt.slot == 9 ? "NDOG" : "FVG", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
                     table.cell(hzTable, 2, row, zt.isBull ? "▲" : "▼", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
                     table.cell(hzTable, 3, row, f_hzStateName(zt.state), bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 4, row, el ? "yes" : (not f_hzLifeOk(zt) ? "no:state" : not f_hzAgeOk(zt) ? "no:age" : "no:retest"), bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(hzTable, 4, row, el ? "yes" : (not f_hzLifeOk(zt) ? "no:state" : not f_hzAgeOk(zt) ? "no:age" : not f_hzRetestOk(zt) ? "no:retest" : "no:not selected"), bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
                     table.cell(hzTable, 5, row, str.tostring(zt.ageBars), bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
                     table.cell(hzTable, 6, row, zt.ageExpired ? "yes" : "no", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
                     table.cell(hzTable, 7, row, zt.firstRetestAvailable ? "yes" : "no", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
                     table.cell(hzTable, 8, row, zt.firstRetestUsed ? "yes" : "no", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
                     table.cell(hzTable, 9, row, zt.isPrimary ? "PRIMARY" : "", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(hzTable, 10, row, zt.candidate ? (zt.selected ? "SEL" : "hidden") : "-", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(hzTable, 11, row, zt.candidate ? str.tostring(zt.score, "0.00") : "-", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
                 row += 1
+
+    // ---- selection engine debug: every candidate with cluster, winner flag, composite score and components ----
+    if i_htfSelDebug
+        var table selTable = table.new(position.middle_left, 11, 21, border_width = 1)
+        table.clear(selTable, 0, 0, 10, 20)
+        string selHdr = "Cluster|TF|Dir|State|Sel|Score|Fresh|Conf|Disp|TF wt|CE"
+        array<string> selHdrs = str.split(selHdr, "|")
+        for c = 0 to 10
+            table.cell(selTable, c, 0, array.get(selHdrs, c), bgcolor = color.gray, text_color = color.white, text_size = size.tiny)
+        table.cell(selTable, 0, 20, "mode", bgcolor = color.gray, text_color = color.white, text_size = size.tiny)
+        table.cell(selTable, 1, 20, i_htfSelectionMode + " · " + i_htfSelectScope + (i_htfScoring ? "" : " · scoring OFF"), bgcolor = color.new(color.gray, 50), text_color = color.white, text_size = size.tiny)
+        table.merge_cells(selTable, 1, 20, 10, 20)
+        if array.size(htfList) > 0
+            int srow = 1
+            for i = array.size(htfList) - 1 to 0
+                HtfFVG zq = array.get(htfList, i)
+                if zq.candidate and srow <= 19
+                    color sBg = zq.selected ? color.new(color.green, 60) : color.new(color.gray, 70)
+                    table.cell(selTable, 0, srow, str.tostring(zq.cluster), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(selTable, 1, srow, zq.tf, bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(selTable, 2, srow, zq.isBull ? "▲" : "▼", bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(selTable, 3, srow, f_hzStateName(zq.state), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(selTable, 4, srow, zq.selected ? "WINNER" : "", bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(selTable, 5, srow, str.tostring(zq.score, "0.000"), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(selTable, 6, srow, str.tostring(zq.freshS, "0.00"), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(selTable, 7, srow, str.tostring(zq.confS, "0.00"), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(selTable, 8, srow, str.tostring(zq.dispS, "0.00"), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(selTable, 9, srow, str.tostring(zq.tfS, "0.00"), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    table.cell(selTable, 10, srow, str.tostring(zq.ce, format.mintick), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
+                    srow += 1

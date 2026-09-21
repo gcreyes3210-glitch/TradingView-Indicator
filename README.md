@@ -4,7 +4,24 @@
 
 `ICT_SMT_IFVG.pine` is the full indicator. Paste it into the TradingView Pine editor and add it to the chart.
 
-## Universal pivot SMT, `Require SMT`, no more killzones (this version)
+## HTF FVG selection engine (this version)
+
+| Change | Input group | Where |
+|---|---|---|
+| ONE selected zone per cluster of overlapping / nested / stacked candidate HTF FVGs (or one overall) | `2b · HTF FVG selection engine` | `f_selectBestHTFFVG()`, called in `MAIN` right after the zones are added / invalidated (before the engines) and again after the lifecycle update |
+| `HTF FVG Selection Mode`: Highest Probability (Auto Engine) / Strictly Highest Timeframe / Strictly Lowest HTF (Refinement) / Deepest Consequent Encroachment (CE) | `2b` | `f_selBetter()` |
+| Composite probability score = normalised weighted average of freshness, liquidity confluence, displacement quality and timeframe weight | `2b` (four weights, proximity, saturation, relative volume switch) | `f_calculateFreshnessScore / ConfluenceScore / DisplacementScore / TimeframeScore / FVGProbability()` |
+| Eligibility split: `f_hzCandidate()` = lifecycle AND age AND first retest (the old rule); `f_hzEligible()` = candidate AND `selected` | — | every downstream consumer (`f_htfContain`, `f_htfOverlap`, `f_htfPrimaryIdx`, `f_markHtfUsed`, checklist) already goes through `f_hzEligible()` |
+| Losers hidden (transparent, same box object), winner gets a 2-px border; debug table with cluster / score components; `Sel` / `Score` columns in the HTF zone table | `2b` (`Hide non-selected overlapping zones`, `Debug Selection Engine`) | `f_hzApplySelection()`, tables |
+| Displacement metrics of the gap candle (own-TF ATR, range, body, volume) frozen at creation; deepest penetration tracked per zone | — | HTF `request.security` tuples (+7 values), `f_addHtf()`, `f_hzUpdate()` |
+
+* **Candidates** = zones passing the unchanged lifecycle / age / first-retest rules (DEFENDED, FILLED, INVALIDATED, aged-out and retest-consumed zones are excluded exactly as before). Non-candidates keep their existing visuals.
+* **Clusters** = connected components of the overlap graph among candidates (touching at a boundary is not overlap). A zone overlapping nothing does not compete. `Selection scope = All candidate zones` makes one component out of everything.
+* **Scores** (each 0..1): freshness = state score (FRESH 1.0, TOUCHED 0.8, PARTIAL 0.55, CE50 0.3) × (1 − 0.5 × deepest penetration); confluence = points from PDH/PDL/PWH/PWL (1.0), their 50 % equilibrium (0.5) and unswept HTF swings (0.75) inside the zone or within `Level proximity` chart ATRs, divided by `Confluence points for full score`, capped at 1; displacement = mean of gap/ATR (1.0 at 0.75), candle range/ATR (1.0 at 2), body ratio and optionally relative volume; timeframe = log-scaled rank between the smallest and largest enabled HTF slot. Composite = Σ(weight × component) / Σ(weights).
+* **Tie chain** (all modes): score (when scoring is on) → freshness → higher timeframe → displacement → most recent creation → earlier list index. CE mode: smaller |close − CE| wins unless within the tick tolerance.
+* **Repainting**: everything runs on confirmed chart bars from closed HTF candles (`[1]`/`[2]` + `lookahead_on`, the existing pattern), confirmed pivots and the confirmed close. Selection can change from bar to bar as states evolve (a winner gets DEFENDED → the runner-up is selected on that bar); it never uses future data.
+
+## Universal pivot SMT, `Require SMT`, no more killzones (previous version)
 
 | Change | Input group | Where |
 |---|---|---|
