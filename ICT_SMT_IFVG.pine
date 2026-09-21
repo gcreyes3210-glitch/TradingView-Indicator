@@ -67,6 +67,7 @@ maxFvgToIfvgBars = input.int(30, "Max Bars from FVG to Inversion", minval = 1, g
 minGapTicks  = input.int(0, "Minimum FVG size (ticks)", minval = 0, group = grpIFVG)
 fvgExtend    = input.int(15, "Extend boxes (chart bars)", minval = 0, group = grpIFVG)
 ifvgMaxAge   = input.int(50, "IFVG max age (bars)", minval = 1, group = grpIFVG, tooltip = "Counted (in feed bars) from the bar the FVG inverted. After this an IFVG can no longer be used for a signal.")
+ifvgResolve  = input.string("Resolved anchor (1m → 2m → 3m → 5m)", "IFVG engine", options = ["Resolved anchor (1m → 2m → 3m → 5m)", "Per-feed (legacy)"], group = grpIFVG, tooltip = "Resolved anchor: only the CHART engine (chart must be 1m / 2m / 3m / 5m) confirms IFVGs. When the confirmed chart candle closes through several stacked (overlapping) FVGs of its own timeframe, the engine steps up through the 2m / 3m / 5m feed pools to find ONE anchor; it never looks above 5m. The signal is evaluated on that same inversion candle. Per-feed: every entry-timeframe engine inverts its own FVGs independently (previous behaviour).")
 ifvgAnchor   = input.string("Inversion candle", "Anchor IFVG box at", options = ["Inversion candle", "Original FVG (gap candle)"], group = grpIFVG, tooltip = "Where the LEFT edge of the IFVG box sits: the candle that closed through the FVG (inversion), or the middle candle of the original 3-bar FVG.")
 ifvgBullClr  = input.color(color.new(color.lime, 80), "Bullish IFVG (support)", group = grpIFVG)
 ifvgBearClr  = input.color(color.new(color.fuchsia, 80), "Bearish IFVG (resistance)", group = grpIFVG)
@@ -145,19 +146,19 @@ useAsia         = input.bool(true, "Asia range high / low", group = grpLiq)
 useLon          = input.bool(false, "London range high / low", group = grpLiq)
 
 grpTime = "5 · Time: killzones & session ranges"
-i_timeZone = input.string("America/Los_Angeles", "Session Time Zone", options = ["America/Los_Angeles", "America/New_York", "UTC", "Exchange"], group = grpTime, tooltip = "Every session and killzone below is read in THIS zone, never in your chart's display zone. IANA names switch daylight-saving time automatically (PST/PDT, EST/EDT). 'Exchange' = the symbol's own exchange zone.")
-tz        = i_timeZone == "Exchange" ? syminfo.timezone : i_timeZone
+i_sessTz  = input.string("America/New_York", "Session times below are written in", options = ["America/New_York", "America/Los_Angeles", "UTC", "Exchange"], group = grpTime, tooltip = "The zone the session strings are WRITTEN in (ICT benchmarks are New York time). They are evaluated in that zone whatever your chart display zone is, so switching the chart to Pacific, UTC or anything else never requires editing the hours, and daylight-saving changes (EST/EDT, PST/PDT) are applied by TradingView from the IANA name.")
+tz        = i_sessTz == "Exchange" ? syminfo.timezone : i_sessTz
 kzFilter  = input.bool(false, "Require the SMT sweep to be inside an enabled killzone", group = grpTime)
 useKzLdn  = input.bool(true, "London Open", inline = "kz1", group = grpTime)
-kzLdnSess = input.session("2300-0200", "", inline = "kz1", group = grpTime)
+kzLdnSess = input.session("0200-0500", "", inline = "kz1", group = grpTime)
 useKzNy   = input.bool(true, "New York Open", inline = "kz2", group = grpTime)
-kzNySess  = input.session("0400-0700", "", inline = "kz2", group = grpTime)
+kzNySess  = input.session("0700-1000", "", inline = "kz2", group = grpTime)
 useKzLc   = input.bool(true, "London Close", inline = "kz3", group = grpTime)
-kzLcSess  = input.session("0700-0900", "", inline = "kz3", group = grpTime)
+kzLcSess  = input.session("1000-1200", "", inline = "kz3", group = grpTime)
 useKzCu   = input.bool(false, "Custom (default NY PM)", inline = "kz4", group = grpTime)
-kzCuSess  = input.session("1030-1300", "", inline = "kz4", group = grpTime)
-asiaSess  = input.session("1700-2100", "Asia range", group = grpTime, tooltip = "Session defaults are Pacific time (London 2300-0200, NY 0400-0700, London close 0700-0900, Asia 1700-2100). Change 'Session Time Zone' and re-enter them if you prefer another zone.")
-lonSess   = input.session("2300-0200", "London range", group = grpTime)
+kzCuSess  = input.session("1330-1600", "", inline = "kz4", group = grpTime)
+asiaSess  = input.session("2000-0000", "Asia range", group = grpTime, tooltip = "Defaults are New York time (London 0200-0500, NY 0700-1000, London close 1000-1200, Asia 2000-0000). They stay correct on a Pacific / UTC chart because they are evaluated in the zone selected above.")
+lonSess   = input.session("0200-0500", "London range", group = grpTime)
 
 grpKey = "6 · Optional filter: key level"
 keyFilter = input.bool(false, "Require SMT at a key level", group = grpKey, tooltip = "Key level = PDH/PDL/PWH/PWL/Asia/London, an HTF swing, or (option below) a sweep that taps an HTF FVG. A plain feed-TF swing SMT in the middle of a range is rejected.")
@@ -218,6 +219,8 @@ type RawFVG
     float bottom
     int   dir
     int   age
+    int   id
+    int   formBar
     float gapAtr
     float bodyRatio
     float rangeAtr
@@ -230,6 +233,8 @@ type IFVGZone
     int    invBar
     string htfTag
     string primaryTag = ""
+    string resTf = ""
+    int    fvgId
     bool   primaryBull = false
     int    dispBar
     int    dispTime
@@ -374,6 +379,11 @@ type Engine
     string tfName
     bool   enabled
     bool   entryTf
+    bool   ifvgTf = false
+    bool   isChart = false
+    int    tfSec
+    int    fvgSeq = 0
+    string ifvgDbg = "-"
     bool   smtOk
     int    idx = 0
     array<RawFVG>   rawList
@@ -510,6 +520,67 @@ f_size(string s) =>
 // entry timeframes: 30s, 1m, 2m, 3m, 5m
 f_isEntryTf(int sec) =>
     sec == 30 or sec == 60 or sec == 120 or sec == 180 or sec == 300
+
+// IFVG generation is allowed ONLY on 1m / 2m / 3m / 5m (HTF FVG scanning is not affected)
+isIFVGAllowedTF(int sec) =>
+    sec == 60 or sec == 120 or sec == 180 or sec == 300
+
+// two price ranges overlap (touching at one boundary is NOT overlap)
+fvgRangesOverlap(float aTop, float aBot, float bTop, float bBot) =>
+    math.max(aBot, bBot) < math.min(aTop, bTop)
+
+// indexes of the FVGs of ONE pool that the close c inverts (close through the far boundary + buffer),
+// same direction as dirWanted (0 = any), inside the relevance window, and (optionally) overlapping [uBot, uTop]
+getCandidateFVGs(array<RawFVG> pool, float c, float buf, int dirWanted, float uTop, float uBot, bool useUnion) =>
+    array<int> out = array.new_int()
+    if array.size(pool) > 0
+        for i = 0 to array.size(pool) - 1
+            RawFVG rf = array.get(pool, i)
+            bool inv = rf.dir == -1 ? c > rf.top + buf : c < rf.bottom - buf
+            bool dOk = dirWanted == 0 or rf.dir == dirWanted
+            bool uOk = not useUnion or fvgRangesOverlap(rf.top, rf.bottom, uTop, uBot)
+            if inv and dOk and uOk and rf.age <= maxFvgToIfvgBars
+                array.push(out, i)
+    out
+
+// is at least one pair of the candidates stacked (overlapping ranges)?
+f_anyStacked(array<RawFVG> pool, array<int> idx) =>
+    bool out = false
+    int n = array.size(idx)
+    if n > 1
+        for i = 0 to n - 2
+            RawFVG a = array.get(pool, array.get(idx, i))
+            for j = i + 1 to n - 1
+                RawFVG b = array.get(pool, array.get(idx, j))
+                if fvgRangesOverlap(a.top, a.bottom, b.top, b.bottom)
+                    out := true
+    out
+
+// deterministic pick among candidates: most recent formation, then the larger gap
+f_pickDeterministic(array<RawFVG> pool, array<int> idx) =>
+    int best = -1
+    if array.size(idx) > 0
+        for i = 0 to array.size(idx) - 1
+            int k = array.get(idx, i)
+            if best < 0
+                best := k
+            else
+                RawFVG a = array.get(pool, k)
+                RawFVG b = array.get(pool, best)
+                if a.formT > b.formT or (a.formT == b.formT and (a.top - a.bottom) > (b.top - b.bottom))
+                    best := k
+    best
+
+// union range of the candidates
+f_unionRange(array<RawFVG> pool, array<int> idx) =>
+    float uTop = na
+    float uBot = na
+    if array.size(idx) > 0
+        for i = 0 to array.size(idx) - 1
+            RawFVG a = array.get(pool, array.get(idx, i))
+            uTop := na(uTop) ? a.top : math.max(uTop, a.top)
+            uBot := na(uBot) ? a.bottom : math.min(uBot, a.bottom)
+    [uTop, uBot]
 
 nameSw = f_tfName(swTf)
 
@@ -1110,8 +1181,8 @@ method draw(SMTSetup this, Engine e) =>
     true
 
 // a fresh engine with its 8 fixed liquidity references
-f_newEngine(string name, bool enabled, bool entryTf, bool smtOk) =>
-    Engine e = Engine.new(tfName = name, enabled = enabled, entryTf = entryTf, smtOk = smtOk, rawList = array.new<RawFVG>(), ifvgList = array.new<IFVGZone>(), setups = array.new<SMTSetup>(), refs = array.new<LiqRef>())
+f_newEngine(string name, bool enabled, bool entryTf, bool smtOk, int sec, bool isChart) =>
+    Engine e = Engine.new(tfName = name, enabled = enabled, entryTf = entryTf, smtOk = smtOk, rawList = array.new<RawFVG>(), ifvgList = array.new<IFVGZone>(), setups = array.new<SMTSetup>(), refs = array.new<LiqRef>(), ifvgTf = isIFVGAllowedTF(sec), isChart = isChart, tfSec = sec)
     array.push(e.refs, LiqRef.new(name = "PDH", isHigh = true, kind = 0))
     array.push(e.refs, LiqRef.new(name = "PDL", isHigh = false, kind = 0))
     array.push(e.refs, LiqRef.new(name = "PWH", isHigh = true, kind = 0))
@@ -1168,19 +1239,26 @@ bool newDay = not na(dayT) and not na(dayT[1]) and dayT != dayT[1]
 bool pdNew = not na(pdhA) and not na(pdlA) and not na(pdhB) and not na(pdlB) and (na(pdhA[1]) or pdhA != pdhA[1] or pdlA != pdlA[1] or pdhB != pdhB[1] or pdlB != pdlB[1])
 bool pwNew = not na(pwhA) and not na(pwlA) and not na(pwhB) and not na(pwlB) and (na(pwhA[1]) or pwhA != pwhA[1] or pwlA != pwlA[1] or pwhB != pwhB[1] or pwlB != pwlB[1])
 
-// sessions (explicit IANA zone, never the chart zone): one helper, DST handled by TradingView
+// sessions: strings are written in i_sessTz and evaluated there (never in the chart display zone).
+// TradingView applies DST from the IANA name, so no offsets are ever edited by hand.
 f_inSession(string sess) =>
-    not na(time(timeframe.period, sess, tz))
+    not na(time(timeframe.period, sess + ":1234567", tz))
+is_london_killzone() => f_inSession(kzLdnSess)
+is_ny_killzone()     => f_inSession(kzNySess)
+is_lc_killzone()     => f_inSession(kzLcSess)
+is_custom_killzone() => f_inSession(kzCuSess)
+is_asia_range()      => f_inSession(asiaSess)
+is_london_range()    => f_inSession(lonSess)
 
-asiaIn = f_inSession(asiaSess)
-lonIn  = f_inSession(lonSess)
+asiaIn = is_asia_range()
+lonIn  = is_london_range()
 [asiaEnded, asiaHA, asiaLA, asiaHB, asiaLB] = f_sessRange(asiaIn, asiaIn and not asiaIn[1], not asiaIn and asiaIn[1], high, low, corrHigh, corrLow)
 [lonEnded, lonHA, lonLA, lonHB, lonLB]     = f_sessRange(lonIn, lonIn and not lonIn[1], not lonIn and lonIn[1], high, low, corrHigh, corrLow)
 
-inLdn = f_inSession(kzLdnSess)
-inNy  = f_inSession(kzNySess)
-inLc  = f_inSession(kzLcSess)
-inCu  = f_inSession(kzCuSess)
+inLdn = is_london_killzone()
+inNy  = is_ny_killzone()
+inLc  = is_lc_killzone()
+inCu  = is_custom_killzone()
 kzOkNow = (useKzLdn and inLdn) or (useKzNy and inNy) or (useKzLc and inLc) or (useKzCu and inCu)
 kzTag = inLdn ? "LDN" : inNy ? "NY" : inLc ? "LC" : inCu ? "CUS" : ""
 
@@ -1241,11 +1319,23 @@ Feed fF3 = Feed.new(isNew = newF3, t = a3t, tMid = a3tm, pivT = a3pt, o = a3o, h
 Feed fF4 = Feed.new(isNew = newF4, t = a4t, tMid = a4tm, pivT = a4pt, o = a4o, h = a4h, l = a4l, c = a4c, h2 = a4h2, l2 = a4l2, atr = a4atr, phA = a4ph, plA = a4pl, winHiA = a4wh, winLoA = a4wl, postHiA = a4posh, postLoA = a4posl, ch = b4h, cl = b4l, phB = b4ph, plB = b4pl, winHiB = b4wh, winLoB = b4wl, postHiB = b4posh, postLoB = b4posl, corrTick = nz(b4tick, syminfo.mintick))
 
 // one engine per feed (state lives across bars)
-var Engine eC = f_newEngine(f_tfName(timeframe.period), true, allowedEntryTF, chartSec >= minSmtSec)
-var Engine e1 = f_newEngine(f_tfName(tfF1), enF1, f_isEntryTf(timeframe.in_seconds(tfF1)), timeframe.in_seconds(tfF1) >= minSmtSec)
-var Engine e2 = f_newEngine(f_tfName(tfF2), enF2, f_isEntryTf(timeframe.in_seconds(tfF2)), timeframe.in_seconds(tfF2) >= minSmtSec)
-var Engine e3 = f_newEngine(f_tfName(tfF3), enF3, f_isEntryTf(timeframe.in_seconds(tfF3)), timeframe.in_seconds(tfF3) >= minSmtSec)
-var Engine e4 = f_newEngine(f_tfName(tfF4), enF4, f_isEntryTf(timeframe.in_seconds(tfF4)), timeframe.in_seconds(tfF4) >= minSmtSec)
+var Engine eC = f_newEngine(f_tfName(timeframe.period), true, allowedEntryTF, chartSec >= minSmtSec, chartSec, true)
+var Engine e1 = f_newEngine(f_tfName(tfF1), enF1, f_isEntryTf(timeframe.in_seconds(tfF1)), timeframe.in_seconds(tfF1) >= minSmtSec, timeframe.in_seconds(tfF1), false)
+var Engine e2 = f_newEngine(f_tfName(tfF2), enF2, f_isEntryTf(timeframe.in_seconds(tfF2)), timeframe.in_seconds(tfF2) >= minSmtSec, timeframe.in_seconds(tfF2), false)
+var Engine e3 = f_newEngine(f_tfName(tfF3), enF3, f_isEntryTf(timeframe.in_seconds(tfF3)), timeframe.in_seconds(tfF3) >= minSmtSec, timeframe.in_seconds(tfF3), false)
+var Engine e4 = f_newEngine(f_tfName(tfF4), enF4, f_isEntryTf(timeframe.in_seconds(tfF4)), timeframe.in_seconds(tfF4) >= minSmtSec, timeframe.in_seconds(tfF4), false)
+
+// escalation ladder for stacked-FVG resolution: enabled feed engines on 2m / 3m / 5m that are HIGHER than
+// the chart, in ascending order. Built once; never contains anything above 5m.
+var array<Engine> ifvgLadder = array.new<Engine>()
+if barstate.isfirst
+    array<Engine> cand = array.from(e1, e2, e3, e4)
+    for sec in array.from(120, 180, 300)
+        if sec > chartSec
+            for k = 0 to 3
+                Engine ek = array.get(cand, k)
+                if ek.enabled and ek.tfSec == sec
+                    array.push(ifvgLadder, ek)
 
 // ============================== ENGINE (one call = one feed) ==============================
 // Runs the complete SMT + IFVG logic for ONE timeframe.  Fixed references (PDH/PDL, sessions, HTF
@@ -1517,13 +1607,16 @@ f_runEngine(Engine e, Feed f) =>
             float candleRangeAtr = candleRange / safeAtrF
             bool rawBullFVG = false
             bool rawBearFVG = false
-            if e.entryTf and not na(f.h2) and not na(f.l2)
+            // explicit timeframe gate: raw FVGs (the IFVG candidate pool) only on 1m / 2m / 3m / 5m
+            if e.ifvgTf and not na(f.h2) and not na(f.l2)
                 rawBullFVG := f.l > f.h2 and (f.l - f.h2) >= minGap
                 rawBearFVG := f.h < f.l2 and (f.l2 - f.h) >= minGap
             if rawBullFVG
-                array.push(e.rawList, RawFVG.new(top = f.l, bottom = f.h2, dir = 1, age = 0, gapAtr = (f.l - f.h2) / safeAtrF, bodyRatio = candleBodyRatio, rangeAtr = candleRangeAtr, formT = f.tMid))
+                e.fvgSeq := e.fvgSeq + 1
+                array.push(e.rawList, RawFVG.new(top = f.l, bottom = f.h2, dir = 1, age = 0, gapAtr = (f.l - f.h2) / safeAtrF, bodyRatio = candleBodyRatio, rangeAtr = candleRangeAtr, formT = f.tMid, id = e.fvgSeq, formBar = e.idx))
             if rawBearFVG
-                array.push(e.rawList, RawFVG.new(top = f.l2, bottom = f.h, dir = -1, age = 0, gapAtr = (f.l2 - f.h) / safeAtrF, bodyRatio = candleBodyRatio, rangeAtr = candleRangeAtr, formT = f.tMid))
+                e.fvgSeq := e.fvgSeq + 1
+                array.push(e.rawList, RawFVG.new(top = f.l2, bottom = f.h, dir = -1, age = 0, gapAtr = (f.l2 - f.h) / safeAtrF, bodyRatio = candleBodyRatio, rangeAtr = candleRangeAtr, formT = f.tMid, id = e.fvgSeq, formBar = e.idx))
             while array.size(e.rawList) > maxHiddenFVG
                 array.shift(e.rawList)
 
@@ -1535,7 +1628,105 @@ f_runEngine(Engine e, Feed f) =>
             float newTop = na
             float newBot = na
             int newFormT = na
-            if array.size(e.rawList) > 0
+            string newResTf = e.tfName
+            int newFvgId = na
+            bool resolvedMode = ifvgResolve != "Per-feed (legacy)"
+            bool doInvert = resolvedMode ? e.isChart : true
+            if resolvedMode and e.isChart and e.ifvgTf
+                // ---- resolveStackedFVG: chart pool -> 2m -> 3m -> 5m, ONE anchor, confirmed by THIS close ----
+                array<int> c0 = getCandidateFVGs(e.rawList, f.c, cleanBreakBuffer, 0, na, na, false)
+                int n0 = array.size(c0)
+                if n0 > 0
+                    // direction of the event = direction of the most recent inverted FVG; keep that direction only
+                    int pick0 = f_pickDeterministic(e.rawList, c0)
+                    int dirEv = array.get(e.rawList, pick0).dir
+                    array<int> cD = getCandidateFVGs(e.rawList, f.c, cleanBreakBuffer, dirEv, na, na, false)
+                    bool stacked0 = f_anyStacked(e.rawList, cD)
+                    array<RawFVG> anchorPool = e.rawList
+                    bool anchorFromLadder = false
+                    int anchorIdx = -1
+                    string resTf = e.tfName
+                    string dbgSteps = e.tfName + ": " + str.tostring(array.size(cD)) + (stacked0 ? " stacked" : "")
+                    if array.size(cD) == 1 or not stacked0
+                        anchorIdx := f_pickDeterministic(e.rawList, cD)
+                    else
+                        [uTop, uBot] = f_unionRange(e.rawList, cD)
+                        array<RawFVG> prevPool = e.rawList
+                        array<int> prevIdx = cD
+                        bool done = false
+                        if array.size(ifvgLadder) > 0
+                            for L = 0 to array.size(ifvgLadder) - 1
+                                if not done
+                                    Engine eL = array.get(ifvgLadder, L)
+                                    array<int> cL = getCandidateFVGs(eL.rawList, f.c, cleanBreakBuffer, dirEv, uTop, uBot, true)
+                                    dbgSteps += " → " + eL.tfName + ": " + str.tostring(array.size(cL))
+                                    if array.size(cL) == 1
+                                        anchorPool := eL.rawList
+                                        anchorFromLadder := true
+                                        anchorIdx := array.get(cL, 0)
+                                        resTf := eL.tfName
+                                        done := true
+                                    else if array.size(cL) == 0
+                                        // nothing at this level: resolve deterministically at the previous level
+                                        anchorIdx := f_pickDeterministic(prevPool, prevIdx)
+                                        anchorPool := prevPool
+                                        anchorFromLadder := L > 0
+                                        done := true
+                                    else
+                                        [uT2, uB2] = f_unionRange(eL.rawList, cL)
+                                        uTop := uT2
+                                        uBot := uB2
+                                        prevPool := eL.rawList
+                                        prevIdx := cL
+                                        resTf := eL.tfName
+                        if not done
+                            // ladder exhausted (5m is the last rung): deterministic final pick at the last level
+                            anchorIdx := f_pickDeterministic(prevPool, prevIdx)
+                            anchorPool := prevPool
+                            anchorFromLadder := true
+                    if anchorIdx >= 0
+                        RawFVG ra = array.get(anchorPool, anchorIdx)
+                        bool qOkA = f_qualityPass(ra.gapAtr, ra.bodyRatio, ra.rangeAtr)
+                        if qOkA
+                            foundInv := true
+                            newBullIFVG := ra.dir == -1
+                            newBearIFVG := ra.dir == 1
+                            newTop := ra.top
+                            newBot := ra.bottom
+                            newFormT := ra.formT
+                            newResTf := resTf
+                            newFvgId := ra.id
+                            e.ifvgDbg := "steps " + dbgSteps + " | RESOLVED " + resTf + " #" + str.tostring(ra.id) + " " + (ra.dir == 1 ? "bull FVG" : "bear FVG") + " top " + str.tostring(ra.top, format.mintick) + " bot " + str.tostring(ra.bottom, format.mintick) + " CE " + str.tostring((ra.top + ra.bottom) / 2, format.mintick) + " | close " + str.tostring(f.c, format.mintick) + (ra.dir == -1 ? " > " : " < ") + str.tostring(ra.dir == -1 ? ra.top : ra.bottom, format.mintick) + " | IFVG CONFIRMED bar " + str.tostring(e.idx)
+                        else
+                            e.cntIfvgRej := e.cntIfvgRej + 1
+                            if ra.dir == -1
+                                e.lastRejBullBar := e.idx
+                            else
+                                e.lastRejBearBar := e.idx
+                            e.logIfvg := (ra.dir == -1 ? "Bull" : "Bear") + " IFVG anchor rejected by quality filter (" + filterMode + ")"
+                            e.ifvgDbg := "steps " + dbgSteps + " | anchor " + resTf + " #" + str.tostring(ra.id) + " REJECTED by quality filter (" + filterMode + ")"
+                        // the inversion event is consumed: the anchor leaves its pool, the chart-level candidates leave theirs
+                        if anchorFromLadder
+                            array.remove(anchorPool, anchorIdx)
+                    for i = array.size(e.rawList) - 1 to 0
+                        if array.includes(cD, i)
+                            array.remove(e.rawList, i)
+                    // FVGs inverted by this close but ignored as too old are dropped (existing rule)
+                    for i = array.size(e.rawList) - 1 to 0
+                        RawFVG ro = array.get(e.rawList, i)
+                        bool invO = ro.dir == -1 ? f.c > ro.top + cleanBreakBuffer : f.c < ro.bottom - cleanBreakBuffer
+                        if invO and ro.age > maxFvgToIfvgBars
+                            e.cntIfvgOld := e.cntIfvgOld + 1
+                            array.remove(e.rawList, i)
+            else if not doInvert
+                // resolved mode: feed engines only maintain their FVG pool for the ladder; no IFVG, no signal here
+                if array.size(e.rawList) > 0
+                    for i = array.size(e.rawList) - 1 to 0
+                        RawFVG rp = array.get(e.rawList, i)
+                        bool invP = rp.dir == -1 ? f.c > rp.top + cleanBreakBuffer : f.c < rp.bottom - cleanBreakBuffer
+                        if invP
+                            array.remove(e.rawList, i)
+            if doInvert and not (resolvedMode and e.isChart and e.ifvgTf) and array.size(e.rawList) > 0
                 for i = array.size(e.rawList) - 1 to 0
                     RawFVG rf = array.get(e.rawList, i)
                     bool bullInv = rf.dir == -1 and f.c > rf.top + cleanBreakBuffer
@@ -1589,8 +1780,8 @@ f_runEngine(Engine e, Feed f) =>
                 if showIFVG
                     // time-anchored: left = the feed candle that inverted the gap (or the original gap candle)
                     int leftT = ifvgAnchor == "Inversion candle" or na(newFormT) ? f.t : newFormT
-                    zoneBox := box.new(left = leftT, top = newTop, right = time + fvgExtend * chartMs, bottom = newBot, xloc = xloc.bar_time, border_color = color.new(zClr, ifTag != "" ? 0 : 20), border_width = ifTag != "" ? 2 : 1, bgcolor = zClr, text = e.tfName + (ifTag != "" ? " in " + f_tagText(ifTag) + (ifPrimary != "" ? " · P:" + ifPrimary : "") : ""), text_size = size.tiny, text_color = color.white)
-                array.push(e.ifvgList, IFVGZone.new(isBull = newBullIFVG, top = newTop, bottom = newBot, invBar = e.idx, htfTag = ifTag, primaryTag = ifPrimary, primaryBull = ifPrimBull, dispBar = ifDispBar, dispTime = ifDispTime, dispOk = ifDispOk, b = zoneBox))
+                    zoneBox := box.new(left = leftT, top = newTop, right = time + fvgExtend * chartMs, bottom = newBot, xloc = xloc.bar_time, border_color = color.new(zClr, ifTag != "" ? 0 : 20), border_width = ifTag != "" ? 2 : 1, bgcolor = zClr, text = "IFVG " + newResTf + (ifTag != "" ? " in " + f_tagText(ifTag) + (ifPrimary != "" ? " · P:" + ifPrimary : "") : ""), text_size = size.tiny, text_color = color.white)
+                array.push(e.ifvgList, IFVGZone.new(isBull = newBullIFVG, top = newTop, bottom = newBot, invBar = e.idx, htfTag = ifTag, primaryTag = ifPrimary, resTf = newResTf, fvgId = newFvgId, primaryBull = ifPrimBull, dispBar = ifDispBar, dispTime = ifDispTime, dispOk = ifDispOk, b = zoneBox))
                 // pairing diagnostics against every live SMT of the same direction
                 if array.size(e.setups) > 0
                     for i = 0 to array.size(e.setups) - 1
@@ -1721,6 +1912,7 @@ f_runEngine(Engine e, Feed f) =>
                                 zf.used := true
                                 f_markHtfUsed(zf.top, zf.bottom, zf.isBull)
                                 info := sf.refName + (sf.kzName != "" ? " · " + sf.kzName : "") + " · IFVG in " + (zf.htfTag != "" ? f_tagText(zf.htfTag) : "n/a") + (zf.primaryTag != "" ? " (primary " + zf.primaryTag + (zf.primaryBull ? " ▲" : " ▼") + ")" : "") + " · sweeper " + (sf.sweeper == 1 ? syminfo.ticker : corrName) + (dispFilter != "OFF" ? " · disp " + (zf.dispOk ? "yes @" + str.tostring(zf.dispBar) : "no") : "")
+                                e.ifvgDbg := e.ifvgDbg + " | SIGNAL bar " + str.tostring(e.idx) + " (same candle)"
                                 e.lastSeq := "SWEEP(" + str.tostring(sf.sweepBar) + ") → SMT(" + str.tostring(sf.sweepBar) + ") → CONF(" + str.tostring(sf.confirmBar) + ")" + (zf.dispOk ? " → DISP(" + str.tostring(zf.dispBar) + ")" : "") + " → IFVG(" + str.tostring(zf.invBar) + ") → SIGNAL(" + str.tostring(e.idx) + ")"
                                 if not na(sf.lbl)
                                     label.set_tooltip(sf.lbl, "Timeframe: " + e.tfName + "\n" + sf.tip + "\nSIGNAL: " + info)
@@ -1855,11 +2047,12 @@ if barstate.isconfirmed
                 box.set_right(hzExt.b, time + fvgExtend * chartMs)
 
     // ---------- run every engine: chart feed + up to four higher-TF feeds ----------
-    [sigC, bdC, beC, bcC, bccC] = f_runEngine(eC, fChart)
+    // feeds run first so that their raw FVG pools (2m / 3m / 5m) are current when the chart engine resolves a stack
     [sig1, bd1, be1, bc1, bcc1] = f_runEngine(e1, fF1)
     [sig2, bd2, be2, bc2, bcc2] = f_runEngine(e2, fF2)
     [sig3, bd3, be3, bc3, bcc3] = f_runEngine(e3, fF3)
     [sig4, bd4, be4, bc4, bcc4] = f_runEngine(e4, fF4)
+    [sigC, bdC, beC, bcC, bccC] = f_runEngine(eC, fChart)
     bullSmtDet  := bdC or bd1 or bd2 or bd3 or bd4
     bearSmtDet  := beC or be1 or be2 or be3 or be4
     bullSmtConf := bcC or bc1 or bc2 or bc3 or bc4
@@ -2060,7 +2253,7 @@ if barstate.islast
     table.cell(infoTable, 1, 6, feedTxt, bgcolor = grayBg, text_color = color.white)
 
     if showDebug
-        var table dbgTable = table.new(position.bottom_right, 2, 13, border_width = 1)
+        var table dbgTable = table.new(position.bottom_right, 2, 14, border_width = 1)
         string htfChk = ""
         string liveTxt = "none live"
         string blockTxt = "-"
@@ -2137,6 +2330,14 @@ if barstate.islast
         table.cell(dbgTable, 1, 11, p3Ctx + "\n" + evTxt, bgcolor = grayBg, text_color = color.white)
         table.cell(dbgTable, 0, 12, "P3 last sequence", bgcolor = color.gray, text_color = color.white)
         table.cell(dbgTable, 1, 12, p3Seq, bgcolor = grayBg, text_color = color.white)
+        string ladderTxt = ""
+        if array.size(ifvgLadder) > 0
+            for i = 0 to array.size(ifvgLadder) - 1
+                Engine el = array.get(ifvgLadder, i)
+                ladderTxt += (ladderTxt != "" ? " → " : "") + el.tfName + "(" + str.tostring(array.size(el.rawList)) + ")"
+        string ifvgDbgTxt = "IFVG TF ok: " + (eC.ifvgTf ? "yes" : "NO (chart > 5m)") + " · mode " + (ifvgResolve == "Per-feed (legacy)" ? "per-feed" : "resolved") + " · chart pool " + str.tostring(array.size(eC.rawList)) + " waiting · ladder " + (ladderTxt == "" ? "none" : ladderTxt) + " · close " + str.tostring(close, format.mintick) + "\nlast: " + eC.ifvgDbg
+        table.cell(dbgTable, 0, 13, "IFVG DEBUG", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 13, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)
 
     // ---- Phase 2 HTF zone table: one row per active zone (newest first, max 20) ----
     if showHtfDebug

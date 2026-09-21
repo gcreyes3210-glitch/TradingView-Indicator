@@ -4,7 +4,15 @@
 
 `ICT_SMT_IFVG.pine` is the full indicator. Paste it into the TradingView Pine editor and add it to the chart.
 
-## Phase 3 + fixes (this version)
+## IFVG resolver + session zone fix (this version)
+
+* **IFVG engine** input: `Resolved anchor (1m → 2m → 3m → 5m)` (default) or `Per-feed (legacy)`. In resolved mode only the chart engine confirms IFVGs, and only on a 1m / 2m / 3m / 5m chart (`isIFVGAllowedTF`). Feed engines on 2m / 3m / 5m keep their raw FVG pools as the escalation ladder (`ifvgLadder`) and no longer invert or signal themselves.
+* **Resolution**: on a confirmed chart candle, `getCandidateFVGs` lists the chart-pool FVGs whose far boundary that close passes (plus the clean-break buffer, within `Max Bars from FVG to Inversion`). One candidate, or several that do not overlap → anchor at chart TF (most recent formation). Several stacked (`max(bottoms) < min(tops)`, touching is not stacked) → union range → 2m pool → 3m → 5m, same direction, overlapping the union, inverted by the same close. One at a level → that anchor. Zero → deterministic pick at the previous level. Still several at 5m → most recent formation, then larger gap. Never above 5m.
+* **Inversion** is close-based on the chart candle; the signal engine (section F) runs in the same call, so the signal bar is the inversion bar. Inverted candidates leave their pool, so one inversion event is consumed once.
+* **IFVG DEBUG** row in the debug table: TF gate, mode, pool sizes per ladder rung, current close, and the last resolution (steps, resolved TF / id / top / bottom / CE, boundary, inversion bar, signal bar or quality rejection).
+* **Sessions**: `Session times below are written in` (default New York). Session strings stay in ET and are evaluated in that zone via `f_inSession` / `is_*_killzone()` helpers with `:1234567`, so a Pacific or UTC chart needs no edits and DST is handled by the IANA name.
+
+## Phase 3 + fixes (previous version)
 
 | Change | Input group | Where |
 |---|---|---|
