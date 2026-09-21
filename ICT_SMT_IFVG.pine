@@ -121,7 +121,7 @@ pivotRight     = input.int(5, "Feed swing: bars right", minval = 1, group = grpS
 syncBars       = input.int(3, "Swing sync window (bars)", minval = 0, group = grpSMT, tooltip = "The other market's level for a swing = its extreme within +/- this many bars of the swing. Used up to a maximum of the 'bars right' value.")
 smtConfirmBars = input.int(3, "SMT confirmation bars", minval = 1, group = grpSMT, tooltip = "An SMT becomes CONFIRMED this many bars after the sweep if the other market has not taken its level. The sweeper can keep making new extremes meanwhile; it does not reset the count.")
 smtLifeBars    = input.int(30, "SMT setup lifetime (bars)", minval = 1, group = grpSMT, tooltip = "Counted from the sweeper's latest extreme. After this the SMT can no longer produce a signal.")
-smtMaxDays     = input.int(7, "Remove SMT marks after (days)", minval = 1, group = grpSMT, tooltip = "Only used when 'Keep marks on past bars' is OFF. Measured by timestamp from the SMT's sweep candle.")
+smtMaxDays     = input.int(7, "Max SMT age (days, 0 = OFF)", minval = 0, group = grpSMT, tooltip = "An SMT older than this (by timestamp, from the candle on which it was detected) EXPIRES: it can no longer confirm, pair with an IFVG, fire a Buy/Sell or count in the sequence, and it is removed from the active list on every bar. With 'Keep marks on past bars' ON its label stays on the chart as history; OFF deletes the label too. 0 = never expire by age.")
 smtMerge       = input.bool(true, "Merge SMT labels that share the same extreme (high / low)", group = grpSMT, tooltip = "When several liquidity sweeps (other references, other engine timeframes) produce SMTs anchored to the SAME price extreme, only one label is drawn and the others are appended to it ('+PDL[3m]'). Detection, alerts, tables and the state machine are not affected: this is label de-duplication only.")
 smtMergeTicks  = input.int(0, "  merge tolerance (ticks)", minval = 0, group = grpSMT, tooltip = "Two SMT extremes count as the same edge when they are within this many ticks of each other. 0 = exactly the same price.")
 smtBullClr     = input.color(color.teal, "Bullish SMT", group = grpSMT)
@@ -145,18 +145,19 @@ useAsia         = input.bool(true, "Asia range high / low", group = grpLiq)
 useLon          = input.bool(false, "London range high / low", group = grpLiq)
 
 grpTime = "5 · Time: killzones & session ranges"
-tz        = input.string("America/New_York", "Time zone (IANA)", group = grpTime, tooltip = "Sessions below are read in THIS zone, not your chart zone. IANA names handle daylight-saving changes.")
+i_timeZone = input.string("America/Los_Angeles", "Session Time Zone", options = ["America/Los_Angeles", "America/New_York", "UTC", "Exchange"], group = grpTime, tooltip = "Every session and killzone below is read in THIS zone, never in your chart's display zone. IANA names switch daylight-saving time automatically (PST/PDT, EST/EDT). 'Exchange' = the symbol's own exchange zone.")
+tz        = i_timeZone == "Exchange" ? syminfo.timezone : i_timeZone
 kzFilter  = input.bool(false, "Require the SMT sweep to be inside an enabled killzone", group = grpTime)
 useKzLdn  = input.bool(true, "London Open", inline = "kz1", group = grpTime)
-kzLdnSess = input.session("0200-0500", "", inline = "kz1", group = grpTime)
+kzLdnSess = input.session("2300-0200", "", inline = "kz1", group = grpTime)
 useKzNy   = input.bool(true, "New York Open", inline = "kz2", group = grpTime)
-kzNySess  = input.session("0700-1000", "", inline = "kz2", group = grpTime)
+kzNySess  = input.session("0400-0700", "", inline = "kz2", group = grpTime)
 useKzLc   = input.bool(true, "London Close", inline = "kz3", group = grpTime)
-kzLcSess  = input.session("1000-1200", "", inline = "kz3", group = grpTime)
+kzLcSess  = input.session("0700-0900", "", inline = "kz3", group = grpTime)
 useKzCu   = input.bool(false, "Custom (default NY PM)", inline = "kz4", group = grpTime)
-kzCuSess  = input.session("1330-1600", "", inline = "kz4", group = grpTime)
-asiaSess  = input.session("2000-0000", "Asia range", group = grpTime)
-lonSess   = input.session("0200-0500", "London range", group = grpTime)
+kzCuSess  = input.session("1030-1300", "", inline = "kz4", group = grpTime)
+asiaSess  = input.session("1700-2100", "Asia range", group = grpTime, tooltip = "Session defaults are Pacific time (London 2300-0200, NY 0400-0700, London close 0700-0900, Asia 1700-2100). Change 'Session Time Zone' and re-enter them if you prefer another zone.")
+lonSess   = input.session("2300-0200", "London range", group = grpTime)
 
 grpKey = "6 · Optional filter: key level"
 keyFilter = input.bool(false, "Require SMT at a key level", group = grpKey, tooltip = "Key level = PDH/PDL/PWH/PWL/Asia/London, an HTF swing, or (option below) a sweep that taps an HTF FVG. A plain feed-TF swing SMT in the middle of a range is rejected.")
@@ -185,6 +186,18 @@ useF3  = input.bool(true, "Use", inline = "f3", group = grpMtf)
 tfF3   = input.timeframe("5", "Feed #3", inline = "f3", group = grpMtf)
 useF4  = input.bool(true, "Use", inline = "f4", group = grpMtf)
 tfF4   = input.timeframe("15", "Feed #4", inline = "f4", group = grpMtf)
+
+grpP3 = "11 · Phase 3: HTF direction · displacement · sweep → SMT sequence"
+htfDirFilter = input.string("OFF", "HTF Direction Filter", options = ["OFF", "REQUIRE SAME DIRECTION", "ALLOW OPPOSITE DIRECTION"], group = grpP3, tooltip = "Compares the LTF setup direction (bullish SMT + bullish IFVG) with the direction of the PRIMARY HTF zone (Phase 2 selection) recorded when the IFVG formed. REQUIRE SAME DIRECTION: the primary zone must have the same bias. ALLOW OPPOSITE DIRECTION / OFF: direction is not checked. The Phase 2 primary itself is unchanged.")
+dispFilter   = input.string("OFF", "Displacement Filter", options = ["OFF", "OPTIONAL", "REQUIRED"], group = grpP3, tooltip = "Objective displacement, measured on the feed's own candles. OPTIONAL: computed and shown in debug / tooltips only. REQUIRED: a same-direction displacement event must exist at most 'Max bars displacement → IFVG' bars before (or on) the IFVG inversion candle. Defaults are starting values, not recommendations.")
+dispAtrMultP3 = input.float(1.0, "  Displacement: body >= x ATR", minval = 0.0, step = 0.1, group = grpP3, tooltip = "ATR length = the shared 'ATR length' input (section 1b), computed on each feed's own timeframe. 0 disables this component.")
+dispBodyPctP3 = input.float(0.60, "  Displacement: body / range >=", minval = 0.0, maxval = 1.0, step = 0.05, group = grpP3, tooltip = "0 disables this component.")
+dispConsec    = input.int(1, "  Required consecutive directional candles", minval = 1, group = grpP3, tooltip = "Every candle of the run must be directional (close > open for bullish, close < open for bearish) and meet the ATR / body thresholds. The event is recorded on the last candle of the run.")
+dispReqSwing  = input.bool(false, "  Require swing break", group = grpP3, tooltip = "Bullish displacement must also close above the last confirmed feed swing high; bearish below the last confirmed feed swing low (same swings the MSS filter uses).")
+dispMaxToIfvg = input.int(10, "  Max bars displacement → IFVG (0 = OFF)", minval = 0, group = grpP3, tooltip = "Feed bars from the displacement event to the IFVG inversion candle. Older displacement does not qualify the IFVG.")
+seqFilter    = input.bool(false, "Require Liquidity → SMT Sequence", group = grpP3, tooltip = "ON: Buy/Sell only when the events happened in this order: liquidity sweep → SMT detection → SMT confirmation → displacement (if the displacement filter is REQUIRED) → LTF IFVG, each inside the windows below. OFF: Phase 2 behaviour.")
+seqMaxSweepSmt = input.int(0, "  Max bars sweep → SMT (0 = OFF)", minval = 0, group = grpP3, tooltip = "In this engine the SMT is detected on the sweep candle itself, so the distance is normally 0; the window is kept explicit and testable.")
+seqMaxSmtDisp  = input.int(10, "  Max bars SMT confirmation → displacement / IFVG (0 = OFF)", minval = 0, group = grpP3, tooltip = "With the displacement filter REQUIRED: confirmation → displacement. Otherwise: confirmation → IFVG.")
 
 grpRisk = "10 · Risk: stop loss / take profit / position size"
 showTrade     = input.bool(true, "Draw entry / SL / TP lines on Buy/Sell", group = grpRisk)
@@ -217,6 +230,10 @@ type IFVGZone
     int    invBar
     string htfTag
     string primaryTag = ""
+    bool   primaryBull = false
+    int    dispBar
+    int    dispTime
+    bool   dispOk = false
     bool   used = false
     box    b
 
@@ -288,6 +305,15 @@ type SMTSetup
     line   ln
     int    anchorId = -1
     int    hostId = -1
+    // fixed detection timestamp (never updated) + Phase 3 event layer
+    int    detectTime
+    int    sweepTime
+    float  sweepPrice
+    float  sweptLevel
+    int    confirmBar
+    int    confirmTime
+    int    seq = 1
+    bool   ageExpired = false
 
 // one drawn SMT label per (direction, extreme price): other SMTs at the same edge join it
 type SmtAnchor
@@ -374,6 +400,15 @@ type Engine
     string logIfvg = "-"
     string logPair = "-"
     string lastIfvgTag = ""
+    int    bullRun = 0
+    int    bearRun = 0
+    int    lastBullDispBar
+    int    lastBullDispTime
+    int    lastBearDispBar
+    int    lastBearDispTime
+    int    lastIfvgBar
+    int    lastIfvgTime
+    string lastSeq = "-"
 
 // what an engine hands back when it fires a Buy/Sell
 type SigInfo
@@ -644,6 +679,11 @@ f_htfPrimaryIdx(float top, float bot, bool isBull, float px) =>
 f_htfPrimaryTag(float top, float bot, bool isBull, float px) =>
     int idx = f_htfPrimaryIdx(top, bot, isBull, px)
     idx >= 0 ? array.get(htfList, idx).tf : ""
+
+// direction of that primary zone (true = bullish); false when there is none
+f_htfPrimaryBull(float top, float bot, bool isBull, float px) =>
+    int idx = f_htfPrimaryIdx(top, bot, isBull, px)
+    idx >= 0 ? array.get(htfList, idx).isBull : false
 
 // tags of ELIGIBLE HTF zones whose area overlaps [lo, hi] (a "tap")
 f_htfOverlap(float lo, float hi, bool isBull) =>
@@ -1128,16 +1168,19 @@ bool newDay = not na(dayT) and not na(dayT[1]) and dayT != dayT[1]
 bool pdNew = not na(pdhA) and not na(pdlA) and not na(pdhB) and not na(pdlB) and (na(pdhA[1]) or pdhA != pdhA[1] or pdlA != pdlA[1] or pdhB != pdhB[1] or pdlB != pdlB[1])
 bool pwNew = not na(pwhA) and not na(pwlA) and not na(pwhB) and not na(pwlB) and (na(pwhA[1]) or pwhA != pwhA[1] or pwlA != pwlA[1] or pwhB != pwhB[1] or pwlB != pwlB[1])
 
-// sessions (explicit IANA zone, never the chart zone)
-asiaIn = not na(time(timeframe.period, asiaSess, tz))
-lonIn  = not na(time(timeframe.period, lonSess, tz))
+// sessions (explicit IANA zone, never the chart zone): one helper, DST handled by TradingView
+f_inSession(string sess) =>
+    not na(time(timeframe.period, sess, tz))
+
+asiaIn = f_inSession(asiaSess)
+lonIn  = f_inSession(lonSess)
 [asiaEnded, asiaHA, asiaLA, asiaHB, asiaLB] = f_sessRange(asiaIn, asiaIn and not asiaIn[1], not asiaIn and asiaIn[1], high, low, corrHigh, corrLow)
 [lonEnded, lonHA, lonLA, lonHB, lonLB]     = f_sessRange(lonIn, lonIn and not lonIn[1], not lonIn and lonIn[1], high, low, corrHigh, corrLow)
 
-inLdn = not na(time(timeframe.period, kzLdnSess, tz))
-inNy  = not na(time(timeframe.period, kzNySess, tz))
-inLc  = not na(time(timeframe.period, kzLcSess, tz))
-inCu  = not na(time(timeframe.period, kzCuSess, tz))
+inLdn = f_inSession(kzLdnSess)
+inNy  = f_inSession(kzNySess)
+inLc  = f_inSession(kzLcSess)
+inCu  = f_inSession(kzCuSess)
 kzOkNow = (useKzLdn and inLdn) or (useKzNy and inNy) or (useKzLc and inLc) or (useKzCu and inCu)
 kzTag = inLdn ? "LDN" : inNy ? "NY" : inLc ? "LC" : inCu ? "CUS" : ""
 
@@ -1344,7 +1387,7 @@ f_runEngine(Engine e, Feed f) =>
                                     swName := corrName
                                     flName := syminfo.ticker
                                 tap := f_htfOverlap(f.l, f.h, sBull)
-                                ns := SMTSetup.new(isBull = sBull, refName = r.name, isKey = rKey, sweeper = sw, sweepBar = e.idx, legBar = e.idx, legTime = f.t, legExt = ext, legPrice = r.isHigh ? f.h : f.l, sweepExt = r.isHigh ? f.h : f.l, lvlA = r.lvlA, lvlTime = r.lvlTime, mssLevel = r.isHigh ? e.lastPLA : e.lastPHA, kzName = kzTag, kzOk = kzOkNow, htfTap = tap != "", htfTag = tap, tip = (sBull ? "Bullish" : "Bearish") + " SMT [" + e.tfName + "] at " + r.name + ": " + swName + " took the level, " + flName + " did not")
+                                ns := SMTSetup.new(isBull = sBull, refName = r.name, isKey = rKey, sweeper = sw, sweepBar = e.idx, legBar = e.idx, legTime = f.t, legExt = ext, legPrice = r.isHigh ? f.h : f.l, sweepExt = r.isHigh ? f.h : f.l, lvlA = r.lvlA, lvlTime = r.lvlTime, detectTime = f.t, sweepTime = f.t, sweepPrice = ext, sweptLevel = r.lvlA, mssLevel = r.isHigh ? e.lastPLA : e.lastPHA, kzName = kzTag, kzOk = kzOkNow, htfTap = tap != "", htfTag = tap, tip = (sBull ? "Bullish" : "Bearish") + " SMT [" + e.tfName + "] at " + r.name + ": " + swName + " took the level, " + flName + " did not")
                                 array.push(e.setups, ns)
                                 r.cur := ns
                                 r.state := 1
@@ -1410,6 +1453,8 @@ f_runEngine(Engine e, Feed f) =>
                                 if not cs.confirmed
                                     if e.idx - cs.sweepBar >= smtConfirmBars
                                         cs.confirmed := true
+                                        cs.confirmBar := e.idx
+                                        cs.confirmTime := f.t
                                         e.cntSmtConf := e.cntSmtConf + 1
                                         e.logSmt := (cs.isBull ? "Bull" : "Bear") + " SMT confirmed @" + cs.refName
                                         if f_passes(cs)
@@ -1429,6 +1474,26 @@ f_runEngine(Engine e, Feed f) =>
                     bool dropRef = q2.kind != 0 and q2.state != 1 and (q2.state == 3 or agedOut)
                     if dropRef
                         array.remove(e.refs, i)
+
+            // ---------- P3. objective displacement events (feed candles, own ATR, direction-aware) ----------
+            // bullish: close > open, body >= x ATR, body / range >= y, N consecutive, optional swing break.
+            // Recorded (bar + time) on the last candle of the run; never required unless the filter is REQUIRED.
+            float p3Body = math.abs(f.c - f.o)
+            float p3Rng = math.max(f.h - f.l, syminfo.mintick)
+            bool p3Atr = dispAtrMultP3 <= 0.0 or p3Body >= dispAtrMultP3 * safeAtrF
+            bool p3Pct = dispBodyPctP3 <= 0.0 or p3Body / p3Rng >= dispBodyPctP3
+            bool p3Bull = f.c > f.o and p3Atr and p3Pct
+            bool p3Bear = f.c < f.o and p3Atr and p3Pct
+            e.bullRun := p3Bull ? e.bullRun + 1 : 0
+            e.bearRun := p3Bear ? e.bearRun + 1 : 0
+            bool bullSwingOk = not dispReqSwing or (not na(e.lastPHA) and f.c > e.lastPHA)
+            bool bearSwingOk = not dispReqSwing or (not na(e.lastPLA) and f.c < e.lastPLA)
+            if e.bullRun >= dispConsec and bullSwingOk
+                e.lastBullDispBar := e.idx
+                e.lastBullDispTime := f.t
+            if e.bearRun >= dispConsec and bearSwingOk
+                e.lastBearDispBar := e.idx
+                e.lastBearDispTime := f.t
 
             // ---------- B. IFVG engine (hidden FVG memory -> inversion) ----------
             SMTSetup newestLive = na
@@ -1508,7 +1573,14 @@ f_runEngine(Engine e, Feed f) =>
             if newBullIFVG or newBearIFVG
                 ifTag := f_htfContain(newTop, newBot, newBullIFVG)
                 string ifPrimary = f_htfPrimaryTag(newTop, newBot, newBullIFVG, f.c)
+                bool ifPrimBull = f_htfPrimaryBull(newTop, newBot, newBullIFVG, f.c)
+                // Phase 3: same-direction displacement that precedes (or is) this inversion candle
+                int ifDispBar = newBullIFVG ? e.lastBullDispBar : e.lastBearDispBar
+                int ifDispTime = newBullIFVG ? e.lastBullDispTime : e.lastBearDispTime
+                bool ifDispOk = not na(ifDispBar) and (dispMaxToIfvg == 0 or e.idx - ifDispBar <= dispMaxToIfvg)
                 e.lastIfvgTag := ifTag
+                e.lastIfvgBar := e.idx
+                e.lastIfvgTime := f.t
                 if newBullIFVG
                     e.cntIfvgBull := e.cntIfvgBull + 1
                 else
@@ -1518,7 +1590,7 @@ f_runEngine(Engine e, Feed f) =>
                     // time-anchored: left = the feed candle that inverted the gap (or the original gap candle)
                     int leftT = ifvgAnchor == "Inversion candle" or na(newFormT) ? f.t : newFormT
                     zoneBox := box.new(left = leftT, top = newTop, right = time + fvgExtend * chartMs, bottom = newBot, xloc = xloc.bar_time, border_color = color.new(zClr, ifTag != "" ? 0 : 20), border_width = ifTag != "" ? 2 : 1, bgcolor = zClr, text = e.tfName + (ifTag != "" ? " in " + f_tagText(ifTag) + (ifPrimary != "" ? " · P:" + ifPrimary : "") : ""), text_size = size.tiny, text_color = color.white)
-                array.push(e.ifvgList, IFVGZone.new(isBull = newBullIFVG, top = newTop, bottom = newBot, invBar = e.idx, htfTag = ifTag, primaryTag = ifPrimary, b = zoneBox))
+                array.push(e.ifvgList, IFVGZone.new(isBull = newBullIFVG, top = newTop, bottom = newBot, invBar = e.idx, htfTag = ifTag, primaryTag = ifPrimary, primaryBull = ifPrimBull, dispBar = ifDispBar, dispTime = ifDispTime, dispOk = ifDispOk, b = zoneBox))
                 // pairing diagnostics against every live SMT of the same direction
                 if array.size(e.setups) > 0
                     for i = 0 to array.size(e.setups) - 1
@@ -1596,20 +1668,22 @@ f_runEngine(Engine e, Feed f) =>
                                         se.fvgDone := true
                                     if not se.mssDone and not na(se.mssLevel) and f.c < se.mssLevel
                                         se.mssDone := true
-                            if e.idx - se.legBar > smtLifeBars
+                            // age in DAYS from the fixed detection timestamp (works on any chart timeframe)
+                            bool ageOut = smtMaxDays > 0 and (time - se.detectTime) / 86400000.0 > smtMaxDays
+                            if ageOut
+                                se.ageExpired := true
+                            if e.idx - se.legBar > smtLifeBars or ageOut
                                 se.expired := true
                                 if not se.used
                                     e.cntSmtExp := e.cntSmtExp + 1
                                     e.logSmt := (se.isBull ? "Bull" : "Bear") + " SMT @" + se.refName + " expired: " + f_reason(e, se)
                                     if not na(se.lbl)
                                         label.set_tooltip(se.lbl, "Timeframe: " + e.tfName + "\n" + se.tip + "\nNO SIGNAL: " + f_reason(e, se))
-                        if keepHistory
-                            if se.expired
-                                removeIt := true
-                        else
-                            if time - se.legTime > smtMaxDays * dayMs
+                        // expired (lifetime OR age) setups leave the active list on EVERY feed bar
+                        if se.expired
+                            removeIt := true
+                            if not keepHistory
                                 se.kill()
-                                removeIt := true
                     if removeIt
                         array.remove(e.setups, i)
 
@@ -1626,12 +1700,28 @@ f_runEngine(Engine e, Feed f) =>
                             bool sameDir = zf.isBull == sf.isBull
                             bool timeOk = f_timingOk(sf, zf.invBar)
                             bool htfOkF = not requireHTF or zf.htfTag != ""
+                            // ---- Phase 3 gates (every one is true with its filter OFF) ----
+                            bool dirOkP3 = htfDirFilter != "REQUIRE SAME DIRECTION" or zf.primaryTag == "" or zf.primaryBull == sf.isBull
+                            bool dispOkP3 = dispFilter != "REQUIRED" or zf.dispOk
+                            bool seqOkP3 = true
+                            if seqFilter
+                                bool sweepToSmt = seqMaxSweepSmt == 0 or sf.sweepBar - sf.sweepBar <= seqMaxSweepSmt
+                                bool confOk = sf.confirmed and not na(sf.confirmBar) and sf.confirmBar >= sf.sweepBar
+                                bool orderOk = confOk and zf.invBar >= sf.confirmBar
+                                bool winOk = true
+                                if dispFilter == "REQUIRED"
+                                    orderOk := orderOk and not na(zf.dispBar) and zf.dispBar >= sf.confirmBar and zf.invBar >= zf.dispBar
+                                    winOk := seqMaxSmtDisp == 0 or (not na(zf.dispBar) and zf.dispBar - sf.confirmBar <= seqMaxSmtDisp)
+                                else
+                                    winOk := seqMaxSmtDisp == 0 or zf.invBar - sf.confirmBar <= seqMaxSmtDisp
+                                seqOkP3 := sweepToSmt and orderOk and winOk
                             string info = ""
-                            if sameDir and not zf.used and timeOk and htfOkF
+                            if sameDir and not zf.used and timeOk and htfOkF and dirOkP3 and dispOkP3 and seqOkP3
                                 sf.used := true
                                 zf.used := true
                                 f_markHtfUsed(zf.top, zf.bottom, zf.isBull)
-                                info := sf.refName + (sf.kzName != "" ? " · " + sf.kzName : "") + " · IFVG in " + (zf.htfTag != "" ? f_tagText(zf.htfTag) : "n/a") + (zf.primaryTag != "" ? " (primary " + zf.primaryTag + ")" : "") + " · sweeper " + (sf.sweeper == 1 ? syminfo.ticker : corrName)
+                                info := sf.refName + (sf.kzName != "" ? " · " + sf.kzName : "") + " · IFVG in " + (zf.htfTag != "" ? f_tagText(zf.htfTag) : "n/a") + (zf.primaryTag != "" ? " (primary " + zf.primaryTag + (zf.primaryBull ? " ▲" : " ▼") + ")" : "") + " · sweeper " + (sf.sweeper == 1 ? syminfo.ticker : corrName) + (dispFilter != "OFF" ? " · disp " + (zf.dispOk ? "yes @" + str.tostring(zf.dispBar) : "no") : "")
+                                e.lastSeq := "SWEEP(" + str.tostring(sf.sweepBar) + ") → SMT(" + str.tostring(sf.sweepBar) + ") → CONF(" + str.tostring(sf.confirmBar) + ")" + (zf.dispOk ? " → DISP(" + str.tostring(zf.dispBar) + ")" : "") + " → IFVG(" + str.tostring(zf.invBar) + ") → SIGNAL(" + str.tostring(e.idx) + ")"
                                 if not na(sf.lbl)
                                     label.set_tooltip(sf.lbl, "Timeframe: " + e.tfName + "\n" + sf.tip + "\nSIGNAL: " + info)
                                 // everything the risk module needs: entry = feed close, both stop candidates, swing target
@@ -1970,7 +2060,7 @@ if barstate.islast
     table.cell(infoTable, 1, 6, feedTxt, bgcolor = grayBg, text_color = color.white)
 
     if showDebug
-        var table dbgTable = table.new(position.bottom_right, 2, 11, border_width = 1)
+        var table dbgTable = table.new(position.bottom_right, 2, 13, border_width = 1)
         string htfChk = ""
         string liveTxt = "none live"
         string blockTxt = "-"
@@ -2006,7 +2096,8 @@ if barstate.islast
             if shown > 12
                 hzTxt += " … +" + str.tostring(shown - 12)
         if not na(newestS)
-            liveTxt := (newestS.isBull ? "Bull " : "Bear ") + (newestS.confirmed ? "confirmed" : "developing") + " @" + newestS.refName + " · " + (newestS.sweeper == 1 ? syminfo.ticker : corrName) + " swept" + (newestS.used ? " · SIGNAL FIRED" : "")
+            float smtAgeD = (time - newestS.detectTime) / 86400000.0
+            liveTxt := (newestS.isBull ? "Bull " : "Bear ") + (newestS.confirmed ? "confirmed" : "developing") + " @" + newestS.refName + " · " + (newestS.sweeper == 1 ? syminfo.ticker : corrName) + " swept" + (newestS.used ? " · SIGNAL FIRED" : "") + " · age " + str.tostring(smtAgeD, "#.##") + "d / max " + (smtMaxDays > 0 ? str.tostring(smtMaxDays) + "d" : "off") + " · " + (newestS.expired ? "EXPIRED" : "ACTIVE")
             blockTxt := newestS.used ? "signal fired" : f_reason(eC, newestS)
         string cntSmtTxt = "dev " + str.tostring(eC.cntSmtDev) + "  conf " + str.tostring(eC.cntSmtConf) + "  inval " + str.tostring(eC.cntSmtInv) + "  exp " + str.tostring(eC.cntSmtExp)
         string cntIfvgTxt = "bull " + str.tostring(eC.cntIfvgBull) + "  bear " + str.tostring(eC.cntIfvgBear) + "  rejected(quality) " + str.tostring(eC.cntIfvgRej) + "  too old " + str.tostring(eC.cntIfvgOld)
@@ -2034,6 +2125,18 @@ if barstate.islast
         table.cell(dbgTable, 1, 9, feedDbg, bgcolor = grayBg, text_color = color.white)
         table.cell(dbgTable, 0, 10, "HTF zone states", bgcolor = color.gray, text_color = color.white)
         table.cell(dbgTable, 1, 10, hzTxt, bgcolor = grayBg, text_color = color.white)
+        // ---- Phase 3: context + event sequence for the chart engine ----
+        string p3Ctx = "no IFVG yet"
+        string p3Seq = eC.lastSeq
+        if not na(tl)
+            string primTxt = tl.primaryTag != "" ? tl.primaryTag + (tl.primaryBull ? " Bullish" : " Bearish") : "none"
+            string alignTxt = tl.primaryTag == "" ? "n/a" : (tl.primaryBull == tl.isBull ? "YES" : "NO")
+            p3Ctx := "HTF primary: " + primTxt + " · LTF: " + (tl.isBull ? "BULLISH" : "BEARISH") + " · aligned: " + alignTxt + " (" + htfDirFilter + ")"
+        string evTxt = "Sweep/SMT: " + (na(newestS) ? "no" : "yes @" + str.tostring(newestS.sweepBar)) + " · SMT conf: " + (na(newestS) or not newestS.confirmed ? "no" : "yes @" + str.tostring(newestS.confirmBar)) + " · Disp: " + (na(newestS) ? "-" : (newestS.isBull ? (na(eC.lastBullDispBar) ? "no" : "yes @" + str.tostring(eC.lastBullDispBar)) : (na(eC.lastBearDispBar) ? "no" : "yes @" + str.tostring(eC.lastBearDispBar)))) + " · IFVG: " + (na(eC.lastIfvgBar) ? "no" : "yes @" + str.tostring(eC.lastIfvgBar)) + " · seq filter " + (seqFilter ? "ON" : "OFF") + " · disp filter " + dispFilter
+        table.cell(dbgTable, 0, 11, "P3 context", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 11, p3Ctx + "\n" + evTxt, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 12, "P3 last sequence", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 12, p3Seq, bgcolor = grayBg, text_color = color.white)
 
     // ---- Phase 2 HTF zone table: one row per active zone (newest first, max 20) ----
     if showHtfDebug

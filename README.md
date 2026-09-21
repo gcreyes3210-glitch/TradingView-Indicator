@@ -4,7 +4,19 @@
 
 `ICT_SMT_IFVG.pine` is the full indicator. Paste it into the TradingView Pine editor and add it to the chart.
 
-## Phase 2 (this version)
+## Phase 3 + fixes (this version)
+
+| Change | Input group | Where |
+|---|---|---|
+| HTF Direction Filter (OFF / REQUIRE SAME DIRECTION / ALLOW OPPOSITE DIRECTION), default OFF | `11 · Phase 3` | `IFVGZone.primaryBull` set at IFVG formation via `f_htfPrimaryBull()`, gate `dirOkP3` in section F |
+| Objective displacement events per feed (body ≥ x ATR, body/range ≥ y, close vs open, N consecutive candles, optional swing break), filter OFF / OPTIONAL / REQUIRED, default OFF | `11 · Phase 3` | block `P3` before section B of `f_runEngine()`, `Engine.lastBull/BearDispBar/Time`, snapshot into `IFVGZone.dispBar/dispTime/dispOk`, gate `dispOkP3` |
+| Sweep → SMT → confirmation → displacement → IFVG sequence filter with windows, default OFF | `11 · Phase 3` | `SMTSetup.sweepTime/sweepPrice/sweptLevel/confirmBar/confirmTime`, gate `seqOkP3` in section F, `Engine.lastSeq` |
+| **Bug fix**: SMT age in days now expires the SMT itself | `3 · SMT engine` → `Max SMT age (days, 0 = OFF)` | `SMTSetup.detectTime` (fixed at detection), age test in section E on every feed bar |
+| Session time zone input with DST-aware IANA zones, default `America/Los_Angeles`; session defaults converted to Pacific | `5 · Time` | `i_timeZone`, `tz`, `f_inSession()` |
+
+**SMT expiry bug, cause.** The old day check `time - se.legTime > smtMaxDays * dayMs` sat in the `else` branch of `if keepHistory`, so with the default `Keep marks on past bars = ON` it never ran; it only deleted labels, never marked the setup expired; and it used `legTime`, which moves to each new sweep extreme. Fix: `detectTime` is stored once at creation, `ageDays = (time - detectTime) / 86400000.0`, and `ageDays > smtMaxDays` sets `expired` (and `ageExpired`) in the same place `smtLifeBars` does, on every feed bar, then the setup is removed from `e.setups` in the existing reverse loop. `expired` is already required false by section F, by the confirmation path and by the debug "live" pick, so an expired SMT cannot confirm, pair, fire or count in the sequence.
+
+## Phase 2 (previous version)
 
 | Feature | Input | Where in the script |
 |---|---|---|
