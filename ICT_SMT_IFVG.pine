@@ -1708,16 +1708,18 @@ f_runEngine(Engine e, Feed f) =>
                         // the inversion event is consumed: the anchor leaves its pool, the chart-level candidates leave theirs
                         if anchorFromLadder
                             array.remove(anchorPool, anchorIdx)
-                    for i = array.size(e.rawList) - 1 to 0
-                        if array.includes(cD, i)
-                            array.remove(e.rawList, i)
+                    if array.size(e.rawList) > 0
+                        for i = array.size(e.rawList) - 1 to 0
+                            if array.includes(cD, i)
+                                array.remove(e.rawList, i)
                     // FVGs inverted by this close but ignored as too old are dropped (existing rule)
-                    for i = array.size(e.rawList) - 1 to 0
-                        RawFVG ro = array.get(e.rawList, i)
-                        bool invO = ro.dir == -1 ? f.c > ro.top + cleanBreakBuffer : f.c < ro.bottom - cleanBreakBuffer
-                        if invO and ro.age > maxFvgToIfvgBars
-                            e.cntIfvgOld := e.cntIfvgOld + 1
-                            array.remove(e.rawList, i)
+                    if array.size(e.rawList) > 0
+                        for i = array.size(e.rawList) - 1 to 0
+                            RawFVG ro = array.get(e.rawList, i)
+                            bool invO = ro.dir == -1 ? f.c > ro.top + cleanBreakBuffer : f.c < ro.bottom - cleanBreakBuffer
+                            if invO and ro.age > maxFvgToIfvgBars
+                                e.cntIfvgOld := e.cntIfvgOld + 1
+                                array.remove(e.rawList, i)
             else if not doInvert
                 // resolved mode: feed engines only maintain their FVG pool for the ladder; no IFVG, no signal here
                 if array.size(e.rawList) > 0
@@ -2177,8 +2179,14 @@ if sellSignal
     alert("SELL " + syminfo.ticker + ": " + sellMsg, alert.freq_once_per_bar_close)
 
 // ============================== TABLES (last bar) ==============================
+// one checklist row: ✅ / ❌ + label
+f_ckRow(table t, int r, bool ok, string txt) =>
+    table.cell(t, 0, r, ok ? "✅" : "❌", bgcolor = ok ? color.new(color.green, 70) : color.new(color.red, 70), text_color = color.white, text_size = size.small)
+    table.cell(t, 1, r, txt, bgcolor = color.new(color.black, 20), text_color = color.white, text_halign = text.align_left, text_size = size.small)
+    true
+
 if barstate.islast
-    var table infoTable = table.new(position.top_right, 2, 7, border_width = 1)
+    var table infoTable = table.new(position.top_right, 2, 12, border_width = 1, bgcolor = color.new(color.black, 20))
     color grayBg = color.new(color.gray, 50)
     array<int> cnt = array.new_int(10, 0)
     array<int> cntE = array.new_int(10, 0)
@@ -2237,20 +2245,40 @@ if barstate.islast
         filtTxt := "RAW SMT"
     string feedTxt = eC.tfName + " (chart)" + (enF1 ? ", " + e1.tfName : "") + (enF2 ? ", " + e2.tfName : "") + (enF3 ? ", " + e3.tfName : "") + (enF4 ? ", " + e4.tfName : "")
 
-    table.cell(infoTable, 0, 0, "Killzone", bgcolor = color.gray, text_color = color.white)
-    table.cell(infoTable, 1, 0, kzTxt, bgcolor = grayBg, text_color = color.white)
-    table.cell(infoTable, 0, 1, "HTF zones (eligible/all)", bgcolor = color.gray, text_color = color.white)
-    table.cell(infoTable, 1, 1, htfTxt, bgcolor = grayBg, text_color = color.white)
-    table.cell(infoTable, 0, 2, "SMT (" + eC.tfName + ")", bgcolor = color.gray, text_color = color.white)
-    table.cell(infoTable, 1, 2, smtTxt, bgcolor = smtBg, text_color = color.white)
-    table.cell(infoTable, 0, 3, "IFVG (" + eC.tfName + ")", bgcolor = color.gray, text_color = color.white)
-    table.cell(infoTable, 1, 3, ifvgTxt, bgcolor = grayBg, text_color = color.white)
-    table.cell(infoTable, 0, 4, "Signal", bgcolor = color.gray, text_color = color.white)
-    table.cell(infoTable, 1, 4, sigTxt, bgcolor = sigBg, text_color = color.white)
-    table.cell(infoTable, 0, 5, "Last position", bgcolor = color.gray, text_color = color.white)
-    table.cell(infoTable, 1, 5, lastPlanTxt, bgcolor = grayBg, text_color = color.white)
-    table.cell(infoTable, 0, 6, "Engines", bgcolor = color.gray, text_color = color.white)
-    table.cell(infoTable, 1, 6, feedTxt, bgcolor = grayBg, text_color = color.white)
+    // ---- confluence checklist (chart engine, current state) ----
+    bool cSmt = not na(newestS)
+    bool cSweep = cSmt
+    bool cSmtConf = cSmt and newestS.confirmed
+    bool cKz = kzOkNow
+    bool cIfvg = not na(tl)
+    bool cHtf = cIfvg and tl.htfTag != ""
+    bool cDisp = false
+    if cSmt
+        int dB = newestS.isBull ? eC.lastBullDispBar : eC.lastBearDispBar
+        cDisp := not na(dB) and (dispMaxToIfvg == 0 or eC.idx - dB <= dispMaxToIfvg)
+    bool cAlign = cIfvg and tl.primaryTag != "" and tl.primaryBull == tl.isBull
+    bool cSeq = cSmtConf and cIfvg and tl.isBull == newestS.isBull and tl.invBar >= newestS.confirmBar
+    int cN = (cHtf ? 1 : 0) + (cSweep ? 1 : 0) + (cSmt ? 1 : 0) + (cSmtConf ? 1 : 0) + (cKz ? 1 : 0) + (cDisp ? 1 : 0) + (cIfvg ? 1 : 0) + (cAlign ? 1 : 0)
+    string cKzTxt = "Inside Killzone" + (kzTag != "" ? " (" + kzTag + ")" : "")
+    string cHtfTxt = "Delivering from HTF Gap" + (cHtf ? " (" + f_tagText(tl.htfTag) + ")" : "")
+    string cSmtTxt = "SMT" + (cSmt ? " · " + newestS.refName : "")
+    string cIfvgTxt = "IFVG" + (cIfvg ? " · " + tl.resTf + (tl.isBull ? " ▲" : " ▼") : "")
+    f_ckRow(infoTable, 0, cHtf, cHtfTxt)
+    f_ckRow(infoTable, 1, cSweep, "Major Liq Sweep")
+    f_ckRow(infoTable, 2, cSmt, cSmtTxt)
+    f_ckRow(infoTable, 3, cSmtConf, "SMT Confirmed")
+    f_ckRow(infoTable, 4, cKz, cKzTxt)
+    f_ckRow(infoTable, 5, cDisp, "Displacement")
+    f_ckRow(infoTable, 6, cIfvg, cIfvgTxt)
+    f_ckRow(infoTable, 7, cAlign, "HTF Direction Aligned")
+    table.cell(infoTable, 0, 8, "🧠", bgcolor = color.new(color.black, 20), text_color = color.white, text_size = size.small)
+    table.cell(infoTable, 1, 8, str.tostring(cN) + "/8 Confluences" + (cSeq ? " · sequence ✓" : ""), bgcolor = color.new(color.black, 20), text_color = color.orange, text_halign = text.align_left, text_size = size.small)
+    table.cell(infoTable, 0, 9, "▶", bgcolor = sigBg, text_color = color.white, text_size = size.small)
+    table.cell(infoTable, 1, 9, "Signal: " + sigTxt, bgcolor = sigBg, text_color = color.white, text_halign = text.align_left, text_size = size.small)
+    table.cell(infoTable, 0, 10, "$", bgcolor = grayBg, text_color = color.white, text_size = size.small)
+    table.cell(infoTable, 1, 10, lastPlanTxt, bgcolor = grayBg, text_color = color.white, text_halign = text.align_left, text_size = size.tiny)
+    table.cell(infoTable, 0, 11, "HTF", bgcolor = grayBg, text_color = color.white, text_size = size.small)
+    table.cell(infoTable, 1, 11, htfTxt + " · " + feedTxt, bgcolor = grayBg, text_color = color.white, text_halign = text.align_left, text_size = size.tiny)
 
     if showDebug
         var table dbgTable = table.new(position.bottom_right, 2, 14, border_width = 1)
