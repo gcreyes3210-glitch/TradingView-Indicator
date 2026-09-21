@@ -4,7 +4,21 @@
 
 `ICT_SMT_IFVG.pine` is the full indicator. Paste it into the TradingView Pine editor and add it to the chart.
 
-## Phase 1 enhanced (this version)
+## Phase 2 (this version)
+
+| Feature | Input | Where in the script |
+|---|---|---|
+| First retest tracking: `firstRetestAvailable`, `firstRetestUsed`, `retestCount`, `wasOutside` | `Require First HTF FVG Retest` (default OFF) | `HtfFVG` fields, Phase 2a block at the end of `f_hzUpdate()`, `f_hzRetestOk()` |
+| Age in the zone's own timeframe bars: `createdBar`, `createdTime`, `tfSec`, `ageBars`, `ageExpired` | `Max HTF FVG Age (own-TF bars, 0 = OFF)` (default OFF) | `f_slotSec()`, Phase 2b block in `f_hzUpdate()`, `f_hzAgeOk()` |
+| Composed eligibility `lifecycle AND age AND first retest` | — | `f_hzEligible()` (same call sites as Phase 1: `f_htfContain`, `f_htfOverlap`, `f_markHtfUsed`) |
+| Primary HTF context among overlapping eligible zones | — | `f_hzBetter()`, `f_htfPrimaryIdx()`, `f_htfPrimaryTag()`, `IFVGZone.primaryTag`, `HtfFVG.isPrimary` |
+| HTF zone debug table | `Show HTF zone debug table` (default OFF) | end of the `TABLES` section |
+
+* **First retest** = the first bar whose range overlaps the zone after at least one bar was fully outside the zone (`high < bottom` or `low > top`) since creation. The creation bar never counts. It is consumed (`firstRetestUsed = true`) when price leaves the zone again; later returns are not first retests.
+* **Age** = `floor((time - createdTime) / (tfSec * 1000))` where `tfSec` is the slot's own timeframe length (NDOG: 86400). `createdTime` is the chart bar that added the zone (first bar after the HTF candle closed). Exceeding the max sets `ageExpired` only; state and box are untouched.
+* **Priority** when several eligible zones overlap the candidate box: higher timeframe, then more recent creation, then smaller distance from the reference price to the CE, then more recent first touch. The primary is written on the IFVG box (`P:1H`) and in the signal tooltip; it never removes or filters other zones, and the Buy/Sell test still accepts any eligible zone.
+
+## Phase 1 enhanced (previous version)
 
 | Feature | Input group | Where in the script |
 |---|---|---|
