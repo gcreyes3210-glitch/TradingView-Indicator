@@ -4,7 +4,28 @@
 
 `ICT_SMT_IFVG.pine` is the full indicator. Paste it into the TradingView Pine editor and add it to the chart.
 
-## HTF FVG selection engine (this version)
+## IFVG confluence score (this version)
+
+| Change | Input group | Where |
+|---|---|---|
+| Deterministic 0-100 confluence score for every IFVG, frozen on its inversion candle, graded A+ / A / B / C / D | `1c · IFVG confluence score` | `f_calculateIFVG*Score()`, `f_calculateIFVGConfluenceScore()`, `f_getIFVGGrade()`, `f_getIFVGColor()`, `f_ifvgPassesThreshold()`; fields on `IFVGZone` |
+| `Minimum IFVG Confluence Score for Signal` (`i_minProbScore`, default 70) gates section F (SMT + IFVG) and F2 (IFVG only) on top of every existing condition | `1c` | `confOkF` / `confOkN` in `f_runEngine()` |
+| Score / grade written into the IFVG box text, fill colored by grade (border keeps the direction color); optional breakdown | `1c` | IFVG formation block of `f_runEngine()` |
+| Last liquidity sweep by the chart market per side recorded by the reference engine and the pivot SMT | — | `Engine.lastSweepHi/LoBar`, `lastSweepHi/LoExt` |
+| Session block for the score only (NY AM 15, London 15, NY PM 10, other 5) | `1c` | `sessPtsNow` / `sessNameNow` in `DATA` |
+
+| Component | Max | Source |
+|---|---|---|
+| Selected HTF FVG | 25 | best **eligible = selected** zone overlapping / near the IFVG (never a different zone). Fully inside 22-25, ≥ 50 % overlap 18-22, partial 10-17, near a boundary only 10-14, none 0; the spread inside each band comes from the zone's selection-engine composite score |
+| SMT alignment | 20 | best same-direction live SMT that passes the filters and started at/before the IFVG; age = bars since its latest extreme against `Max bars from SMT to IFVG`: confirmed within half the window 20, confirmed 15, developing 10, up to 2× the window 5, none / opposite only 0 |
+| Session | 15 | session of the confirmed chart bar on which the IFVG is confirmed (for HTF feeds: the chart bar after the feed candle closed) |
+| Displacement | 15 | inversion candle body / feed ATR and body / range vs the section 6 thresholds, in the IFVG's direction: 15 / 12 / 7 / 0 |
+| Liquidity sweep | 15 | chart market's last sweep on the IFVG's side (lows for bullish, highs for bearish) inside `Liquidity sweep lookback`: external level (PDH/PDL/PWH/PWL/HTF swing) 15, internal (feed swing / pivot) 10, up to 2× the lookback 5 |
+| Structure | 10 | 5 − 1.5 per other pending feed FVG overlapping the IFVG − 2 per live opposite IFVG overlapping it (0..5), + 3 when the inversion close breaks the last feed swing (MSS), + 2 when the primary selected HTF zone has the IFVG's direction |
+
+The score is a rule-based confluence ranking, not a calibrated probability. It is never recomputed: a later sweep, SMT or move cannot raise an old IFVG's score.
+
+## HTF FVG selection engine (previous version)
 
 | Change | Input group | Where |
 |---|---|---|
