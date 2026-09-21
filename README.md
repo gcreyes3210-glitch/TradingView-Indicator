@@ -1,10 +1,33 @@
 # ICT SMT + IFVG in HTF FVG (Pine Script v5)
 
-> The script header is `//@version=5`. All Phase 1 code uses constructs that are valid in both v5 and v6; the version line was left unchanged to avoid an unverifiable migration.
+> The script header is `//@version=5`. All code uses constructs that are valid in both v5 and v6; the version line was left unchanged to avoid an unverifiable migration.
 
 `ICT_SMT_IFVG.pine` is the full indicator. Paste it into the TradingView Pine editor and add it to the chart.
 
-## IFVG resolver + session zone fix (this version)
+## Universal pivot SMT, `Require SMT`, no more killzones (this version)
+
+| Change | Input group | Where |
+|---|---|---|
+| **Universal pivot SMT**: every confirmed swing high / low of EITHER market compared with the other market on the same candle | `3b · Universal pivot SMT` | `PivTrack` type, `Engine.tHiA / tLoA / tHiB / tLoB`, `f_pivSmt()`, block `C3` and `D2` of `f_runEngine()` |
+| **`Require SMT for Buy/Sell`** (`i_requireSMT`, default ON) + 5-point confluence score with `Minimum confluence score` | `7 · Buy / Sell signal` | `f_score()`, block `F` (score gate) and `F2` (IFVG fires without an SMT) of `f_runEngine()` |
+| Divergence trendline (previous swing → new swing) and a marker with the correlated market's two swing prices | `3b` | `method draw()` (`pivShowLine`, `pivLineWidth`, `pivLineStyle`, `pivShowMarker`) |
+| Killzones, session ranges, Asia / London references and the `Inside Killzone` checklist row removed | (section 5 is now the key-level filter) | `f_passes()`, `f_newEngine()` (4 fixed references), tables |
+| A tooltip on every input, groups renumbered 0 → 10 | all | inputs section |
+
+### How the pivot SMT works
+
+* Swings are `ta.pivothigh / ta.pivotlow` with the section 3 lengths (`Feed swing: bars left / right`), computed on each feed's own timeframe for both symbols. The correlated symbol is requested on the same timeframe, so its bar at index *i* has the same timestamp as the chart symbol's bar *i*; the chart-timeframe request uses `gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off`. Higher-timeframe feeds keep the existing `[1] + lookahead_on` closed-candle pattern (no future data, same on history and realtime).
+* Four tracks per engine: highs and lows anchored on the chart market (its pivot + the correlated market's extreme on the same candle) and highs and lows anchored on the correlated market (its pivot + the chart market's extreme on the same candle). `Alignment window` = 0 reads exactly the swing candle; N widens it to ±N candles.
+* A new swing is compared with the previous swing of the same track (at most `Max bars between the two swings` apart). **Bearish**: one market's high is higher than its previous swing high by more than its tolerance while the other market's is not. **Bullish**: one market's low is lower while the other's is not. The failing market must not have taken its previous swing in the bars since (post-window extreme), otherwise both took it and there is no SMT. The same swing anchored by both markets produces one SMT, not two.
+* The result is an ordinary `SMTSetup` (`pivMode = true`, `refName = "Pivot HH/LH"` etc., chart symbol's structure first): it confirms after `SMT confirmation bars`, is invalidated when the failing market later trades beyond its previous swing (`failLvl`), tracks deeper extremes of the sweeper, merges labels, pairs with IFVGs, fires Buy/Sell and alerts, and obeys the key-level / structure filters exactly like a sweep SMT. A pivot SMT that also sweeps a key level (PDH, HTF swing …) keeps its trendline and gains the key name (`PDH + Pivot HH/LH`).
+
+### `Require SMT`
+
+* ON (default): unchanged behaviour, a Buy/Sell needs an SMT paired with the IFVG. The signal info now also carries `score x/5`.
+* OFF: the IFVG that forms on the current candle fires on its own when it passes the HTF, HTF-direction, displacement and minimum-score gates. A same-direction live SMT inside the pairing window is optional confluence (raises the score, is consumed by the signal, its sweep extreme is used for the stop). Without an SMT the stop falls back to the IFVG side and the Phase 3 sequence filter is skipped.
+* Score = HTF gap (1) + SMT (1) + SMT confirmed (1) + displacement (1) + HTF direction aligned (1). `Minimum confluence score` (0 = off) gates both paths.
+
+## IFVG resolver + session zone fix (previous version)
 
 * **IFVG engine** input: `Resolved anchor (1m → 2m → 3m → 5m)` (default) or `Per-feed (legacy)`. In resolved mode only the chart engine confirms IFVGs, and only on a 1m / 2m / 3m / 5m chart (`isIFVGAllowedTF`). Feed engines on 2m / 3m / 5m keep their raw FVG pools as the escalation ladder (`ifvgLadder`) and no longer invert or signal themselves.
 * **Resolution**: on a confirmed chart candle, `getCandidateFVGs` lists the chart-pool FVGs whose far boundary that close passes (plus the clean-break buffer, within `Max Bars from FVG to Inversion`). One candidate, or several that do not overlap → anchor at chart TF (most recent formation). Several stacked (`max(bottoms) < min(tops)`, touching is not stacked) → union range → 2m pool → 3m → 5m, same direction, overlapping the union, inverted by the same close. One at a level → that anchor. Zero → deterministic pick at the previous level. Still several at 5m → most recent formation, then larger gap. Never above 5m.

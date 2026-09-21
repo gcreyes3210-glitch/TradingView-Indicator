@@ -18,7 +18,11 @@ indicator("ICT SMT + IFVG in HTF FVG", shorttitle = "ICT SMT/IFVG", overlay = tr
 //       - feed-TF swings (both markets can anchor the swing; the other market's level = its extreme
 //         inside +/- syncBars of the swing, so the two swings do not need the same candle)
 //       - HTF swings (default 1H pivots) = major liquidity, e.g. a low from two days ago
-//       - PDH/PDL, PWH/PWL, Asia range, London range
+//       - PDH/PDL, PWH/PWL
+//   * UNIVERSAL PIVOT SMT (section 3b): every confirmed swing high / low of EITHER market is compared with
+//     the other market on the SAME candle (exact timestamp alignment, optional +/- N window).  Bearish =
+//     one market makes a higher high while the other fails to; bullish = one makes a lower low while the
+//     other fails to.  A pivot SMT joins the same pipeline (confirmation, invalidation, pairing, alerts).
 //   * Many references can be "armed" at once (a pool of unswept levels). A reference is used up when
 //     both markets take it, or when it produces an SMT.
 //   * A market TAKES a level when it trades beyond it by more than tolTicks x ITS OWN tick size.
@@ -29,7 +33,9 @@ indicator("ICT SMT + IFVG in HTF FVG", shorttitle = "ICT SMT/IFVG", overlay = tr
 // RISK
 //   * Every Buy/Sell gets a stop (sweep extreme or IFVG far side), fixed-RR and/or HTF-swing targets,
 //     and a contract count = Account risk / (stop distance in points x point value).
-// FILTERS (all optional, OFF by default): killzone, key level, displacement, FVG, MSS.
+// FILTERS (all optional, OFF by default): key level, displacement, FVG, MSS.
+// REQUIRE SMT (section 7): ON = a Buy/Sell needs an SMT paired with the IFVG.  OFF = the IFVG in an HTF
+//   FVG fires on its own and an SMT only raises the 5-point confluence score (optional minimum score).
 // HTF ZONES (Phase 1 enhanced)
 //   * HTF FVGs and NDOGs (new day opening gaps) share one lifecycle: FRESH -> TOUCHED -> PARTIALLY_MITIGATED
 //     -> CE_50_MITIGATED -> DEFENDED / FILLED -> INVALIDATED.  CE = fixed 50% of the ORIGINAL gap.
@@ -45,16 +51,16 @@ indicator("ICT SMT + IFVG in HTF FVG", shorttitle = "ICT SMT/IFVG", overlay = tr
 
 // ============================== 1) INPUTS ==============================
 grpView = "0 · Display & debug"
-showSMT        = input.bool(true, "Show SMT", group = grpView)
-showDeveloping = input.bool(true, "Show developing SMT", group = grpView)
-showSmtLines   = input.bool(true, "Show SMT connector lines", group = grpView)
-showRejected   = input.bool(true, "Show SMTs hidden by a filter (gray)", group = grpView, tooltip = "An SMT that was detected but hidden by the killzone / key-level filter is shown in gray. Hover it to see why.")
-showHTF        = input.bool(true, "Show HTF FVGs", group = grpView)
-showIFVG       = input.bool(true, "Show IFVGs", group = grpView)
+showSMT        = input.bool(true, "Show SMT", group = grpView, tooltip = "Master switch for the SMT labels on the chart. The SMT engine keeps running underneath (alerts, tables, Buy/Sell) when this is off.")
+showDeveloping = input.bool(true, "Show developing SMT", group = grpView, tooltip = "Also draw SMTs that are not yet CONFIRMED (their label ends with '?'). Off: only confirmed SMTs are drawn.")
+showSmtLines   = input.bool(true, "Show SMT connector lines", group = grpView, tooltip = "Dotted line from the swept liquidity level to the sweep extreme of a liquidity-sweep SMT. The pivot SMT trendline has its own switch in section 3b.")
+showRejected   = input.bool(true, "Show SMTs hidden by a filter (gray)", group = grpView, tooltip = "An SMT that was detected but hidden by the key-level filter (section 5) is shown in gray. Hover it to see why.")
+showHTF        = input.bool(true, "Show HTF FVGs", group = grpView, tooltip = "Draw the higher-timeframe FVG / NDOG boxes (section 2). Off: the zones are still tracked for the Buy/Sell test, they are just not drawn.")
+showIFVG       = input.bool(true, "Show IFVGs", group = grpView, tooltip = "Draw the inverted FVG boxes (section 1). Off: IFVGs are still detected and used for signals, they are just not drawn.")
 showSignalMarks = input.bool(true, "Show Buy/Sell triangle marks", group = grpView, tooltip = "Turn off to hide the ▲ BUY / ▼ SELL markers near price. Alerts still fire either way — this only controls the marker on the chart.")
 showSmtShapes  = input.bool(true, "Show SMT label shapes (colored boxes)", group = grpView, tooltip = "Off: the SMT text stays on the chart (in the SMT color) but the big colored box / pointer behind it is gone. Connector lines, tooltips, table logs, alerts and the SMT engine itself are NOT affected.")
-smtLabelSize   = input.string("Tiny", "SMT label size", options = ["Tiny", "Small", "Normal", "Large"], group = grpView)
-sigMarkSize    = input.string("Normal", "Buy/Sell mark size", options = ["Tiny", "Small", "Normal", "Large"], group = grpView)
+smtLabelSize   = input.string("Tiny", "SMT label size", options = ["Tiny", "Small", "Normal", "Large"], group = grpView, tooltip = "Text size of the SMT labels.")
+sigMarkSize    = input.string("Normal", "Buy/Sell mark size", options = ["Tiny", "Small", "Normal", "Large"], group = grpView, tooltip = "Text size of the ▲ BUY / ▼ SELL marks.")
 showDebug      = input.bool(true, "Show debug information", group = grpView, tooltip = "Debug table (bottom right) plus small gray notes on the chart explaining why an IFVG did not pair with an SMT.")
 showHtfDebug   = input.bool(false, "Show HTF zone debug table", group = grpView, tooltip = "Compact table (bottom left): every active HTF FVG / NDOG with timeframe, type, direction, lifecycle state, eligibility, age (own-TF bars), age expired, first retest available / used, and which zone is the PRIMARY context at the current close.")
 keepHistory    = input.bool(true, "Keep SMT / signal marks on past bars", group = grpView, tooltip = "On: SMT labels, Buy/Sell marks and the HTF FVGs / IFVGs used by a signal stay on the chart when you scroll back, so you can review old days. TradingView still keeps only the newest 500 labels / lines / boxes. Off: marks are removed after the max-age inputs.")
@@ -64,131 +70,125 @@ grpIFVG = "1 · IFVG (entry TFs only: 30s / 1m / 2m / 3m / 5m)"
 maxHiddenFVG = input.int(120, "Hidden FVG memory", minval = 10, maxval = 500, group = grpIFVG, tooltip = "How many not-yet-inverted FVGs are remembered (per feed).")
 maxFvgAge    = input.int(60, "Max hidden FVG age (bars)", minval = 5, maxval = 500, group = grpIFVG, tooltip = "An FVG that has not inverted within this many bars (of its own feed timeframe) expires.")
 maxFvgToIfvgBars = input.int(30, "Max Bars from FVG to Inversion", minval = 1, group = grpIFVG, tooltip = "An FVG must be inverted within this many bars of its formation to count as a valid IFVG. Counted in the feed's own bars from the candle that completed the FVG. An FVG that price closes through LATER than this is treated as expired: no IFVG box and no Buy/Sell.")
-minGapTicks  = input.int(0, "Minimum FVG size (ticks)", minval = 0, group = grpIFVG)
-fvgExtend    = input.int(15, "Extend boxes (chart bars)", minval = 0, group = grpIFVG)
+minGapTicks  = input.int(0, "Minimum FVG size (ticks)", minval = 0, group = grpIFVG, tooltip = "Gaps smaller than this many ticks are ignored as FVG candidates. 0 = any size.")
+fvgExtend    = input.int(15, "Extend boxes (chart bars)", minval = 0, group = grpIFVG, tooltip = "How many chart bars past the current bar the IFVG and HTF FVG boxes are extended to the right while they are alive.")
 ifvgMaxAge   = input.int(50, "IFVG max age (bars)", minval = 1, group = grpIFVG, tooltip = "Counted (in feed bars) from the bar the FVG inverted. After this an IFVG can no longer be used for a signal.")
 ifvgResolve  = input.string("Resolved anchor (1m → 2m → 3m → 5m)", "IFVG engine", options = ["Resolved anchor (1m → 2m → 3m → 5m)", "Per-feed (legacy)"], group = grpIFVG, tooltip = "Resolved anchor: only the CHART engine (chart must be 1m / 2m / 3m / 5m) confirms IFVGs. When the confirmed chart candle closes through several stacked (overlapping) FVGs of its own timeframe, the engine steps up through the 2m / 3m / 5m feed pools to find ONE anchor; it never looks above 5m. The signal is evaluated on that same inversion candle. Per-feed: every entry-timeframe engine inverts its own FVGs independently (previous behaviour).")
 ifvgAnchor   = input.string("Inversion candle", "Anchor IFVG box at", options = ["Inversion candle", "Original FVG (gap candle)"], group = grpIFVG, tooltip = "Where the LEFT edge of the IFVG box sits: the candle that closed through the FVG (inversion), or the middle candle of the original 3-bar FVG.")
-ifvgBullClr  = input.color(color.new(color.lime, 80), "Bullish IFVG (support)", group = grpIFVG)
-ifvgBearClr  = input.color(color.new(color.fuchsia, 80), "Bearish IFVG (resistance)", group = grpIFVG)
+ifvgBullClr  = input.color(color.new(color.lime, 80), "Bullish IFVG (support)", group = grpIFVG, tooltip = "Color of bullish IFVG boxes: a bearish FVG that price closed back above, now acting as support.")
+ifvgBearClr  = input.color(color.new(color.fuchsia, 80), "Bearish IFVG (resistance)", group = grpIFVG, tooltip = "Color of bearish IFVG boxes: a bullish FVG that price closed back below, now acting as resistance.")
 
 grpFilter = "1b · IFVG quality filter"
-filterMode         = input.string("Balanced", "IFVG filter mode", options = ["Off", "Loose", "Balanced", "Strict", "Custom"], group = grpFilter)
-customMinGapAtr    = input.float(0.25, "Custom: min gap / ATR", minval = 0.0, step = 0.05, group = grpFilter)
-customMinBodyRatio = input.float(0.50, "Custom: min body ratio", minval = 0.0, maxval = 1.0, step = 0.05, group = grpFilter)
-customMinRangeAtr  = input.float(0.60, "Custom: min range / ATR", minval = 0.0, step = 0.05, group = grpFilter)
-customBreakAtr     = input.float(0.05, "Custom: clean break buffer / ATR", minval = 0.0, step = 0.01, group = grpFilter)
-atrLen             = input.int(14, "ATR length", minval = 1, group = grpFilter)
+filterMode         = input.string("Balanced", "IFVG filter mode", options = ["Off", "Loose", "Balanced", "Strict", "Custom"], group = grpFilter, tooltip = "Quality test on the candle that created the FVG before the gap may become an IFVG: gap size / ATR, body ratio, range / ATR, plus a clean-break buffer the inversion close must pass. Off = every gap qualifies. Loose / Balanced / Strict are presets; Custom uses the four values below.")
+customMinGapAtr    = input.float(0.25, "Custom: min gap / ATR", minval = 0.0, step = 0.05, group = grpFilter, tooltip = "Custom mode only: the gap must be at least this fraction of the ATR.")
+customMinBodyRatio = input.float(0.50, "Custom: min body ratio", minval = 0.0, maxval = 1.0, step = 0.05, group = grpFilter, tooltip = "Custom mode only: body / range of the gap candle must be at least this.")
+customMinRangeAtr  = input.float(0.60, "Custom: min range / ATR", minval = 0.0, step = 0.05, group = grpFilter, tooltip = "Custom mode only: the range of the gap candle must be at least this fraction of the ATR.")
+customBreakAtr     = input.float(0.05, "Custom: clean break buffer / ATR", minval = 0.0, step = 0.01, group = grpFilter, tooltip = "Custom mode only: the inversion close must pass the gap boundary by at least this fraction of the ATR.")
+atrLen             = input.int(14, "ATR length", minval = 1, group = grpFilter, tooltip = "ATR length shared by every ATR-based test in the script (IFVG quality filter, displacement, 50% CE rejection). Computed on each feed's own timeframe.")
 
 grpHTF = "2 · HTF FVG (the IFVG must sit in one)"
-requireHTF    = input.bool(true, "Require HTF FVG for Buy/Sell", group = grpHTF)
+requireHTF    = input.bool(true, "Require HTF FVG for Buy/Sell", group = grpHTF, tooltip = "On: a Buy/Sell needs the IFVG to sit in an eligible HTF FVG / NDOG. Off: the HTF zone is only a confluence item (it still adds to the score in section 7).")
 htfContain    = input.string("Overlapping", "IFVG counts as in the HTF FVG when it is", options = ["Overlapping", "Fully inside"], group = grpHTF, tooltip = "Overlapping: any overlap between the IFVG box and the HTF FVG. Fully inside: the whole IFVG box lies inside the HTF FVG.")
 htfMatchDir   = input.bool(false, "HTF FVG direction must match the setup", group = grpHTF, tooltip = "On: bullish setups only use bullish HTF FVGs, bearish setups only bearish ones. Off: either direction counts.")
 htfInvalidate = input.string("Close through", "HTF FVG is removed when price", options = ["Close through", "Wick through"], group = grpHTF, tooltip = "Close through: a candle closes beyond the far side of the gap. Wick through: any wick passes the far side. (Unchanged: this still removes the zone. The 50% CE state machine below only decides ELIGIBILITY.)")
 htfEligOn     = input.bool(true, "Only ELIGIBLE zones count for HTF confluence (50% CE state)", group = grpHTF, tooltip = "Every HTF FVG / NDOG runs a lifecycle on confirmed chart bars: FRESH -> TOUCHED -> PARTIALLY_MITIGATED -> CE_50_MITIGATED -> DEFENDED / FILLED -> INVALIDATED. CE = the fixed 50% of the ORIGINAL gap. A zone that is DEFENDED (price reached the CE and rejected it), FILLED (a wick traded through the whole gap) or INVALIDATED is no longer eligible: it stays on the chart (dashed border, state in its text) but an IFVG inside it no longer counts as 'in HTF FVG'. Off: every zone in the list counts, as before.")
-htfCeMethod   = input.string("Close Back Across CE", "50% CE Rejection Method", options = ["Wick Rejection", "Close Back Across CE", "Displacement Away From CE", "Close + Displacement"], group = grpHTF, tooltip = "How a zone becomes DEFENDED once price has reached its 50% CE (checked on the CE-hit bar and every confirmed chart bar after it). Wick Rejection: a bar wicks to/through the CE and closes back on the gap's defending side on that same bar. Close Back Across CE: any bar after the CE hit closes on the defending side of the CE. Displacement Away From CE: a displacement candle (section 7 'Displacement' thresholds, chart ATR) moving away from the CE. Close + Displacement: a close back across the CE AND a displacement candle away from it.")
+htfCeMethod   = input.string("Close Back Across CE", "50% CE Rejection Method", options = ["Wick Rejection", "Close Back Across CE", "Displacement Away From CE", "Close + Displacement"], group = grpHTF, tooltip = "How a zone becomes DEFENDED once price has reached its 50% CE (checked on the CE-hit bar and every confirmed chart bar after it). Wick Rejection: a bar wicks to/through the CE and closes back on the gap's defending side on that same bar. Close Back Across CE: any bar after the CE hit closes on the defending side of the CE. Displacement Away From CE: a displacement candle (section 6 'Displacement' thresholds, chart ATR) moving away from the CE. Close + Displacement: a close back across the CE AND a displacement candle away from it.")
 htfMaxDays    = input.int(7, "HTF FVG / NDOG max age (days)", minval = 1, group = grpHTF, tooltip = "A zone older than this (measured from the chart bar that created it, by timestamp) leaves the active list. Its box follows the existing keep / delete rules.")
 htfFirstRetest = input.bool(false, "Require First HTF FVG Retest", group = grpHTF, tooltip = "ON: a zone counts for HTF confluence only during its FIRST retest = the first time price re-enters the zone after having been fully outside it since creation. The creation bar never counts. The first retest is consumed (firstRetestUsed) when price leaves the zone again; later returns do not qualify. Applied through HTF eligibility only, on top of the lifecycle and age rules. OFF: Phase 1 behaviour.")
 htfMaxAgeBars  = input.int(0, "Max HTF FVG Age (own-TF bars, 0 = OFF)", minval = 0, group = grpHTF, tooltip = "Age = (current bar time - creation time) / the zone's OWN timeframe length, so a 1H zone is aged in 1H bars on any chart (NDOG: days). Once age exceeds this, the zone is no longer eligible for HTF confluence. Lifecycle state is NOT changed and the box stays under the existing visual rules. 0 = OFF (Phase 1 behaviour).")
 useNdog       = input.bool(true, "Use NDOG (New Day Opening Gap) as an HTF zone", group = grpHTF, tooltip = "NDOG = the gap between the last close of the previous trading day and the first open of the new day, read from the chart's own confirmed bars (no request.security). Gap up = bullish zone (support), gap down = bearish zone (resistance). It uses the same 50% CE lifecycle, the same 'removed when price' rule (checked on chart bars) and the same 'Max active per timeframe' cap as the HTF FVGs.")
 htfAnchor     = input.string("Candle 2 (gap candle)", "Anchor HTF FVG box at", options = ["Candle 1 (first of the 3)", "Candle 2 (gap candle)"], group = grpHTF, tooltip = "The LEFT edge of the box is drawn on the historical HTF candle where the 3-candle FVG formed (time-anchored, so it sits on the right candles on any chart timeframe) instead of floating ahead of price.")
 htfExtendMode = input.string("Extend with price", "HTF FVG box width", options = ["Extend with price", "Fixed to the 3 candles"], group = grpHTF, tooltip = "Extend with price: the right edge follows the current bar (+ 'Extend boxes' bars) until the gap is mitigated, then freezes. Fixed: the box only covers the 3-candle sequence (candle 1/2 to the close of candle 3).")
-htfMaxPerTf   = input.int(6, "Max active FVGs per timeframe", minval = 1, maxval = 20, group = grpHTF)
-htfMinGapTicks = input.int(0, "Min HTF FVG size (ticks)", minval = 0, group = grpHTF)
+htfMaxPerTf   = input.int(6, "Max active FVGs per timeframe", minval = 1, maxval = 20, group = grpHTF, tooltip = "Newest zones kept per HTF timeframe. When the cap is exceeded the oldest zone of that timeframe leaves the active list.")
+htfMinGapTicks = input.int(0, "Min HTF FVG size (ticks)", minval = 0, group = grpHTF, tooltip = "HTF gaps smaller than this many ticks are ignored. 0 = any size.")
 useHtf1 = input.bool(true, "Use", inline = "h1", group = grpHTF)
-htfTf1  = input.timeframe("5", "HTF #1", inline = "h1", group = grpHTF)
+htfTf1  = input.timeframe("5", "HTF #1", inline = "h1", group = grpHTF, tooltip = "HTF slot #1: tick 'Use' and pick the timeframe whose FVGs are scanned (on that timeframe's closed candles).")
 useHtf2 = input.bool(true, "Use", inline = "h2", group = grpHTF)
-htfTf2  = input.timeframe("15", "HTF #2", inline = "h2", group = grpHTF)
+htfTf2  = input.timeframe("15", "HTF #2", inline = "h2", group = grpHTF, tooltip = "HTF slot #2 (see HTF #1).")
 useHtf3 = input.bool(false, "Use", inline = "h3", group = grpHTF)
-htfTf3  = input.timeframe("30", "HTF #3", inline = "h3", group = grpHTF)
+htfTf3  = input.timeframe("30", "HTF #3", inline = "h3", group = grpHTF, tooltip = "HTF slot #3 (see HTF #1).")
 useHtf4 = input.bool(true, "Use", inline = "h4", group = grpHTF)
-htfTf4  = input.timeframe("60", "HTF #4", inline = "h4", group = grpHTF)
+htfTf4  = input.timeframe("60", "HTF #4", inline = "h4", group = grpHTF, tooltip = "HTF slot #4 (see HTF #1).")
 useHtf5 = input.bool(false, "Use", inline = "h5", group = grpHTF)
-htfTf5  = input.timeframe("120", "HTF #5", inline = "h5", group = grpHTF)
+htfTf5  = input.timeframe("120", "HTF #5", inline = "h5", group = grpHTF, tooltip = "HTF slot #5 (see HTF #1).")
 useHtf6 = input.bool(true, "Use", inline = "h6", group = grpHTF)
-htfTf6  = input.timeframe("240", "HTF #6", inline = "h6", group = grpHTF)
+htfTf6  = input.timeframe("240", "HTF #6", inline = "h6", group = grpHTF, tooltip = "HTF slot #6 (see HTF #1).")
 useHtf7 = input.bool(true, "Use", inline = "h7", group = grpHTF)
-htfTf7  = input.timeframe("D", "HTF #7", inline = "h7", group = grpHTF)
+htfTf7  = input.timeframe("D", "HTF #7", inline = "h7", group = grpHTF, tooltip = "HTF slot #7 (see HTF #1).")
 useHtf8 = input.bool(false, "Use", inline = "h8", group = grpHTF)
-htfTf8  = input.timeframe("W", "HTF #8", inline = "h8", group = grpHTF)
-htfBull = input.color(color.new(color.blue, 75), "HTF bullish FVG", group = grpHTF)
-htfBear = input.color(color.new(color.orange, 75), "HTF bearish FVG", group = grpHTF)
+htfTf8  = input.timeframe("W", "HTF #8", inline = "h8", group = grpHTF, tooltip = "HTF slot #8 (see HTF #1).")
+htfBull = input.color(color.new(color.blue, 75), "HTF bullish FVG", group = grpHTF, tooltip = "Color of bullish HTF FVG / NDOG boxes.")
+htfBear = input.color(color.new(color.orange, 75), "HTF bearish FVG", group = grpHTF, tooltip = "Color of bearish HTF FVG / NDOG boxes.")
 
 grpSMT = "3 · SMT engine"
-correlatedSym  = input.symbol("CME_MINI:ES1!", "Correlated symbol", group = grpSMT, tooltip = "ES for an NQ chart, NQ for an ES chart. Either market can be the one that takes the liquidity.")
-tolTicks       = input.int(2, "SMT tolerance (ticks)", minval = 0, group = grpSMT, tooltip = "A market only 'takes' a level if it trades beyond it by MORE than this. Each market uses its OWN tick size.")
-pivotLeft      = input.int(5, "Feed swing: bars left", minval = 1, group = grpSMT)
-pivotRight     = input.int(5, "Feed swing: bars right", minval = 1, group = grpSMT, tooltip = "Delay before a swing is confirmed. It is the only source of delay for swing references.")
-syncBars       = input.int(3, "Swing sync window (bars)", minval = 0, group = grpSMT, tooltip = "The other market's level for a swing = its extreme within +/- this many bars of the swing. Used up to a maximum of the 'bars right' value.")
-smtConfirmBars = input.int(3, "SMT confirmation bars", minval = 1, group = grpSMT, tooltip = "An SMT becomes CONFIRMED this many bars after the sweep if the other market has not taken its level. The sweeper can keep making new extremes meanwhile; it does not reset the count.")
+correlatedSym  = input.symbol("CME_MINI:ES1!", "Correlated symbol", group = grpSMT, tooltip = "ES for an NQ chart, NQ for an ES chart. Either market can be the one that takes the liquidity or makes the new swing.")
+tolTicks       = input.int(2, "SMT tolerance (ticks)", minval = 0, group = grpSMT, tooltip = "A market only 'takes' a level (or makes a higher high / lower low) if it trades beyond it by MORE than this. Each market uses its OWN tick size.")
+pivotLeft      = input.int(5, "Feed swing: bars left", minval = 1, group = grpSMT, tooltip = "Bars to the LEFT of a candle that must have lower highs / higher lows for it to be a swing (ta.pivothigh / ta.pivotlow). Used by the swing liquidity references (section 4) AND by the universal pivot SMT (section 3b).")
+pivotRight     = input.int(5, "Feed swing: bars right", minval = 1, group = grpSMT, tooltip = "Bars to the RIGHT that must not exceed the swing. This is the delay before a swing is confirmed, and the only source of delay for swing references and pivot SMTs.")
+syncBars       = input.int(3, "Swing sync window (bars)", minval = 0, group = grpSMT, tooltip = "Liquidity-sweep swings (section 4): the other market's level for a swing = its extreme within +/- this many bars of the swing. Used up to a maximum of the 'bars right' value. The pivot SMT has its own alignment window in section 3b.")
+smtConfirmBars = input.int(3, "SMT confirmation bars", minval = 1, group = grpSMT, tooltip = "An SMT becomes CONFIRMED this many bars after the sweep / swing if the other market has not taken its level. The sweeper can keep making new extremes meanwhile; it does not reset the count.")
 smtLifeBars    = input.int(30, "SMT setup lifetime (bars)", minval = 1, group = grpSMT, tooltip = "Counted from the sweeper's latest extreme. After this the SMT can no longer produce a signal.")
 smtMaxDays     = input.int(7, "Max SMT age (days, 0 = OFF)", minval = 0, group = grpSMT, tooltip = "An SMT older than this (by timestamp, from the candle on which it was detected) EXPIRES: it can no longer confirm, pair with an IFVG, fire a Buy/Sell or count in the sequence, and it is removed from the active list on every bar. With 'Keep marks on past bars' ON its label stays on the chart as history; OFF deletes the label too. 0 = never expire by age.")
-smtMerge       = input.bool(true, "Merge SMT labels that share the same extreme (high / low)", group = grpSMT, tooltip = "When several liquidity sweeps (other references, other engine timeframes) produce SMTs anchored to the SAME price extreme, only one label is drawn and the others are appended to it ('+PDL[3m]'). Detection, alerts, tables and the state machine are not affected: this is label de-duplication only.")
+smtMerge       = input.bool(true, "Merge SMT labels that share the same extreme (high / low)", group = grpSMT, tooltip = "When several liquidity sweeps or pivot divergences (other references, other engine timeframes) produce SMTs anchored to the SAME price extreme, only one label is drawn and the others are appended to it ('+PDL[3m]'). Detection, alerts, tables and the state machine are not affected: this is label de-duplication only.")
 smtMergeTicks  = input.int(0, "  merge tolerance (ticks)", minval = 0, group = grpSMT, tooltip = "Two SMT extremes count as the same edge when they are within this many ticks of each other. 0 = exactly the same price.")
-smtBullClr     = input.color(color.teal, "Bullish SMT", group = grpSMT)
-smtBearClr     = input.color(color.red, "Bearish SMT", group = grpSMT)
+smtBullClr     = input.color(color.teal, "Bullish SMT", group = grpSMT, tooltip = "Color of bullish SMT labels, connector lines and pivot trendlines.")
+smtBearClr     = input.color(color.red, "Bearish SMT", group = grpSMT, tooltip = "Color of bearish SMT labels, connector lines and pivot trendlines.")
 removeInvalidatedSMT = input.bool(true, "Remove an SMT immediately once it's broken/invalidated", group = grpSMT, tooltip = "On: the moment the other market also takes the level (whether that happens before or after the SMT confirmed), its label/connector line is deleted right away instead of lingering until it naturally expires. Off: restores the old behavior.")
-minSmtTf       = input.timeframe("1", "Minimum timeframe for SMT display", group = grpSMT, tooltip = "Only SMTs found by an engine running on THIS timeframe or higher are drawn. Example: set to 15 on a 1m chart -> the 1m chart's own SMTs are hidden, but the 15m feed's SMTs (section 9) are still drawn on the 1m chart. The engines keep running underneath either way.")
+minSmtTf       = input.timeframe("1", "Minimum timeframe for SMT display", group = grpSMT, tooltip = "Only SMTs found by an engine running on THIS timeframe or higher are drawn. Example: set to 15 on a 1m chart -> the 1m chart's own SMTs are hidden, but the 15m feed's SMTs (section 8) are still drawn on the 1m chart. The engines keep running underneath either way.")
+
+grpPiv = "3b · Universal pivot SMT (every swing high / low vs the correlated market)"
+usePivSmt     = input.bool(true, "Enable universal pivot SMT", group = grpPiv, tooltip = "Compares EVERY confirmed swing high / low (ta.pivothigh / ta.pivotlow with the swing lengths of section 3) of the chart symbol with the correlated symbol on the SAME candle, and every swing of the correlated symbol with the chart symbol. Bearish SMT: one market makes a higher high while the other fails to (lower or equal high). Bullish SMT: one market makes a lower low while the other fails to (higher or equal low). Nothing is limited to session or key levels. A pivot SMT joins the normal SMT pipeline: confirmation, invalidation when the failing market later takes its swing, label merging, IFVG pairing, Buy/Sell and alerts. It runs in every engine (chart + higher-timeframe feeds).")
+pivSync       = input.int(0, "Alignment window (bars, 0 = same candle)", minval = 0, group = grpPiv, tooltip = "0: the other market's price is read on exactly the same candle as the swing (exact timestamp alignment). N: its extreme within +/- N candles of the swing is used instead, for markets whose swings print a candle or two apart. Capped at 'Feed swing: bars right'.")
+pivMaxGap     = input.int(80, "Max bars between the two swings (0 = OFF)", minval = 0, group = grpPiv, tooltip = "A new swing is only compared with the previous swing of the same side (high vs high, low vs low) when they are at most this many feed bars apart. An older previous swing is not compared, but the new swing still becomes the 'previous' one for the next comparison.")
+pivShowLine   = input.bool(true, "Draw divergence trendline (previous swing → new swing)", group = grpPiv, tooltip = "Line between the two swing points of the chart symbol that were compared. Uses the SMT colors of section 3 (faded while the SMT is only developing).")
+pivLineWidth  = input.int(2, "  trendline width", minval = 1, maxval = 4, group = grpPiv, tooltip = "Width of the divergence trendline.")
+pivLineStyle  = input.string("Solid", "  trendline style", options = ["Solid", "Dashed", "Dotted"], group = grpPiv, tooltip = "Style of the divergence trendline.")
+pivShowMarker = input.bool(true, "Draw marker with the correlated market's two swings", group = grpPiv, tooltip = "Small text marker at the previous swing showing the other side of the divergence, e.g. '◆ ES1! 5210.25 → 5205.50 LH'. The chart can only plot the chart symbol's prices, so this is where the correlated market's swing prices are written.")
 
 grpLiq = "4 · Liquidity references (each enabled type is its own SMT test)"
-useSwing        = input.bool(true, "Feed-TF swing highs / lows (minor)", group = grpLiq)
-swingMaxRefs    = input.int(10, "  max unswept swings kept per side", minval = 1, maxval = 50, group = grpLiq)
-swingRefMaxAge  = input.int(800, "  drop a feed swing after (bars)", minval = 10, group = grpLiq)
+useSwing        = input.bool(true, "Feed-TF swing highs / lows (minor)", group = grpLiq, tooltip = "Feed-timeframe swing highs / lows as unswept liquidity: an SMT is detected when exactly one market trades THROUGH its swing level. Both markets can anchor the swing (see 'Swing sync window' in section 3). This is the sweep test; the pivot divergence test is section 3b.")
+swingMaxRefs    = input.int(10, "  max unswept swings kept per side", minval = 1, maxval = 50, group = grpLiq, tooltip = "Pool size of unswept feed swings per side (highs / lows). The oldest unswept swing is dropped when the pool is full.")
+swingRefMaxAge  = input.int(800, "  drop a feed swing after (bars)", minval = 10, group = grpLiq, tooltip = "An unswept feed swing older than this many feed bars is removed from the pool.")
 useHtfSwing     = input.bool(true, "HTF swing highs / lows (major)", group = grpLiq, tooltip = "Pivots on a higher timeframe (default 1H). This is what lets a 1m chart see an SMT against a low from days ago. Also the pool used for 'HTF swing' take-profit targets.")
-swTf            = input.timeframe("60", "  HTF swing timeframe", group = grpLiq)
-swL             = input.int(3, "  HTF swing bars left", minval = 1, group = grpLiq)
-swR             = input.int(3, "  HTF swing bars right", minval = 1, group = grpLiq)
-swSync          = input.int(1, "  HTF swing sync window (HTF bars)", minval = 0, group = grpLiq)
-htfSwingMaxRefs = input.int(20, "  max unswept HTF swings kept per side", minval = 1, maxval = 50, group = grpLiq)
+swTf            = input.timeframe("60", "  HTF swing timeframe", group = grpLiq, tooltip = "Timeframe on which the major swing highs / lows are computed (both markets).")
+swL             = input.int(3, "  HTF swing bars left", minval = 1, group = grpLiq, tooltip = "Bars to the left of an HTF candle that must be lower / higher for it to be an HTF swing.")
+swR             = input.int(3, "  HTF swing bars right", minval = 1, group = grpLiq, tooltip = "Bars to the right that confirm the HTF swing (delay in HTF bars).")
+swSync          = input.int(1, "  HTF swing sync window (HTF bars)", minval = 0, group = grpLiq, tooltip = "The other market's level for an HTF swing = its extreme within +/- this many HTF bars of the swing.")
+htfSwingMaxRefs = input.int(20, "  max unswept HTF swings kept per side", minval = 1, maxval = 50, group = grpLiq, tooltip = "Pool size of unswept HTF swings per side.")
 usePD           = input.bool(true, "Previous day high / low (PDH / PDL)", group = grpLiq, tooltip = "Each market's previous DAILY bar (futures: 18:00-17:00 ET session).")
-usePW           = input.bool(false, "Previous week high / low (PWH / PWL)", group = grpLiq)
-useAsia         = input.bool(true, "Asia range high / low", group = grpLiq)
-useLon          = input.bool(false, "London range high / low", group = grpLiq)
+usePW           = input.bool(false, "Previous week high / low (PWH / PWL)", group = grpLiq, tooltip = "Each market's previous WEEKLY bar high / low as liquidity references.")
 
-grpTime = "5 · Time: killzones & session ranges"
-i_sessTz  = input.string("America/New_York", "Session times below are written in", options = ["America/New_York", "America/Los_Angeles", "UTC", "Exchange"], group = grpTime, tooltip = "The zone the session strings are WRITTEN in (ICT benchmarks are New York time). They are evaluated in that zone whatever your chart display zone is, so switching the chart to Pacific, UTC or anything else never requires editing the hours, and daylight-saving changes (EST/EDT, PST/PDT) are applied by TradingView from the IANA name.")
-tz        = i_sessTz == "Exchange" ? syminfo.timezone : i_sessTz
-kzFilter  = input.bool(false, "Require the SMT sweep to be inside an enabled killzone", group = grpTime)
-useKzLdn  = input.bool(true, "London Open", inline = "kz1", group = grpTime)
-kzLdnSess = input.session("0200-0500", "", inline = "kz1", group = grpTime)
-useKzNy   = input.bool(true, "New York Open", inline = "kz2", group = grpTime)
-kzNySess  = input.session("0700-1000", "", inline = "kz2", group = grpTime)
-useKzLc   = input.bool(true, "London Close", inline = "kz3", group = grpTime)
-kzLcSess  = input.session("1000-1200", "", inline = "kz3", group = grpTime)
-useKzCu   = input.bool(false, "Custom (default NY PM)", inline = "kz4", group = grpTime)
-kzCuSess  = input.session("1330-1600", "", inline = "kz4", group = grpTime)
-asiaSess  = input.session("2000-0000", "Asia range", group = grpTime, tooltip = "Defaults are New York time (London 0200-0500, NY 0700-1000, London close 1000-1200, Asia 2000-0000). They stay correct on a Pacific / UTC chart because they are evaluated in the zone selected above.")
-lonSess   = input.session("0200-0500", "London range", group = grpTime)
+grpKey = "5 · Optional filter: key level"
+keyFilter = input.bool(false, "Require SMT at a key level", group = grpKey, tooltip = "Key level = PDH/PDL/PWH/PWL, an HTF swing, or (option below) a sweep that taps an HTF FVG. A plain feed-TF swing SMT or pivot SMT in the middle of a range is rejected (shown gray when 'Show SMTs hidden by a filter' is on).")
+keyHtfTap = input.bool(true, "A sweep that taps an HTF FVG counts as a key level", group = grpKey, tooltip = "The sweep candle (or the pivot candle of a pivot SMT) overlapping an ELIGIBLE HTF FVG / NDOG satisfies the key-level filter.")
 
-grpKey = "6 · Optional filter: key level"
-keyFilter = input.bool(false, "Require SMT at a key level", group = grpKey, tooltip = "Key level = PDH/PDL/PWH/PWL/Asia/London, an HTF swing, or (option below) a sweep that taps an HTF FVG. A plain feed-TF swing SMT in the middle of a range is rejected.")
-keyHtfTap = input.bool(true, "A sweep that taps an HTF FVG counts as a key level", group = grpKey)
-
-grpConf = "7 · Optional filters: structure after the sweep"
-reqDisp       = input.bool(false, "Require displacement after the sweep", group = grpConf)
-reqSetupFvg   = input.bool(false, "Require same-direction FVG after the sweep", group = grpConf)
+grpConf = "6 · Optional filters: structure after the sweep"
+reqDisp       = input.bool(false, "Require displacement after the sweep", group = grpConf, tooltip = "Buy/Sell only when a displacement candle (thresholds below) in the SMT's direction has closed after the sweep / swing.")
+reqSetupFvg   = input.bool(false, "Require same-direction FVG after the sweep", group = grpConf, tooltip = "Buy/Sell only when a 3-candle FVG in the SMT's direction has formed after the sweep / swing.")
 reqMSS        = input.bool(false, "Require MSS after the sweep", group = grpConf, tooltip = "Bullish: a close above the last feed swing HIGH that existed when the sweep began. Bearish: a close below the last feed swing LOW.")
-dispAtrMult   = input.float(1.0, "Displacement: body >= x ATR", minval = 0.1, step = 0.1, group = grpConf)
-dispBodyRatio = input.float(0.60, "Displacement: body / range >=", minval = 0.1, maxval = 1.0, step = 0.05, group = grpConf)
+dispAtrMult   = input.float(1.0, "Displacement: body >= x ATR", minval = 0.1, step = 0.1, group = grpConf, tooltip = "A candle is a displacement candle when its body is at least this many ATRs (feed ATR) AND it passes the body / range test below AND it closes in the setup's direction. Also used by the '50% CE Rejection Method' of section 2.")
+dispBodyRatio = input.float(0.60, "Displacement: body / range >=", minval = 0.1, maxval = 1.0, step = 0.05, group = grpConf, tooltip = "Body divided by the candle's full range must be at least this (0.60 = wicks take at most 40% of the candle).")
 
-grpSignal = "8 · Buy / Sell signal"
-reqConfirmedSMT = input.bool(true, "Require confirmed SMT for Buy/Sell", group = grpSignal, tooltip = "On: the SMT must be CONFIRMED. Off: a developing SMT is enough (the SMT can still disappear later).")
-confluenceBars  = input.int(10, "Max bars from SMT to IFVG", minval = 1, group = grpSignal)
+grpSignal = "7 · Buy / Sell signal"
+i_requireSMT    = input.bool(true, "Require SMT for Buy/Sell", group = grpSignal, tooltip = "ON: a Buy/Sell needs a valid SMT (liquidity-sweep or pivot SMT) paired with the IFVG, as before. OFF: an IFVG that passes the HTF / Phase 3 gates fires on its own on its inversion candle; a same-direction SMT is then an optional confluence that only raises the score below (and is consumed by the signal when present). Without an SMT the stop loss falls back to the IFVG side and the Phase 3 sequence filter is skipped.")
+minScore        = input.int(0, "Minimum confluence score (0 = OFF)", minval = 0, maxval = 5, group = grpSignal, tooltip = "Score = HTF gap (1) + SMT (1) + SMT confirmed (1) + displacement (1) + HTF direction aligned (1). A Buy/Sell fires only when its score is at least this. Mostly useful with 'Require SMT' OFF, where an SMT is not mandatory but still counts. The score is written in the signal tooltip and the alert text.")
+reqConfirmedSMT = input.bool(true, "Require confirmed SMT for Buy/Sell", group = grpSignal, tooltip = "On: the SMT must be CONFIRMED. Off: a developing SMT is enough (the SMT can still disappear later). Ignored when 'Require SMT' is OFF.")
+confluenceBars  = input.int(10, "Max bars from SMT to IFVG", minval = 1, group = grpSignal, tooltip = "Feed bars between the SMT's latest extreme and the IFVG inversion candle. Further apart = they do not pair.")
 ifvgAfterSweep  = input.bool(true, "IFVG must form at/after the SMT", group = grpSignal, tooltip = "Off: the IFVG may also have formed up to N bars BEFORE the SMT appeared.")
 signalMaxDays   = input.int(7, "Remove Buy/Sell marks after (days)", minval = 1, group = grpSignal, tooltip = "Only used when 'Keep marks on past bars' is OFF. Measured by timestamp from the signal bar.")
 
-grpMtf = "9 · Multi-timeframe feeds (higher-TF SMTs & signals on lower charts)"
+grpMtf = "8 · Multi-timeframe feeds (higher-TF SMTs & signals on lower charts)"
 useMtf = input.bool(true, "Run the engine on extra (higher) timeframes", group = grpMtf, tooltip = "Each enabled feed runs the FULL SMT + IFVG engine on that timeframe's CLOSED candles (both markets) and draws its SMTs, IFVGs and Buy/Sell marks on the chart you are viewing, tagged with the feed timeframe (e.g. 'BUY 3m' on a 1m chart). A feed is skipped when it is not higher than the chart timeframe. Buy/Sell only fire from entry timeframes (30s/1/2/3/5m); a 15m feed still shows its SMTs. Feed marks appear on the first chart bar after the feed candle closes.")
 useF1  = input.bool(true, "Use", inline = "f1", group = grpMtf)
-tfF1   = input.timeframe("2", "Feed #1", inline = "f1", group = grpMtf)
+tfF1   = input.timeframe("2", "Feed #1", inline = "f1", group = grpMtf, tooltip = "Feed #1: tick 'Use' and pick a timeframe HIGHER than the chart. In 'Resolved anchor' IFVG mode the 2m / 3m / 5m feeds also serve as the stacked-FVG escalation ladder.")
 useF2  = input.bool(true, "Use", inline = "f2", group = grpMtf)
-tfF2   = input.timeframe("3", "Feed #2", inline = "f2", group = grpMtf)
+tfF2   = input.timeframe("3", "Feed #2", inline = "f2", group = grpMtf, tooltip = "Feed #2 (see Feed #1).")
 useF3  = input.bool(true, "Use", inline = "f3", group = grpMtf)
-tfF3   = input.timeframe("5", "Feed #3", inline = "f3", group = grpMtf)
+tfF3   = input.timeframe("5", "Feed #3", inline = "f3", group = grpMtf, tooltip = "Feed #3 (see Feed #1).")
 useF4  = input.bool(true, "Use", inline = "f4", group = grpMtf)
-tfF4   = input.timeframe("15", "Feed #4", inline = "f4", group = grpMtf)
+tfF4   = input.timeframe("15", "Feed #4", inline = "f4", group = grpMtf, tooltip = "Feed #4 (see Feed #1).")
 
-grpP3 = "11 · Phase 3: HTF direction · displacement · sweep → SMT sequence"
+grpP3 = "9 · Phase 3: HTF direction · displacement · sweep → SMT sequence"
 htfDirFilter = input.string("OFF", "HTF Direction Filter", options = ["OFF", "REQUIRE SAME DIRECTION", "ALLOW OPPOSITE DIRECTION"], group = grpP3, tooltip = "Compares the LTF setup direction (bullish SMT + bullish IFVG) with the direction of the PRIMARY HTF zone (Phase 2 selection) recorded when the IFVG formed. REQUIRE SAME DIRECTION: the primary zone must have the same bias. ALLOW OPPOSITE DIRECTION / OFF: direction is not checked. The Phase 2 primary itself is unchanged.")
 dispFilter   = input.string("OFF", "Displacement Filter", options = ["OFF", "OPTIONAL", "REQUIRED"], group = grpP3, tooltip = "Objective displacement, measured on the feed's own candles. OPTIONAL: computed and shown in debug / tooltips only. REQUIRED: a same-direction displacement event must exist at most 'Max bars displacement → IFVG' bars before (or on) the IFVG inversion candle. Defaults are starting values, not recommendations.")
 dispAtrMultP3 = input.float(1.0, "  Displacement: body >= x ATR", minval = 0.0, step = 0.1, group = grpP3, tooltip = "ATR length = the shared 'ATR length' input (section 1b), computed on each feed's own timeframe. 0 disables this component.")
@@ -196,22 +196,25 @@ dispBodyPctP3 = input.float(0.60, "  Displacement: body / range >=", minval = 0.
 dispConsec    = input.int(1, "  Required consecutive directional candles", minval = 1, group = grpP3, tooltip = "Every candle of the run must be directional (close > open for bullish, close < open for bearish) and meet the ATR / body thresholds. The event is recorded on the last candle of the run.")
 dispReqSwing  = input.bool(false, "  Require swing break", group = grpP3, tooltip = "Bullish displacement must also close above the last confirmed feed swing high; bearish below the last confirmed feed swing low (same swings the MSS filter uses).")
 dispMaxToIfvg = input.int(10, "  Max bars displacement → IFVG (0 = OFF)", minval = 0, group = grpP3, tooltip = "Feed bars from the displacement event to the IFVG inversion candle. Older displacement does not qualify the IFVG.")
-seqFilter    = input.bool(false, "Require Liquidity → SMT Sequence", group = grpP3, tooltip = "ON: Buy/Sell only when the events happened in this order: liquidity sweep → SMT detection → SMT confirmation → displacement (if the displacement filter is REQUIRED) → LTF IFVG, each inside the windows below. OFF: Phase 2 behaviour.")
+seqFilter    = input.bool(false, "Require Liquidity → SMT Sequence", group = grpP3, tooltip = "ON: Buy/Sell only when the events happened in this order: liquidity sweep → SMT detection → SMT confirmation → displacement (if the displacement filter is REQUIRED) → LTF IFVG, each inside the windows below. OFF: Phase 2 behaviour. Skipped for signals that fire without an SMT ('Require SMT' OFF).")
 seqMaxSweepSmt = input.int(0, "  Max bars sweep → SMT (0 = OFF)", minval = 0, group = grpP3, tooltip = "In this engine the SMT is detected on the sweep candle itself, so the distance is normally 0; the window is kept explicit and testable.")
 seqMaxSmtDisp  = input.int(10, "  Max bars SMT confirmation → displacement / IFVG (0 = OFF)", minval = 0, group = grpP3, tooltip = "With the displacement filter REQUIRED: confirmation → displacement. Otherwise: confirmation → IFVG.")
 
 grpRisk = "10 · Risk: stop loss / take profit / position size"
-showTrade     = input.bool(true, "Draw entry / SL / TP lines on Buy/Sell", group = grpRisk)
-slMode        = input.string("Sweep High/Low", "Stop loss mode", options = ["Sweep High/Low", "IFVG High/Low"], group = grpRisk, tooltip = "Sweep High/Low: Long = lowest low of the SMT sweep leg (chart market), Short = highest high. IFVG High/Low: Long = bottom of the IFVG box, Short = top of the IFVG box.")
-slBufTicks    = input.int(2, "Stop loss buffer (ticks)", minval = 0, group = grpRisk)
-tpMode        = input.string("Fixed RR", "Take profit mode", options = ["Fixed RR", "HTF swing", "Fixed RR + HTF swing"], group = grpRisk, tooltip = "Fixed RR: TP1/TP2 at the risk:reward ratios below. HTF swing: the nearest UNSWEPT opposing liquidity beyond the entry (HTF swing / PDH / PDL / Asia / London, falling back to a feed swing, then to the last HTF pivot).")
-tp1RR         = input.float(2.0, "TP1 risk:reward (1:x)", minval = 0.1, step = 0.5, group = grpRisk)
-tp2RR         = input.float(3.0, "TP2 risk:reward (1:x, 0 = off)", minval = 0.0, step = 0.5, group = grpRisk)
-tradeMaxBars  = input.int(200, "Close an open trade plan after (chart bars)", minval = 5, group = grpRisk)
-maxPlans      = input.int(20, "Trade plans kept on the chart", minval = 1, maxval = 60, group = grpRisk)
+showTrade     = input.bool(true, "Draw entry / SL / TP lines on Buy/Sell", group = grpRisk, tooltip = "Draw the entry, stop and target lines plus the plan label (contracts, risk) for every Buy/Sell. The lines follow price and mark SL / TP hits.")
+slMode        = input.string("Sweep High/Low", "Stop loss mode", options = ["Sweep High/Low", "IFVG High/Low"], group = grpRisk, tooltip = "Sweep High/Low: Long = lowest low of the SMT sweep leg (chart market), Short = highest high. IFVG High/Low: Long = bottom of the IFVG box, Short = top of the IFVG box. A signal without an SMT ('Require SMT' OFF) always uses the IFVG side.")
+slBufTicks    = input.int(2, "Stop loss buffer (ticks)", minval = 0, group = grpRisk, tooltip = "Extra ticks added beyond the stop level.")
+tpMode        = input.string("Fixed RR", "Take profit mode", options = ["Fixed RR", "HTF swing", "Fixed RR + HTF swing"], group = grpRisk, tooltip = "Fixed RR: TP1/TP2 at the risk:reward ratios below. HTF swing: the nearest UNSWEPT opposing liquidity beyond the entry (HTF swing / PDH / PDL / PWH / PWL, falling back to a feed swing, then to the last HTF pivot).")
+tp1RR         = input.float(2.0, "TP1 risk:reward (1:x)", minval = 0.1, step = 0.5, group = grpRisk, tooltip = "First target at this multiple of the stop distance.")
+tp2RR         = input.float(3.0, "TP2 risk:reward (1:x, 0 = off)", minval = 0.0, step = 0.5, group = grpRisk, tooltip = "Second target at this multiple of the stop distance. 0 = no TP2.")
+tradeMaxBars  = input.int(200, "Close an open trade plan after (chart bars)", minval = 5, group = grpRisk, tooltip = "A plan that has hit neither its stop nor all its targets is marked EXPIRED after this many chart bars.")
+maxPlans      = input.int(20, "Trade plans kept on the chart", minval = 1, maxval = 60, group = grpRisk, tooltip = "Older plans (lines + label) are deleted when more than this are on the chart.")
 acctRisk      = input.float(100.0, "Account risk ($)", minval = 0.0, step = 10.0, group = grpRisk, tooltip = "Dollar amount you are willing to lose if the stop is hit.")
 pointValue    = input.float(2.0, "Point value ($ per 1.0 point per contract)", minval = 0.0, step = 0.5, group = grpRisk, tooltip = "MNQ = 2, NQ = 20, MES = 5, ES = 50, MYM = 0.5, YM = 5. Contracts = Account risk / (stop distance in points x point value), rounded DOWN.")
 autoPointValue = input.bool(false, "Use the symbol's own point value instead", group = grpRisk, tooltip = "On: ignores the field above and uses TradingView's syminfo.pointvalue for the chart symbol.")
+
+// short name of the correlated market for labels / tooltips (needed by the draw helpers below)
+corrName = str.contains(correlatedSym, ":") ? array.get(str.split(correlatedSym, ":"), 1) : correlatedSym
 
 // ============================== TYPES ==============================
 type RawFVG
@@ -291,8 +294,6 @@ type SMTSetup
     float  lvlA
     int    lvlTime
     float  mssLevel
-    string kzName = ""
-    bool   kzOk = false
     bool   htfTap = false
     string htfTag = ""
     bool   active = true
@@ -319,6 +320,13 @@ type SMTSetup
     int    confirmTime
     int    seq = 1
     bool   ageExpired = false
+    // universal pivot SMT (section 3b): the level the failing market must not take, the correlated
+    // market's two swing prices (for the marker) and the marker label itself
+    bool   pivMode = false
+    float  failLvl
+    float  prevB
+    float  curB
+    label  mk
 
 // one drawn SMT label per (direction, extreme price): other SMTs at the same edge join it
 type SmtAnchor
@@ -339,6 +347,14 @@ type LiqRef
     int      lvlTime
     int      state = 3
     SMTSetup cur
+
+// last confirmed swing of one pivot-SMT track (one per side and per anchoring market, in each engine):
+// pA / pB = both markets' prices at that swing candle, bar / t = the swing candle (feed index / time)
+type PivTrack
+    float pA
+    float pB
+    int   bar
+    int   t
 
 type SigMark
     int   markBar
@@ -373,6 +389,16 @@ type Feed
     float  postHiB
     float  postLoB
     float  corrTick
+    // pivot SMT alignment (section 3b): both markets' extreme within +/- pivSync bars of the swing candle,
+    // and their extreme over the bars AFTER that window up to the current candle
+    float  pvHiA
+    float  pvLoA
+    float  pvHiB
+    float  pvLoB
+    float  pvPostHiA
+    float  pvPostLoA
+    float  pvPostHiB
+    float  pvPostLoB
 
 // the complete state of one SMT + IFVG engine (one per feed timeframe)
 type Engine
@@ -419,6 +445,12 @@ type Engine
     int    lastIfvgBar
     int    lastIfvgTime
     string lastSeq = "-"
+    // universal pivot SMT tracks: highs / lows anchored on the chart market (A) and on the correlated market (B)
+    int    cntPivSmt = 0
+    PivTrack tHiA
+    PivTrack tLoA
+    PivTrack tHiB
+    PivTrack tLoB
 
 // what an engine hands back when it fires a Buy/Sell
 type SigInfo
@@ -601,12 +633,22 @@ f_tagText(string tag) =>
         out := str.replace_all(str.substring(tag, 1, str.length(tag) - 1), "|", "+")
     out
 
-// does this SMT pass the enabled validity filters (killzone + key level)?
+// does this SMT pass the enabled validity filter (key level)?
 f_passes(SMTSetup s) =>
-    bool timeOk = not kzFilter or s.kzOk
     bool keyOk = s.isKey or (keyHtfTap and s.htfTap)
-    bool levelOk = not keyFilter or keyOk
-    timeOk and levelOk
+    not keyFilter or keyOk
+
+// confluence score of a signal: HTF gap + SMT + SMT confirmed + displacement + HTF direction aligned (0..5)
+f_score(bool htf, bool smt, bool smtConf, bool disp, bool aligned) =>
+    (htf ? 1 : 0) + (smt ? 1 : 0) + (smtConf ? 1 : 0) + (disp ? 1 : 0) + (aligned ? 1 : 0)
+
+// swing structure of one market in a pivot SMT: HH / LH (bearish) or LL / HL (bullish)
+f_pivStruct(bool isBull, int sweeper, bool forA) =>
+    bool madeIt = forA ? sweeper == 1 : sweeper == 2
+    isBull ? (madeIt ? "LL" : "HL") : (madeIt ? "HH" : "LH")
+
+f_lineStyle(string s) =>
+    s == "Dashed" ? line.style_dashed : s == "Dotted" ? line.style_dotted : line.style_solid
 
 // ---- HTF FVG / NDOG lifecycle ----
 //   FRESH -> TOUCHED -> PARTIALLY_MITIGATED -> CE_50_MITIGATED -> DEFENDED / FILLED (-> INVALIDATED)
@@ -897,33 +939,6 @@ f_addNdog(bool newDay, float prevClose, float dayOpen) =>
         f_capHtf(9)
     true
 
-// session range for BOTH markets. Returns the last COMPLETED range (frozen at session end).
-f_sessRange(bool inS, bool started, bool ended, float hA, float lA, float hB, float lB) =>
-    var float cHA = na
-    var float cLA = na
-    var float cHB = na
-    var float cLB = na
-    var float dHA = na
-    var float dLA = na
-    var float dHB = na
-    var float dLB = na
-    if started
-        cHA := hA
-        cLA := lA
-        cHB := hB
-        cLB := lB
-    else if inS
-        cHA := math.max(nz(cHA, hA), hA)
-        cLA := math.min(nz(cLA, lA), lA)
-        cHB := math.max(nz(cHB, hB), nz(hB, cHB))
-        cLB := math.min(nz(cLB, lB), nz(lB, cLB))
-    if ended
-        dHA := cHA
-        dLA := cLA
-        dHB := cHB
-        dLB := cLB
-    [ended, dHA, dLA, dHB, dLB]
-
 withinLookback(int refBar) =>
     not na(refBar) and (bar_index - refBar) <= confluenceBars
 
@@ -968,7 +983,7 @@ f_addSwingRef(array<LiqRef> refs, bool isHigh, int kind, float a, float b, int a
 
 // TAKE-PROFIT TARGET from liquidity: the nearest UNSWEPT opposing level beyond the entry.
 //   long  -> nearest unswept high above entry, short -> nearest unswept low below entry
-//   priority: major (HTF swing / PDH / PDL / Asia / London) > feed swing > last HTF pivot (fbH / fbL)
+//   priority: major (HTF swing / PDH / PDL / PWH / PWL) > feed swing > last HTF pivot (fbH / fbL)
 f_swingTarget(array<LiqRef> refs, bool isBull, float entry, float fbH, float fbL) =>
     float major = na
     float minor = na
@@ -999,8 +1014,6 @@ f_reason(Engine e, SMTSetup s) =>
     bool keyOk = s.isKey or (keyHtfTap and s.htfTap)
     if reqConfirmedSMT and not s.confirmed
         out += "SMT not confirmed yet; "
-    if kzFilter and not s.kzOk
-        out += "outside killzone; "
     if keyFilter and not keyOk
         out += "not at key level; "
     if reqDisp and not s.dispDone
@@ -1077,10 +1090,13 @@ method kill(SMTSetup this) =>
     if not na(this.ln)
         line.delete(this.ln)
         this.ln := na
+    if not na(this.mk)
+        label.delete(this.mk)
+        this.mk := na
     f_anchorKill(this.anchorId)
     true
 
-// (re)arm a fixed level reference (PDH, PWH, Asia, London...) with fresh levels
+// (re)arm a fixed level reference (PDH, PDL, PWH, PWL) with fresh levels
 method arm(LiqRef this, float a, float b, int atBar, int atTime) =>
     bool ok = not na(a) and not na(b)
     if ok and this.state == 1
@@ -1110,11 +1126,11 @@ method draw(SMTSetup this, Engine e) =>
     color col = base
     if not this.confirmed and not showRej
         col := color.new(base, 60)
-    string rejTxt = (kzFilter and not this.kzOk ? "KZ " : "") + (keyFilter and not keyOk ? "KEY " : "")
+    string rejTxt = keyFilter and not keyOk ? "KEY " : ""
     string head = "SMT" + (this.confirmed ? "" : "?")
     if showRej
         head := "SMT✗ " + rejTxt
-    string txt = head + " [" + e.tfName + "] · " + this.refName + (this.kzName != "" ? " · " + this.kzName : "") + (this.htfTag != "" ? " · @" + f_tagText(this.htfTag) : "")
+    string txt = head + " [" + e.tfName + "] · " + this.refName + (this.htfTag != "" ? " · @" + f_tagText(this.htfTag) : "")
     string tt = "Timeframe: " + e.tfName + "\n" + this.tip + (showRej ? "\nHIDDEN BY FILTER: " + rejTxt : "")
     string sty = label.style_none
     if showSmtShapes
@@ -1159,9 +1175,13 @@ method draw(SMTSetup this, Engine e) =>
                         own2.price := this.legPrice
                         own2.lbl := this.lbl
                         own2.alive := true
-        if showOk and showSmtLines and not na(this.lvlTime)
+        // connector: swept level -> sweep extreme (sweep SMT) or previous swing -> new swing (pivot SMT trendline)
+        bool lineOn = this.pivMode ? pivShowLine : showSmtLines
+        string lsty = this.pivMode ? f_lineStyle(pivLineStyle) : line.style_dotted
+        int lw = this.pivMode ? pivLineWidth : 1
+        if showOk and lineOn and not na(this.lvlTime)
             if na(this.ln)
-                this.ln := line.new(this.lvlTime, this.lvlA, this.legTime, this.legPrice, xloc = xloc.bar_time, color = col, width = 1, style = line.style_dotted)
+                this.ln := line.new(this.lvlTime, this.lvlA, this.legTime, this.legPrice, xloc = xloc.bar_time, color = col, width = lw, style = lsty)
             else
                 line.set_xy1(this.ln, this.lvlTime, this.lvlA)
                 line.set_xy2(this.ln, this.legTime, this.legPrice)
@@ -1170,6 +1190,20 @@ method draw(SMTSetup this, Engine e) =>
             if not na(this.ln)
                 line.delete(this.ln)
                 this.ln := na
+        // pivot SMT marker: the correlated market's side of the divergence, written at the previous swing
+        if showOk and this.pivMode and pivShowMarker and not na(this.lvlTime)
+            string mkTxt = "◆ " + corrName + " " + str.tostring(this.prevB, format.mintick) + " → " + str.tostring(this.curB, format.mintick) + " " + f_pivStruct(this.isBull, this.sweeper, false)
+            if na(this.mk)
+                this.mk := label.new(x = this.lvlTime, y = this.lvlA, text = mkTxt, xloc = xloc.bar_time, style = this.isBull ? label.style_label_up : label.style_label_down, color = color.new(col, 100), textcolor = col, size = size.tiny, tooltip = tt)
+            else
+                label.set_xy(this.mk, this.lvlTime, this.lvlA)
+                label.set_text(this.mk, mkTxt)
+                label.set_textcolor(this.mk, col)
+                label.set_tooltip(this.mk, tt)
+        else
+            if not na(this.mk)
+                label.delete(this.mk)
+                this.mk := na
     else
         if not na(this.lbl)
             label.delete(this.lbl)
@@ -1177,20 +1211,67 @@ method draw(SMTSetup this, Engine e) =>
         if not na(this.ln)
             line.delete(this.ln)
             this.ln := na
+        if not na(this.mk)
+            label.delete(this.mk)
+            this.mk := na
         f_anchorKill(this.anchorId)
     true
 
-// a fresh engine with its 8 fixed liquidity references
+// ---- universal pivot SMT (section 3b) ----
+// One confirmed swing of one track against the previous swing of the same track.  A track = one side
+// (high / low) anchored on one market: vA / vB are both markets' prices on the swing candle (the anchoring
+// market's pivot, the other market's aligned extreme); postA / postB are their extremes over the bars after
+// that candle up to now.  Bearish: one market's higher high while the other fails to make one.  Bullish:
+// one market's lower low while the other fails to make one.  The failing market must not have taken its
+// previous swing since (postA / postB), otherwise both took it and there is no SMT.  Creates the SMTSetup
+// (same pipeline as the sweep SMTs) or returns na; the track always moves to the new swing.
+f_pivSmt(Engine e, Feed f, PivTrack tr, bool isHigh, float vA, float vB, float postA, float postB, int pivIdx, int pivT, float tolA, float tolB) =>
+    SMTSetup out = na
+    bool ok = not na(vA) and not na(vB)
+    if ok and not na(tr.pA) and not na(tr.pB) and not na(tr.bar) and pivIdx > tr.bar and (pivMaxGap == 0 or pivIdx - tr.bar <= pivMaxGap)
+        bool aBeyond = isHigh ? vA > tr.pA + tolA : vA < tr.pA - tolA
+        bool bBeyond = isHigh ? vB > tr.pB + tolB : vB < tr.pB - tolB
+        bool aTookSince = not na(postA) and (isHigh ? postA > tr.pA + tolA : postA < tr.pA - tolA)
+        bool bTookSince = not na(postB) and (isHigh ? postB > tr.pB + tolB : postB < tr.pB - tolB)
+        int sw = aBeyond and not bBeyond and not bTookSince ? 1 : bBeyond and not aBeyond and not aTookSince ? 2 : 0
+        if sw > 0
+            bool sBull = not isHigh
+            // one pivot SMT per (direction, swing): the other market anchoring the same swing does not add another
+            bool dup = false
+            if array.size(e.setups) > 0
+                for i = 0 to array.size(e.setups) - 1
+                    SMTSetup q = array.get(e.setups, i)
+                    if q.pivMode and q.isBull == sBull and not q.dead and not q.expired and math.abs(q.sweepBar - pivIdx) <= pivotRight
+                        dup := true
+            if not dup
+                float ext = sw == 1 ? vA : vB
+                float fail = sw == 1 ? tr.pB : tr.pA
+                string swName = sw == 1 ? syminfo.ticker : corrName
+                string flName = sw == 1 ? corrName : syminfo.ticker
+                string sA = f_pivStruct(sBull, sw, true)
+                string sB = f_pivStruct(sBull, sw, false)
+                string nm = "Pivot " + sA + "/" + sB
+                string tap = f_htfOverlap(vA, vA, sBull)
+                string tipTxt = (sBull ? "Bullish" : "Bearish") + " pivot SMT [" + e.tfName + "]: " + syminfo.ticker + " " + str.tostring(tr.pA, format.mintick) + " → " + str.tostring(vA, format.mintick) + " (" + sA + "), " + corrName + " " + str.tostring(tr.pB, format.mintick) + " → " + str.tostring(vB, format.mintick) + " (" + sB + "). " + swName + " made the new " + (isHigh ? "high" : "low") + ", " + flName + " did not"
+                out := SMTSetup.new(isBull = sBull, refName = nm, isKey = false, sweeper = sw, sweepBar = pivIdx, legBar = pivIdx, legTime = pivT, legExt = ext, legPrice = vA, sweepExt = vA, lvlA = tr.pA, lvlTime = tr.t, detectTime = f.t, sweepTime = pivT, sweepPrice = ext, sweptLevel = sw == 1 ? tr.pA : tr.pB, mssLevel = isHigh ? e.lastPLA : e.lastPHA, htfTap = tap != "", htfTag = tap, tip = tipTxt, pivMode = true, failLvl = fail, prevB = tr.pB, curB = vB)
+                array.push(e.setups, out)
+                e.cntSmtDev := e.cntSmtDev + 1
+                e.cntPivSmt := e.cntPivSmt + 1
+                e.logSmt := (sBull ? "Bull" : "Bear") + " pivot SMT developing (" + nm + ": " + swName + " made the new " + (isHigh ? "high" : "low") + ")"
+    if ok
+        tr.pA := vA
+        tr.pB := vB
+        tr.bar := pivIdx
+        tr.t := pivT
+    out
+
+// a fresh engine with its 4 fixed liquidity references and 4 empty pivot-SMT tracks
 f_newEngine(string name, bool enabled, bool entryTf, bool smtOk, int sec, bool isChart) =>
-    Engine e = Engine.new(tfName = name, enabled = enabled, entryTf = entryTf, smtOk = smtOk, rawList = array.new<RawFVG>(), ifvgList = array.new<IFVGZone>(), setups = array.new<SMTSetup>(), refs = array.new<LiqRef>(), ifvgTf = isIFVGAllowedTF(sec), isChart = isChart, tfSec = sec)
+    Engine e = Engine.new(tfName = name, enabled = enabled, entryTf = entryTf, smtOk = smtOk, rawList = array.new<RawFVG>(), ifvgList = array.new<IFVGZone>(), setups = array.new<SMTSetup>(), refs = array.new<LiqRef>(), ifvgTf = isIFVGAllowedTF(sec), isChart = isChart, tfSec = sec, tHiA = PivTrack.new(), tLoA = PivTrack.new(), tHiB = PivTrack.new(), tLoB = PivTrack.new())
     array.push(e.refs, LiqRef.new(name = "PDH", isHigh = true, kind = 0))
     array.push(e.refs, LiqRef.new(name = "PDL", isHigh = false, kind = 0))
     array.push(e.refs, LiqRef.new(name = "PWH", isHigh = true, kind = 0))
     array.push(e.refs, LiqRef.new(name = "PWL", isHigh = false, kind = 0))
-    array.push(e.refs, LiqRef.new(name = "Asia H", isHigh = true, kind = 0))
-    array.push(e.refs, LiqRef.new(name = "Asia L", isHigh = false, kind = 0))
-    array.push(e.refs, LiqRef.new(name = "LON H", isHigh = true, kind = 0))
-    array.push(e.refs, LiqRef.new(name = "LON L", isHigh = false, kind = 0))
     e
 
 // ============================== DATA (runs on every bar) ==============================
@@ -1200,10 +1281,9 @@ allowedEntryTF = f_isEntryTf(chartSec)
 
 atrValue = ta.atr(atrLen)
 
-// the correlated market on the chart timeframe (only read on closed bars)
-[corrHigh, corrLow, corrTickRaw] = request.security(correlatedSym, timeframe.period, [high, low, syminfo.mintick], lookahead = barmerge.lookahead_off)
+// the correlated market on the chart timeframe, bar-for-bar aligned with the chart (only read on closed bars)
+[corrHigh, corrLow, corrTickRaw] = request.security(correlatedSym, timeframe.period, [high, low, syminfo.mintick], gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off)
 corrTick = nz(corrTickRaw, syminfo.mintick)
-corrName = str.contains(correlatedSym, ":") ? array.get(str.split(correlatedSym, ":"), 1) : correlatedSym
 
 // chart-TF swings. Both markets can anchor a swing; the other market's level = its extreme within +/- syncEff bars
 syncEff = math.min(syncBars, pivotRight)
@@ -1220,6 +1300,20 @@ postHiA = ta.highest(high, postLen)
 postLoA = ta.lowest(low, postLen)
 postHiB = ta.highest(corrHigh, postLen)
 postLoB = ta.lowest(corrLow, postLen)
+
+// universal pivot SMT alignment (chart TF): both markets' extreme within +/- pivSyncEff bars of the swing candle
+// (pivSync = 0 -> exactly the swing candle, i.e. high[pivotRight] / corrHigh[pivotRight]: same timestamp on both)
+// and their extreme over the bars after that window up to the current bar (has the failing market taken its swing since?)
+pivSyncEff = math.min(pivSync, pivotRight)
+pivPostLen = math.max(pivotRight - pivSyncEff, 1)
+pvHiA = ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff]
+pvLoA = ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff]
+pvHiB = ta.highest(corrHigh, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff]
+pvLoB = ta.lowest(corrLow, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff]
+pvPostHiA = ta.highest(high, pivPostLen)
+pvPostLoA = ta.lowest(low, pivPostLen)
+pvPostHiB = ta.highest(corrHigh, pivPostLen)
+pvPostLoB = ta.lowest(corrLow, pivPostLen)
 
 // HTF swings (confirmed HTF pivots, last closed HTF bar only: [1] + lookahead_on = no future data)
 swSyncEff = math.min(swSync, swR)
@@ -1238,29 +1332,6 @@ dayT = time("D")
 bool newDay = not na(dayT) and not na(dayT[1]) and dayT != dayT[1]
 bool pdNew = not na(pdhA) and not na(pdlA) and not na(pdhB) and not na(pdlB) and (na(pdhA[1]) or pdhA != pdhA[1] or pdlA != pdlA[1] or pdhB != pdhB[1] or pdlB != pdlB[1])
 bool pwNew = not na(pwhA) and not na(pwlA) and not na(pwhB) and not na(pwlB) and (na(pwhA[1]) or pwhA != pwhA[1] or pwlA != pwlA[1] or pwhB != pwhB[1] or pwlB != pwlB[1])
-
-// sessions: strings are written in i_sessTz and evaluated there (never in the chart display zone).
-// TradingView applies DST from the IANA name, so no offsets are ever edited by hand.
-f_inSession(string sess) =>
-    not na(time(timeframe.period, sess + ":1234567", tz))
-is_london_killzone() => f_inSession(kzLdnSess)
-is_ny_killzone()     => f_inSession(kzNySess)
-is_lc_killzone()     => f_inSession(kzLcSess)
-is_custom_killzone() => f_inSession(kzCuSess)
-is_asia_range()      => f_inSession(asiaSess)
-is_london_range()    => f_inSession(lonSess)
-
-asiaIn = is_asia_range()
-lonIn  = is_london_range()
-[asiaEnded, asiaHA, asiaLA, asiaHB, asiaLB] = f_sessRange(asiaIn, asiaIn and not asiaIn[1], not asiaIn and asiaIn[1], high, low, corrHigh, corrLow)
-[lonEnded, lonHA, lonLA, lonHB, lonLB]     = f_sessRange(lonIn, lonIn and not lonIn[1], not lonIn and lonIn[1], high, low, corrHigh, corrLow)
-
-inLdn = is_london_killzone()
-inNy  = is_ny_killzone()
-inLc  = is_lc_killzone()
-inCu  = is_custom_killzone()
-kzOkNow = (useKzLdn and inLdn) or (useKzNy and inNy) or (useKzLc and inLc) or (useKzCu and inCu)
-kzTag = inLdn ? "LDN" : inNy ? "NY" : inLc ? "LC" : inCu ? "CUS" : ""
 
 // HTF FVG data: last CLOSED HTF bars only ([1] offsets + lookahead_on = no future data, same on history and realtime)
 //   [1] = candle 3 (last closed), [2] = candle 2 (the gap candle), [3] = candle 1
@@ -1292,7 +1363,7 @@ newH8 = not na(tC8) and (na(tC8[1]) or tC8 != tC8[1])
 
 // ============================== FEEDS ==============================
 // chart feed = the current confirmed chart bar, every bar
-Feed fChart = Feed.new(isNew = true, t = time, tMid = time[1], pivT = time[pivotRight], o = open, h = high, l = low, c = close, h2 = high[2], l2 = low[2], atr = atrValue, phA = phA, plA = plA, winHiA = winHiA, winLoA = winLoA, postHiA = postHiA, postLoA = postLoA, ch = corrHigh, cl = corrLow, phB = phB, plB = plB, winHiB = winHiB, winLoB = winLoB, postHiB = postHiB, postLoB = postLoB, corrTick = corrTick)
+Feed fChart = Feed.new(isNew = true, t = time, tMid = time[1], pivT = time[pivotRight], o = open, h = high, l = low, c = close, h2 = high[2], l2 = low[2], atr = atrValue, phA = phA, plA = plA, winHiA = winHiA, winLoA = winLoA, postHiA = postHiA, postLoA = postLoA, ch = corrHigh, cl = corrLow, phB = phB, plB = plB, winHiB = winHiB, winLoB = winLoB, postHiB = postHiB, postLoB = postLoB, corrTick = corrTick, pvHiA = pvHiA, pvLoA = pvLoA, pvHiB = pvHiB, pvLoB = pvLoB, pvPostHiA = pvPostHiA, pvPostLoA = pvPostLoA, pvPostHiB = pvPostHiB, pvPostLoB = pvPostLoB)
 
 // higher-timeframe feeds: the LAST CLOSED candle of that timeframe ([1] + lookahead_on = no future data)
 // for both the chart symbol and the correlated symbol, with the same pivot / window / ATR values the
@@ -1301,22 +1372,22 @@ enF1 = useMtf and useF1 and timeframe.in_seconds(tfF1) > chartSec
 enF2 = useMtf and useF2 and timeframe.in_seconds(tfF2) > chartSec
 enF3 = useMtf and useF3 and timeframe.in_seconds(tfF3) > chartSec
 enF4 = useMtf and useF4 and timeframe.in_seconds(tfF4) > chartSec
-[a1o, a1h, a1l, a1c, a1h2, a1l2, a1t, a1tm, a1pt, a1atr, a1ph, a1pl, a1wh, a1wl, a1posh, a1posl] = request.security(syminfo.tickerid, tfF1, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
-[b1h, b1l, b1ph, b1pl, b1wh, b1wl, b1posh, b1posl, b1tick] = request.security(correlatedSym, tfF1, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick], lookahead = barmerge.lookahead_on)
-[a2o, a2h, a2l, a2c, a2h2, a2l2, a2t, a2tm, a2pt, a2atr, a2ph, a2pl, a2wh, a2wl, a2posh, a2posl] = request.security(syminfo.tickerid, tfF2, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
-[b2h, b2l, b2ph, b2pl, b2wh, b2wl, b2posh, b2posl, b2tick] = request.security(correlatedSym, tfF2, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick], lookahead = barmerge.lookahead_on)
-[a3o, a3h, a3l, a3c, a3h2, a3l2, a3t, a3tm, a3pt, a3atr, a3ph, a3pl, a3wh, a3wl, a3posh, a3posl] = request.security(syminfo.tickerid, tfF3, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
-[b3h, b3l, b3ph, b3pl, b3wh, b3wl, b3posh, b3posl, b3tick] = request.security(correlatedSym, tfF3, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick], lookahead = barmerge.lookahead_on)
-[a4o, a4h, a4l, a4c, a4h2, a4l2, a4t, a4tm, a4pt, a4atr, a4ph, a4pl, a4wh, a4wl, a4posh, a4posl] = request.security(syminfo.tickerid, tfF4, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
-[b4h, b4l, b4ph, b4pl, b4wh, b4wl, b4posh, b4posl, b4tick] = request.security(correlatedSym, tfF4, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick], lookahead = barmerge.lookahead_on)
+[a1o, a1h, a1l, a1c, a1h2, a1l2, a1t, a1tm, a1pt, a1atr, a1ph, a1pl, a1wh, a1wl, a1posh, a1posl, a1pvh, a1pvl, a1pph, a1ppl] = request.security(syminfo.tickerid, tfF1, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
+[b1h, b1l, b1ph, b1pl, b1wh, b1wl, b1posh, b1posl, b1tick, b1pvh, b1pvl, b1pph, b1ppl] = request.security(correlatedSym, tfF1, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick, ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
+[a2o, a2h, a2l, a2c, a2h2, a2l2, a2t, a2tm, a2pt, a2atr, a2ph, a2pl, a2wh, a2wl, a2posh, a2posl, a2pvh, a2pvl, a2pph, a2ppl] = request.security(syminfo.tickerid, tfF2, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
+[b2h, b2l, b2ph, b2pl, b2wh, b2wl, b2posh, b2posl, b2tick, b2pvh, b2pvl, b2pph, b2ppl] = request.security(correlatedSym, tfF2, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick, ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
+[a3o, a3h, a3l, a3c, a3h2, a3l2, a3t, a3tm, a3pt, a3atr, a3ph, a3pl, a3wh, a3wl, a3posh, a3posl, a3pvh, a3pvl, a3pph, a3ppl] = request.security(syminfo.tickerid, tfF3, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
+[b3h, b3l, b3ph, b3pl, b3wh, b3wl, b3posh, b3posl, b3tick, b3pvh, b3pvl, b3pph, b3ppl] = request.security(correlatedSym, tfF3, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick, ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
+[a4o, a4h, a4l, a4c, a4h2, a4l2, a4t, a4tm, a4pt, a4atr, a4ph, a4pl, a4wh, a4wl, a4posh, a4posl, a4pvh, a4pvl, a4pph, a4ppl] = request.security(syminfo.tickerid, tfF4, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
+[b4h, b4l, b4ph, b4pl, b4wh, b4wl, b4posh, b4posl, b4tick, b4pvh, b4pvl, b4pph, b4ppl] = request.security(correlatedSym, tfF4, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick, ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
 newF1 = enF1 and not na(a1t) and (na(a1t[1]) or a1t != a1t[1])
 newF2 = enF2 and not na(a2t) and (na(a2t[1]) or a2t != a2t[1])
 newF3 = enF3 and not na(a3t) and (na(a3t[1]) or a3t != a3t[1])
 newF4 = enF4 and not na(a4t) and (na(a4t[1]) or a4t != a4t[1])
-Feed fF1 = Feed.new(isNew = newF1, t = a1t, tMid = a1tm, pivT = a1pt, o = a1o, h = a1h, l = a1l, c = a1c, h2 = a1h2, l2 = a1l2, atr = a1atr, phA = a1ph, plA = a1pl, winHiA = a1wh, winLoA = a1wl, postHiA = a1posh, postLoA = a1posl, ch = b1h, cl = b1l, phB = b1ph, plB = b1pl, winHiB = b1wh, winLoB = b1wl, postHiB = b1posh, postLoB = b1posl, corrTick = nz(b1tick, syminfo.mintick))
-Feed fF2 = Feed.new(isNew = newF2, t = a2t, tMid = a2tm, pivT = a2pt, o = a2o, h = a2h, l = a2l, c = a2c, h2 = a2h2, l2 = a2l2, atr = a2atr, phA = a2ph, plA = a2pl, winHiA = a2wh, winLoA = a2wl, postHiA = a2posh, postLoA = a2posl, ch = b2h, cl = b2l, phB = b2ph, plB = b2pl, winHiB = b2wh, winLoB = b2wl, postHiB = b2posh, postLoB = b2posl, corrTick = nz(b2tick, syminfo.mintick))
-Feed fF3 = Feed.new(isNew = newF3, t = a3t, tMid = a3tm, pivT = a3pt, o = a3o, h = a3h, l = a3l, c = a3c, h2 = a3h2, l2 = a3l2, atr = a3atr, phA = a3ph, plA = a3pl, winHiA = a3wh, winLoA = a3wl, postHiA = a3posh, postLoA = a3posl, ch = b3h, cl = b3l, phB = b3ph, plB = b3pl, winHiB = b3wh, winLoB = b3wl, postHiB = b3posh, postLoB = b3posl, corrTick = nz(b3tick, syminfo.mintick))
-Feed fF4 = Feed.new(isNew = newF4, t = a4t, tMid = a4tm, pivT = a4pt, o = a4o, h = a4h, l = a4l, c = a4c, h2 = a4h2, l2 = a4l2, atr = a4atr, phA = a4ph, plA = a4pl, winHiA = a4wh, winLoA = a4wl, postHiA = a4posh, postLoA = a4posl, ch = b4h, cl = b4l, phB = b4ph, plB = b4pl, winHiB = b4wh, winLoB = b4wl, postHiB = b4posh, postLoB = b4posl, corrTick = nz(b4tick, syminfo.mintick))
+Feed fF1 = Feed.new(isNew = newF1, t = a1t, tMid = a1tm, pivT = a1pt, o = a1o, h = a1h, l = a1l, c = a1c, h2 = a1h2, l2 = a1l2, atr = a1atr, phA = a1ph, plA = a1pl, winHiA = a1wh, winLoA = a1wl, postHiA = a1posh, postLoA = a1posl, ch = b1h, cl = b1l, phB = b1ph, plB = b1pl, winHiB = b1wh, winLoB = b1wl, postHiB = b1posh, postLoB = b1posl, corrTick = nz(b1tick, syminfo.mintick), pvHiA = a1pvh, pvLoA = a1pvl, pvHiB = b1pvh, pvLoB = b1pvl, pvPostHiA = a1pph, pvPostLoA = a1ppl, pvPostHiB = b1pph, pvPostLoB = b1ppl)
+Feed fF2 = Feed.new(isNew = newF2, t = a2t, tMid = a2tm, pivT = a2pt, o = a2o, h = a2h, l = a2l, c = a2c, h2 = a2h2, l2 = a2l2, atr = a2atr, phA = a2ph, plA = a2pl, winHiA = a2wh, winLoA = a2wl, postHiA = a2posh, postLoA = a2posl, ch = b2h, cl = b2l, phB = b2ph, plB = b2pl, winHiB = b2wh, winLoB = b2wl, postHiB = b2posh, postLoB = b2posl, corrTick = nz(b2tick, syminfo.mintick), pvHiA = a2pvh, pvLoA = a2pvl, pvHiB = b2pvh, pvLoB = b2pvl, pvPostHiA = a2pph, pvPostLoA = a2ppl, pvPostHiB = b2pph, pvPostLoB = b2ppl)
+Feed fF3 = Feed.new(isNew = newF3, t = a3t, tMid = a3tm, pivT = a3pt, o = a3o, h = a3h, l = a3l, c = a3c, h2 = a3h2, l2 = a3l2, atr = a3atr, phA = a3ph, plA = a3pl, winHiA = a3wh, winLoA = a3wl, postHiA = a3posh, postLoA = a3posl, ch = b3h, cl = b3l, phB = b3ph, plB = b3pl, winHiB = b3wh, winLoB = b3wl, postHiB = b3posh, postLoB = b3posl, corrTick = nz(b3tick, syminfo.mintick), pvHiA = a3pvh, pvLoA = a3pvl, pvHiB = b3pvh, pvLoB = b3pvl, pvPostHiA = a3pph, pvPostLoA = a3ppl, pvPostHiB = b3pph, pvPostLoB = b3ppl)
+Feed fF4 = Feed.new(isNew = newF4, t = a4t, tMid = a4tm, pivT = a4pt, o = a4o, h = a4h, l = a4l, c = a4c, h2 = a4h2, l2 = a4l2, atr = a4atr, phA = a4ph, plA = a4pl, winHiA = a4wh, winLoA = a4wl, postHiA = a4posh, postLoA = a4posl, ch = b4h, cl = b4l, phB = b4ph, plB = b4pl, winHiB = b4wh, winLoB = b4wl, postHiB = b4posh, postLoB = b4posl, corrTick = nz(b4tick, syminfo.mintick), pvHiA = a4pvh, pvLoA = a4pvl, pvHiB = b4pvh, pvLoB = b4pvl, pvPostHiA = a4pph, pvPostLoA = a4ppl, pvPostHiB = b4pph, pvPostLoB = b4ppl)
 
 // one engine per feed (state lives across bars)
 var Engine eC = f_newEngine(f_tfName(timeframe.period), true, allowedEntryTF, chartSec >= minSmtSec, chartSec, true)
@@ -1338,7 +1409,7 @@ if barstate.isfirst
                     array.push(ifvgLadder, ek)
 
 // ============================== ENGINE (one call = one feed) ==============================
-// Runs the complete SMT + IFVG logic for ONE timeframe.  Fixed references (PDH/PDL, sessions, HTF
+// Runs the complete SMT + IFVG logic for ONE timeframe.  Fixed references (PDH/PDL, PWH/PWL, HTF
 // swings) are armed on every chart bar because their events come from chart bars; everything else
 // only runs when the feed has a NEW closed candle (f.isNew).  Bar counts (confirmation, lifetime,
 // ages) use e.idx = the feed's own bar counter; drawings use the feed candle's TIME.
@@ -1359,22 +1430,12 @@ f_runEngine(Engine e, Feed f) =>
         LiqRef rPDL = array.get(e.refs, 1)
         LiqRef rPWH = array.get(e.refs, 2)
         LiqRef rPWL = array.get(e.refs, 3)
-        LiqRef rAsH = array.get(e.refs, 4)
-        LiqRef rAsL = array.get(e.refs, 5)
-        LiqRef rLnH = array.get(e.refs, 6)
-        LiqRef rLnL = array.get(e.refs, 7)
         if usePD and pdNew
             rPDH.arm(pdhA, pdhB, e.idx, time)
             rPDL.arm(pdlA, pdlB, e.idx, time)
         if usePW and pwNew
             rPWH.arm(pwhA, pwhB, e.idx, time)
             rPWL.arm(pwlA, pwlB, e.idx, time)
-        if useAsia and asiaEnded
-            rAsH.arm(asiaHA, asiaHB, e.idx, time)
-            rAsL.arm(asiaLA, asiaLB, e.idx, time)
-        if useLon and lonEnded
-            rLnH.arm(lonHA, lonHB, e.idx, time)
-            rLnL.arm(lonLA, lonLB, e.idx, time)
         if useHtfSwing and newSw
             if not na(aPH) and not na(bWinH) and not na(bPostH)
                 if bPostH <= bWinH + tolB
@@ -1411,6 +1472,35 @@ f_runEngine(Engine e, Feed f) =>
                 if not na(f.plB) and not na(f.winLoA) and not na(f.postLoA)
                     if f.postLoA >= f.winLoA - tolA
                         f_addSwingRef(e.refs, false, 1, f.winLoA, f.plB, pivIdx, f.pivT, tolA, tolB)
+
+            // ---------- C3. universal pivot SMT: every confirmed swing of EITHER market vs the other market on the same candle ----------
+            // Four tracks: highs / lows anchored on the chart market (its pivot + the correlated market's aligned
+            // extreme) and highs / lows anchored on the correlated market (its pivot + the chart market's aligned extreme).
+            if corrOkF and usePivSmt
+                if not na(f.phA)
+                    SMTSetup pvA1 = f_pivSmt(e, f, e.tHiA, true, f.phA, f.pvHiB, f.pvPostHiA, f.pvPostHiB, pivIdx, f.pivT, tolA, tolB)
+                    if not na(pvA1)
+                        pvA1.draw(e)
+                        if f_passes(pvA1)
+                            bearDet := true
+                if not na(f.plA)
+                    SMTSetup pvA2 = f_pivSmt(e, f, e.tLoA, false, f.plA, f.pvLoB, f.pvPostLoA, f.pvPostLoB, pivIdx, f.pivT, tolA, tolB)
+                    if not na(pvA2)
+                        pvA2.draw(e)
+                        if f_passes(pvA2)
+                            bullDet := true
+                if not na(f.phB)
+                    SMTSetup pvB1 = f_pivSmt(e, f, e.tHiB, true, f.pvHiA, f.phB, f.pvPostHiA, f.pvPostHiB, pivIdx, f.pivT, tolA, tolB)
+                    if not na(pvB1)
+                        pvB1.draw(e)
+                        if f_passes(pvB1)
+                            bearDet := true
+                if not na(f.plB)
+                    SMTSetup pvB2 = f_pivSmt(e, f, e.tLoB, false, f.pvLoA, f.plB, f.pvPostLoA, f.pvPostLoB, pivIdx, f.pivT, tolA, tolB)
+                    if not na(pvB2)
+                        pvB2.draw(e)
+                        if f_passes(pvB2)
+                            bullDet := true
 
             // ---------- D. SMT state machine over every reference ----------
             if corrOkF
@@ -1463,9 +1553,13 @@ f_runEngine(Engine e, Feed f) =>
                                 ex.tip := ex.tip + " | also swept " + r.name
                                 if ex.sweeper == sw and rKey and not ex.isKey
                                     ex.isKey := true
-                                    ex.refName := r.name
-                                    ex.lvlA := r.lvlA
-                                    ex.lvlTime := r.lvlTime
+                                    if ex.pivMode
+                                        // a pivot SMT that also sweeps a key level keeps its divergence trendline, gains the key name
+                                        ex.refName := r.name + " + " + ex.refName
+                                    else
+                                        ex.refName := r.name
+                                        ex.lvlA := r.lvlA
+                                        ex.lvlTime := r.lvlTime
                                 r.state := 3
                             else
                                 if sw == 1
@@ -1477,7 +1571,7 @@ f_runEngine(Engine e, Feed f) =>
                                     swName := corrName
                                     flName := syminfo.ticker
                                 tap := f_htfOverlap(f.l, f.h, sBull)
-                                ns := SMTSetup.new(isBull = sBull, refName = r.name, isKey = rKey, sweeper = sw, sweepBar = e.idx, legBar = e.idx, legTime = f.t, legExt = ext, legPrice = r.isHigh ? f.h : f.l, sweepExt = r.isHigh ? f.h : f.l, lvlA = r.lvlA, lvlTime = r.lvlTime, detectTime = f.t, sweepTime = f.t, sweepPrice = ext, sweptLevel = r.lvlA, mssLevel = r.isHigh ? e.lastPLA : e.lastPHA, kzName = kzTag, kzOk = kzOkNow, htfTap = tap != "", htfTag = tap, tip = (sBull ? "Bullish" : "Bearish") + " SMT [" + e.tfName + "] at " + r.name + ": " + swName + " took the level, " + flName + " did not")
+                                ns := SMTSetup.new(isBull = sBull, refName = r.name, isKey = rKey, sweeper = sw, sweepBar = e.idx, legBar = e.idx, legTime = f.t, legExt = ext, legPrice = r.isHigh ? f.h : f.l, sweepExt = r.isHigh ? f.h : f.l, lvlA = r.lvlA, lvlTime = r.lvlTime, detectTime = f.t, sweepTime = f.t, sweepPrice = ext, sweptLevel = r.lvlA, mssLevel = r.isHigh ? e.lastPLA : e.lastPHA, htfTap = tap != "", htfTag = tap, tip = (sBull ? "Bullish" : "Bearish") + " SMT [" + e.tfName + "] at " + r.name + ": " + swName + " took the level, " + flName + " did not")
                                 array.push(e.setups, ns)
                                 r.cur := ns
                                 r.state := 1
@@ -1557,6 +1651,56 @@ f_runEngine(Engine e, Feed f) =>
                                         cs.active := false
                                         r.state := 3
                                 cs.draw(e)
+
+                // ---------- D2. pivot SMT state machine: invalidation, deeper extreme, confirmation ----------
+                // sweeper = the market that made the new swing; the SMT dies when the OTHER market takes its own
+                // previous swing (failLvl) by more than its tolerance, exactly like a sweep SMT.
+                if array.size(e.setups) > 0
+                    for i = 0 to array.size(e.setups) - 1
+                        SMTSetup ps = array.get(e.setups, i)
+                        if ps.pivMode and ps.active and not ps.dead and not ps.expired
+                            bool isHi = not ps.isBull
+                            bool oTakes = false
+                            if ps.sweeper == 1
+                                oTakes := isHi ? f.ch > ps.failLvl + tolB : f.cl < ps.failLvl - tolB
+                            else
+                                oTakes := isHi ? f.h > ps.failLvl + tolA : f.l < ps.failLvl - tolA
+                            if oTakes
+                                ps.active := false
+                                e.cntSmtInv := e.cntSmtInv + 1
+                                e.logSmt := (ps.isBull ? "Bull" : "Bear") + " pivot SMT " + ps.refName + " INVALIDATED" + (ps.confirmed ? " after confirmation" : "") + ": " + (ps.sweeper == 1 ? corrName : syminfo.ticker) + " took its swing"
+                                if removeInvalidatedSMT
+                                    ps.kill()
+                            else
+                                float pExt = ps.sweeper == 1 ? (isHi ? f.h : f.l) : (isHi ? f.ch : f.cl)
+                                bool deeper = isHi ? pExt > ps.legExt : pExt < ps.legExt
+                                if deeper
+                                    ps.legExt := pExt
+                                    ps.legBar := e.idx
+                                    ps.legTime := f.t
+                                    ps.legPrice := isHi ? f.h : f.l
+                                    if ps.sweeper == 2
+                                        ps.curB := pExt
+                                if not ps.htfTap
+                                    string tgP = f_htfOverlap(f.l, f.h, ps.isBull)
+                                    if tgP != ""
+                                        ps.htfTap := true
+                                        ps.htfTag := tgP
+                                if not ps.confirmed
+                                    if e.idx - ps.sweepBar >= smtConfirmBars
+                                        ps.confirmed := true
+                                        ps.confirmBar := e.idx
+                                        ps.confirmTime := f.t
+                                        e.cntSmtConf := e.cntSmtConf + 1
+                                        e.logSmt := (ps.isBull ? "Bull" : "Bear") + " pivot SMT confirmed (" + ps.refName + ")"
+                                        if f_passes(ps)
+                                            if ps.isBull
+                                                bullConf := true
+                                            else
+                                                bearConf := true
+                                else if e.idx - ps.legBar >= smtConfirmBars
+                                    ps.active := false
+                                ps.draw(e)
                 // drop used-up swing references (fixed levels stay)
                 for i = array.size(e.refs) - 1 to 0
                     LiqRef q2 = array.get(e.refs, i)
@@ -1881,6 +2025,7 @@ f_runEngine(Engine e, Feed f) =>
                         array.remove(e.setups, i)
 
             // ---------- F. Buy / Sell: valid SMT + IFVG that sits in an HTF FVG ----------
+            // ('Require SMT' ON, or OFF with an SMT available: the SMT path is always tried first)
             if e.entryTf and array.size(e.setups) > 0 and array.size(e.ifvgList) > 0
                 for i = array.size(e.setups) - 1 to 0
                     SMTSetup sf = array.get(e.setups, i)
@@ -1908,12 +2053,14 @@ f_runEngine(Engine e, Feed f) =>
                                 else
                                     winOk := seqMaxSmtDisp == 0 or zf.invBar - sf.confirmBar <= seqMaxSmtDisp
                                 seqOkP3 := sweepToSmt and orderOk and winOk
+                            int score = f_score(zf.htfTag != "", true, sf.confirmed, zf.dispOk, zf.primaryTag != "" and zf.primaryBull == sf.isBull)
+                            bool scoreOk = score >= minScore
                             string info = ""
-                            if sameDir and not zf.used and timeOk and htfOkF and dirOkP3 and dispOkP3 and seqOkP3
+                            if sameDir and not zf.used and timeOk and htfOkF and dirOkP3 and dispOkP3 and seqOkP3 and scoreOk
                                 sf.used := true
                                 zf.used := true
                                 f_markHtfUsed(zf.top, zf.bottom, zf.isBull)
-                                info := sf.refName + (sf.kzName != "" ? " · " + sf.kzName : "") + " · IFVG in " + (zf.htfTag != "" ? f_tagText(zf.htfTag) : "n/a") + (zf.primaryTag != "" ? " (primary " + zf.primaryTag + (zf.primaryBull ? " ▲" : " ▼") + ")" : "") + " · sweeper " + (sf.sweeper == 1 ? syminfo.ticker : corrName) + (dispFilter != "OFF" ? " · disp " + (zf.dispOk ? "yes @" + str.tostring(zf.dispBar) : "no") : "")
+                                info := sf.refName + " · IFVG in " + (zf.htfTag != "" ? f_tagText(zf.htfTag) : "n/a") + (zf.primaryTag != "" ? " (primary " + zf.primaryTag + (zf.primaryBull ? " ▲" : " ▼") + ")" : "") + " · sweeper " + (sf.sweeper == 1 ? syminfo.ticker : corrName) + (dispFilter != "OFF" ? " · disp " + (zf.dispOk ? "yes @" + str.tostring(zf.dispBar) : "no") : "") + " · score " + str.tostring(score) + "/5"
                                 e.ifvgDbg := e.ifvgDbg + " | SIGNAL bar " + str.tostring(e.idx) + " (same candle)"
                                 e.lastSeq := "SWEEP(" + str.tostring(sf.sweepBar) + ") → SMT(" + str.tostring(sf.sweepBar) + ") → CONF(" + str.tostring(sf.confirmBar) + ")" + (zf.dispOk ? " → DISP(" + str.tostring(zf.dispBar) + ")" : "") + " → IFVG(" + str.tostring(zf.invBar) + ") → SIGNAL(" + str.tostring(e.idx) + ")"
                                 if not na(sf.lbl)
@@ -1931,6 +2078,51 @@ f_runEngine(Engine e, Feed f) =>
                                 break
                     if not na(sig)
                         break
+
+            // ---------- F2. 'Require SMT' OFF: the IFVG that formed on THIS candle fires on its own ----------
+            // Same HTF / HTF-direction / displacement gates as F; a same-direction live SMT inside the pairing
+            // window is optional confluence only (it raises the score and is consumed by the signal).
+            if not i_requireSMT and na(sig) and e.entryTf and (newBullIFVG or newBearIFVG) and array.size(e.ifvgList) > 0
+                IFVGZone zn = array.get(e.ifvgList, array.size(e.ifvgList) - 1)
+                if zn.invBar == e.idx and not zn.used
+                    bool htfOkN = not requireHTF or zn.htfTag != ""
+                    bool dirOkN = htfDirFilter != "REQUIRE SAME DIRECTION" or zn.primaryTag == "" or zn.primaryBull == zn.isBull
+                    bool dispOkN = dispFilter != "REQUIRED" or zn.dispOk
+                    SMTSetup bestS = na
+                    bool bestConf = false
+                    if array.size(e.setups) > 0
+                        for i = array.size(e.setups) - 1 to 0
+                            SMTSetup sc = array.get(e.setups, i)
+                            bool liveC = not sc.dead and not sc.expired and not sc.used and sc.isBull == zn.isBull and f_passes(sc) and f_timingOk(sc, zn.invBar)
+                            if liveC and (na(bestS) or (sc.confirmed and not bestConf))
+                                bestS := sc
+                                bestConf := sc.confirmed
+                    bool hasS = not na(bestS)
+                    int scoreN = f_score(zn.htfTag != "", hasS, bestConf, zn.dispOk, zn.primaryTag != "" and zn.primaryBull == zn.isBull)
+                    if htfOkN and dirOkN and dispOkN and scoreN >= minScore
+                        zn.used := true
+                        f_markHtfUsed(zn.top, zn.bottom, zn.isBull)
+                        string smtTxtN = "no SMT (optional)"
+                        if hasS
+                            smtTxtN := "SMT " + bestS.refName + (bestConf ? " ✔" : " …") + " (optional)"
+                        string infoN = smtTxtN + " · IFVG in " + (zn.htfTag != "" ? f_tagText(zn.htfTag) : "n/a") + (zn.primaryTag != "" ? " (primary " + zn.primaryTag + (zn.primaryBull ? " ▲" : " ▼") + ")" : "") + (dispFilter != "OFF" ? " · disp " + (zn.dispOk ? "yes @" + str.tostring(zn.dispBar) : "no") : "") + " · score " + str.tostring(scoreN) + "/5"
+                        float slSw = na
+                        if hasS
+                            bestS.used := true
+                            slSw := bestS.sweepExt
+                            if not na(bestS.lbl)
+                                label.set_tooltip(bestS.lbl, "Timeframe: " + e.tfName + "\n" + bestS.tip + "\nSIGNAL: " + infoN)
+                        e.ifvgDbg := e.ifvgDbg + " | SIGNAL bar " + str.tostring(e.idx) + " (SMT optional)"
+                        e.lastSeq := (hasS ? "SMT(" + str.tostring(bestS.sweepBar) + ") → " : "") + "IFVG(" + str.tostring(zn.invBar) + ") → SIGNAL(" + str.tostring(e.idx) + ")"
+                        sig := SigInfo.new(isBull = zn.isBull, tfName = e.tfName, entry = f.c, slSweep = slSw, slIfvg = zn.isBull ? zn.bottom : zn.top, tpSwing = f_swingTarget(e.refs, zn.isBull, f.c, aPH, aPL), info = infoN)
+                        if zn.isBull
+                            e.lastBuyBar := e.idx
+                            e.cntBuy := e.cntBuy + 1
+                            e.logPair := "BUY fired (SMT optional): " + infoN
+                        else
+                            e.lastSellBar := e.idx
+                            e.cntSell := e.cntSell + 1
+                            e.logPair := "SELL fired (SMT optional): " + infoN
 
         // IFVG boxes follow price on every chart bar (also between feed candles)
         if array.size(e.ifvgList) > 0
@@ -2191,7 +2383,6 @@ if barstate.islast
     array<int> cnt = array.new_int(10, 0)
     array<int> cntE = array.new_int(10, 0)
     string htfTxt = ""
-    string kzTxt = kzTag == "" ? "Outside" : (kzOkNow ? kzTag : kzTag + " (off)")
     string smtTxt = "None"
     color smtBg = grayBg
     string ifvgTxt = allowedEntryTF ? "None" : "N/A (TF)"
@@ -2240,7 +2431,7 @@ if barstate.islast
     bool sigRecent = withinLookback(lastSigBar)
     string sigTxt = sigRecent ? lastSigTxt : "No Trade"
     color sigBg = sigRecent ? (lastSigBull ? color.new(color.green, 20) : color.new(color.red, 20)) : grayBg
-    string filtTxt = (kzFilter ? "KZ " : "") + (keyFilter ? "KEY " : "") + (reqDisp ? "DISP " : "") + (reqSetupFvg ? "FVG " : "") + (reqMSS ? "MSS " : "")
+    string filtTxt = (i_requireSMT ? "" : "SMT-OPTIONAL ") + (minScore > 0 ? "SCORE>=" + str.tostring(minScore) + " " : "") + (keyFilter ? "KEY " : "") + (reqDisp ? "DISP " : "") + (reqSetupFvg ? "FVG " : "") + (reqMSS ? "MSS " : "")
     if filtTxt == ""
         filtTxt := "RAW SMT"
     string feedTxt = eC.tfName + " (chart)" + (enF1 ? ", " + e1.tfName : "") + (enF2 ? ", " + e2.tfName : "") + (enF3 ? ", " + e3.tfName : "") + (enF4 ? ", " + e4.tfName : "")
@@ -2249,7 +2440,15 @@ if barstate.islast
     bool cSmt = not na(newestS)
     bool cSweep = cSmt
     bool cSmtConf = cSmt and newestS.confirmed
-    bool cKz = kzOkNow
+    // a live pivot divergence (section 3b) on the chart engine
+    bool cPiv = false
+    string cPivName = ""
+    if array.size(eC.setups) > 0
+        for i = array.size(eC.setups) - 1 to 0
+            SMTSetup tp = array.get(eC.setups, i)
+            if not cPiv and tp.pivMode and not tp.dead and not tp.expired
+                cPiv := true
+                cPivName := tp.refName + (tp.confirmed ? " ✔" : " …")
     bool cIfvg = not na(tl)
     bool cHtf = cIfvg and tl.htfTag != ""
     bool cDisp = false
@@ -2258,16 +2457,16 @@ if barstate.islast
         cDisp := not na(dB) and (dispMaxToIfvg == 0 or eC.idx - dB <= dispMaxToIfvg)
     bool cAlign = cIfvg and tl.primaryTag != "" and tl.primaryBull == tl.isBull
     bool cSeq = cSmtConf and cIfvg and tl.isBull == newestS.isBull and tl.invBar >= newestS.confirmBar
-    int cN = (cHtf ? 1 : 0) + (cSweep ? 1 : 0) + (cSmt ? 1 : 0) + (cSmtConf ? 1 : 0) + (cKz ? 1 : 0) + (cDisp ? 1 : 0) + (cIfvg ? 1 : 0) + (cAlign ? 1 : 0)
-    string cKzTxt = "Inside Killzone" + (kzTag != "" ? " (" + kzTag + ")" : "")
+    int cN = (cHtf ? 1 : 0) + (cSweep ? 1 : 0) + (cSmt ? 1 : 0) + (cSmtConf ? 1 : 0) + (cPiv ? 1 : 0) + (cDisp ? 1 : 0) + (cIfvg ? 1 : 0) + (cAlign ? 1 : 0)
+    string cPivTxt = "Pivot SMT divergence" + (cPiv ? " · " + cPivName : "")
     string cHtfTxt = "Delivering from HTF Gap" + (cHtf ? " (" + f_tagText(tl.htfTag) + ")" : "")
     string cSmtTxt = "SMT" + (cSmt ? " · " + newestS.refName : "")
     string cIfvgTxt = "IFVG" + (cIfvg ? " · " + tl.resTf + (tl.isBull ? " ▲" : " ▼") : "")
     f_ckRow(infoTable, 0, cHtf, cHtfTxt)
-    f_ckRow(infoTable, 1, cSweep, "Major Liq Sweep")
+    f_ckRow(infoTable, 1, cSweep, "Liquidity Sweep / Swing" + (cSmt and not i_requireSMT ? " (SMT optional)" : ""))
     f_ckRow(infoTable, 2, cSmt, cSmtTxt)
     f_ckRow(infoTable, 3, cSmtConf, "SMT Confirmed")
-    f_ckRow(infoTable, 4, cKz, cKzTxt)
+    f_ckRow(infoTable, 4, cPiv, cPivTxt)
     f_ckRow(infoTable, 5, cDisp, "Displacement")
     f_ckRow(infoTable, 6, cIfvg, cIfvgTxt)
     f_ckRow(infoTable, 7, cAlign, "HTF Direction Aligned")
@@ -2320,7 +2519,7 @@ if barstate.islast
             float smtAgeD = (time - newestS.detectTime) / 86400000.0
             liveTxt := (newestS.isBull ? "Bull " : "Bear ") + (newestS.confirmed ? "confirmed" : "developing") + " @" + newestS.refName + " · " + (newestS.sweeper == 1 ? syminfo.ticker : corrName) + " swept" + (newestS.used ? " · SIGNAL FIRED" : "") + " · age " + str.tostring(smtAgeD, "#.##") + "d / max " + (smtMaxDays > 0 ? str.tostring(smtMaxDays) + "d" : "off") + " · " + (newestS.expired ? "EXPIRED" : "ACTIVE")
             blockTxt := newestS.used ? "signal fired" : f_reason(eC, newestS)
-        string cntSmtTxt = "dev " + str.tostring(eC.cntSmtDev) + "  conf " + str.tostring(eC.cntSmtConf) + "  inval " + str.tostring(eC.cntSmtInv) + "  exp " + str.tostring(eC.cntSmtExp)
+        string cntSmtTxt = "dev " + str.tostring(eC.cntSmtDev) + " (pivot " + str.tostring(eC.cntPivSmt) + ")  conf " + str.tostring(eC.cntSmtConf) + "  inval " + str.tostring(eC.cntSmtInv) + "  exp " + str.tostring(eC.cntSmtExp)
         string cntIfvgTxt = "bull " + str.tostring(eC.cntIfvgBull) + "  bear " + str.tostring(eC.cntIfvgBear) + "  rejected(quality) " + str.tostring(eC.cntIfvgRej) + "  too old " + str.tostring(eC.cntIfvgOld)
         string cntSigTxt = "buy " + str.tostring(eC.cntBuy) + "  sell " + str.tostring(eC.cntSell)
         string feedDbg = f_engSummary(e1) + " | " + f_engSummary(e2) + " | " + f_engSummary(e3) + " | " + f_engSummary(e4)
