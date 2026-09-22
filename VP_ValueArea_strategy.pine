@@ -77,22 +77,24 @@ f_rowIdx(float px) => int(math.floor((px - rowLo) / rowSize + 1e-9))
 // 1-minute sub-bars of the current chart bar (empty arrays when unavailable)
 [ltfH, ltfL, ltfV] = request.security_lower_tf(syminfo.tickerid, "1", [high, low, volume])
 
-// add one (sub)bar's volume to the rows it touched, growing the row array as needed
-f_addBar(float h, float l, float v) =>
-    int iLo = f_rowIdx(l)
+// add one (sub)bar's volume to the rows it touched, growing the row array as needed.
+// Returns the (possibly lowered) bottom price of row 0; the caller stores it (functions cannot assign globals).
+f_addBar(float lo0, float h, float l, float v) =>
+    float lo = lo0
+    int iLo = int(math.floor((l - lo) / rowSize + 1e-9))
     if iLo < 0
         for k = 1 to -iLo
             array.unshift(rows, 0.0)
-        rowLo := rowLo + iLo * rowSize
+        lo := lo + iLo * rowSize
         iLo := 0
-    int iHi = f_rowIdx(h)
+    int iHi = int(math.floor((h - lo) / rowSize + 1e-9))
     while array.size(rows) <= iHi
         array.push(rows, 0.0)
     int nb = iHi - iLo + 1
     float share = nz(v) / nb
     for k = iLo to iHi
         array.set(rows, k, array.get(rows, k) + share)
-    profVol += nz(v)
+    lo
 
 if profStart
     array.clear(rows)
@@ -104,9 +106,11 @@ if inProf and not na(rowLo)
     if useIntra and array.size(ltfV) > 0
         barsIntra += 1
         for k = 0 to array.size(ltfV) - 1
-            f_addBar(array.get(ltfH, k), array.get(ltfL, k), array.get(ltfV, k))
+            rowLo := f_addBar(rowLo, array.get(ltfH, k), array.get(ltfL, k), array.get(ltfV, k))
+            profVol += nz(array.get(ltfV, k))
     else
-        f_addBar(high, low, volume)
+        rowLo := f_addBar(rowLo, high, low, volume)
+        profVol += nz(volume)
 
 // ================================ FINISHED PROFILE (today's levels) ================================
 var float vah = na
