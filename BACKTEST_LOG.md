@@ -77,5 +77,5 @@ Every variant is judged on MNQ two years (2024-09-22 → 2026-09-22) and MES two
 
 | Run | Change | n | Net | Verdict |
 |---|---|---|---|---|
-| VP1 | v1 as above, MNQ 5m, two years | pending | | |
-| VP1-ES | same on MES | pending | | |
+| VP1 | v1 as above, MNQ 5m, 2024-01 → 2026-09 (test-window default start) | 181 | −861 | Win 34%, PF 0.85, DD −1,671. Every year negative (PF 0.85 / 0.91 / 0.79). Avg loss 49, avg win 81: stops small as designed, win rate far below the 60 % a value-area fade should give. No slice positive (best: VA width 60–120 PF 1.03, RR 1–2 PF 0.98). First 5m close back inside value is too early → **rejected** |
+| VP1-ES | same on MES | 198 | −1,388 | PF 0.77, years 0.97 / 1.08 / 0.41. Open-below days +431 (24 trades) is the only positive slice, and it is 'above' that was positive on NQ → noise. **Consistent non-edge on both symbols** |
