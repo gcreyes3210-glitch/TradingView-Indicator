@@ -76,6 +76,9 @@ var float rowLo = na                        // bottom price of row 0
 var float profVol = 0.0
 var int   barsProf = 0                      // chart bars that went into profiles
 var int   barsIntra = 0                     // ... of which had 1-minute intrabar data
+var int   dayBars = 0                       // bars in the CURRENT profile
+var int   dayIntra = 0                      // ... with intrabar data
+var int   lastDayCov = 0                    // coverage % of the last finished profile
 
 f_rowIdx(float px) => int(math.floor((px - rowLo) / rowSize + 1e-9))
 
@@ -105,11 +108,15 @@ if profStart
     array.clear(rows)
     rowLo := math.floor(low / rowSize) * rowSize
     profVol := 0.0
+    dayBars := 0
+    dayIntra := 0
 
 if inProf and not na(rowLo)
     barsProf += 1
+    dayBars += 1
     if useIntra and array.size(ltfV) > 0
         barsIntra += 1
+        dayIntra += 1
         for k = 0 to array.size(ltfV) - 1
             rowLo := f_addBar(rowLo, array.get(ltfH, k), array.get(ltfL, k), array.get(ltfV, k))
             profVol += nz(array.get(ltfV, k))
@@ -171,6 +178,7 @@ if profEnd and array.size(rows) > 2 and profVol > 0
     val := rowLo + dn * rowSize
     profEndBar := bar_index
     dayCount += 1
+    lastDayCov := dayBars > 0 ? int(math.round(100.0 * dayIntra / dayBars)) : 0
     // ---- drawings
     if showLines
         lnVah := line.new(bar_index, vah, bar_index + 1, vah, color = color.new(color.orange, 0), width = 1)
@@ -239,7 +247,7 @@ bool flat = strategy.position_size == 0
 float vaW = vaReady ? vah - val : na
 
 f_tag(string side, float risk, float rr) =>
-    side + "|80|open:" + openLoc + "|acc:" + str.tostring(acceptBars) + "|risk:" + str.tostring(risk, "#.##") + "|rr:" + str.tostring(rr, "#.#") + "|va:" + str.tostring(vaW, "#") + "|h:" + str.tostring(hour(time, tz)) + "|m:" + str.tostring(minute(time, tz))
+    side + "|80|open:" + openLoc + "|acc:" + str.tostring(acceptBars) + "|risk:" + str.tostring(risk, "#.##") + "|rr:" + str.tostring(rr, "#.#") + "|va:" + str.tostring(vaW, "#") + "|h:" + str.tostring(hour(time, tz)) + "|m:" + str.tostring(minute(time, tz)) + "|cov:" + str.tostring(lastDayCov)
 
 bool okDirS = direction != "Long only"
 bool okDirL = direction != "Short only"
