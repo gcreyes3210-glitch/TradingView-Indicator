@@ -1,0 +1,302 @@
+//@version=5
+// =====================================================================================================
+//  Opening Range Breakout  ·  v1  (strategy + chart drawings in one file)
+//
+//  Idea (the most studied intraday rule there is):
+//    1. The OPENING RANGE is the high / low of the first N minutes of the cash session (default 09:30-09:45 NY).
+//    2. A close above the range (or a stop order at the edge) is a LONG, a close below is a SHORT.
+//       Stop = the other side of the range (default), target = a multiple of the risk, flat at the close.
+//    3. One breakout per side per day, at most `maxTrades` trades a day. Nothing else: no indicator,
+//       no volume profile, no bias. The point of v1 is to measure the raw rule on three years of MNQ
+//       before any filter is added.
+//
+//  Context is carried in the entry TAG, not used to filter, so ONE export answers the regime questions:
+//    or   = opening-range width in points          pd  = range width as % of the previous RTH day's range
+//    open = 09:30 open vs the overnight (18:00-09:30) range: above / inside / below
+//    gap  = 09:30 open minus the previous RTH close, points
+//    ent  = close | stop (entry mode)   risk / rr as at entry   n = trade number today   h / m / dow = entry time
+//
+//  Example tag:  L|ORB|or:42|pd:18|open:inside|gap:+35|ent:close|risk:46|rr:2|n:1|h:9|m:50|dow:2
+//  Costs: $1 commission per contract per side and 1 tick of slippage per order are built in, because at
+//  ~200 trades a year the fills decide whether the rule is real.
+// =====================================================================================================
+strategy("Opening Range Breakout [v1]", "ORB v1", overlay = true, pyramiding = 0,
+     default_qty_type = strategy.fixed, default_qty_value = 1, initial_capital = 25000,
+     commission_type = strategy.commission.cash_per_contract, commission_value = 1.0, slippage = 1,
+     calc_on_every_tick = false, process_orders_on_close = true, margin_long = 0, margin_short = 0,
+     max_lines_count = 500, max_boxes_count = 500, max_labels_count = 500)
+
+// ================================ 1 · SESSIONS ================================
+grpP = "1 · Sessions"
+tz        = input.string("America/New_York", "Session timezone", options = ["America/New_York", "America/Chicago", "America/Los_Angeles", "UTC", "Europe/London"], group = grpP, tooltip = "All session inputs below are written in this timezone. Default New York: cash open 09:30, close 16:00.")
+orSess    = input.session("0930-0945", "Opening range", group = grpP, tooltip = "High / low of the bars inside this window form the range. 0930-0945 = the first three 5-minute bars. Try 0930-1000 (six bars) as the slower variant.")
+entrySess = input.session("0945-1130", "Entry window", group = grpP, tooltip = "Breakouts are only taken inside this window. It should start where the opening range ends.")
+tradeSess = input.session("0930-1600", "Trade window (hold until)", group = grpP, tooltip = "Every position is closed on the first bar after this window (comment 'time'). Per-day counters reset at its start.")
+onSess    = input.session("1800-0930", "Overnight session (context only)", group = grpP, tooltip = "Its high / low go into the tag (open above / inside / below the overnight range). Not used to filter in v1.")
+rthSess   = input.session("0930-1600", "Cash session (previous-day context only)", group = grpP, tooltip = "Previous day's range and close from this session go into the tag (pd, gap). Not used to filter in v1.")
+
+// ================================ 2 · ENTRY ================================
+grpE = "2 · Entry"
+entryMode = input.string("Close beyond the range", "Entry", options = ["Close beyond the range", "Stop order at the range edge"], group = grpE, tooltip = "Close beyond: enter at the close of the first bar that CLOSES outside the range (fewer fake-outs, worse price). Stop order: a stop order sits at each edge and fills the moment price trades through it (better price, more fake-outs).")
+bufTicks  = input.int(2, "Buffer beyond the edge (ticks)", minval = 0, group = grpE, tooltip = "The range edge plus this many ticks is the trigger (and, in stop mode, the fill price). 2 ticks = 0.5 NQ points.")
+maxTrades = input.int(1, "Max trades per day", minval = 1, maxval = 3, group = grpE, tooltip = "1 = the first breakout only (the classic rule). 2 = after a stop-out the OTHER side's breakout may still be taken the same day. Each side is only ever taken once per day.")
+direction = input.string("Both", "Trade direction", options = ["Both", "Long only", "Short only"], group = grpE)
+
+// ================================ 3 · EXIT ================================
+grpX = "3 · Exit"
+stopMode  = input.string("Opposite side of range", "Stop", options = ["Opposite side of range", "Range midpoint", "Fraction of range"], group = grpX, tooltip = "Opposite side: the classic stop (a failed breakout is a full rotation through the range). Midpoint: half the risk, more stop-outs. Fraction: entry minus/plus a fraction of the range width.")
+stopFrac  = input.float(0.5, "  Fraction of range (for 'Fraction of range')", minval = 0.1, step = 0.1, group = grpX)
+tpMode    = input.string("R multiple", "Target", options = ["R multiple", "Range multiple", "None (hold to close)"], group = grpX, tooltip = "R multiple: target = entry + risk × R. Range multiple: target = edge + range width × M. None: no target, the position is closed at the end of the trade window.")
+tpR       = input.float(2.0, "  R multiple", minval = 0.25, step = 0.25, group = grpX)
+tpOrMult  = input.float(1.0, "  Range multiple", minval = 0.25, step = 0.25, group = grpX)
+s_flat    = input.bool(true, "Flatten at the end of the trade window", group = grpX)
+
+// ================================ 4 · FILTERS ================================
+grpF = "4 · Filters (all off = raw rule)"
+minOrTicks = input.int(4, "Min range width (ticks)", minval = 1, group = grpF, tooltip = "Skip days whose range is narrower than this (also protects against a zero-risk trade). 4 ticks = 1 NQ point.")
+maxOrPd    = input.float(0.0, "Max range width (% of previous day's range, 0 = off)", minval = 0.0, step = 5, group = grpF, tooltip = "Skip days whose opening range already used up more than this share of a normal day's travel. Tag field 'pd' shows the value per trade so the export decides the threshold.")
+maxRiskOr  = input.float(0.0, "Max risk (x range width, 0 = off)", minval = 0.0, step = 0.25, group = grpF, tooltip = "In close-beyond mode a big breakout bar can put the entry far from the stop. Skip the trade if the risk exceeds this many range widths.")
+
+// ================================ 5 · STRATEGY ================================
+grpS = "5 · Strategy (backtest only)"
+s_from   = input.time(timestamp("2020-01-01T00:00:00"), "Test window start", group = grpS)
+s_to     = input.time(timestamp("2030-01-01T00:00:00"), "Test window end", group = grpS)
+showDbg  = input.bool(true, "Show debug table", group = grpS)
+showDraw = input.bool(true, "Draw the opening range and overnight range", group = grpS)
+s_alerts = input.bool(true, "Fire alert() messages (range set, entries, flatten)", group = grpS, tooltip = "Create one alert on this strategy with condition 'Any alert() function call'.")
+
+// ================================ SESSION STATE ================================
+bool inOR    = not na(time(timeframe.period, orSess, tz))
+bool inEntry = not na(time(timeframe.period, entrySess, tz))
+bool inTrade = not na(time(timeframe.period, tradeSess, tz))
+bool inON    = not na(time(timeframe.period, onSess, tz))
+bool inRth   = not na(time(timeframe.period, rthSess, tz))
+bool orStart    = inOR and not inOR[1]
+bool orEnd      = (not inOR) and inOR[1]
+bool tradeStart = inTrade and not inTrade[1]
+bool tradeEnd   = (not inTrade) and inTrade[1]
+bool entryEnd   = (not inEntry) and inEntry[1]
+bool onEnd      = (not inON) and inON[1]
+bool rthEnd     = (not inRth) and inRth[1]
+float tick = syminfo.mintick
+float buf  = bufTicks * tick
+bool inWindow = time >= s_from and time <= s_to
+bool flat = strategy.position_size == 0
+
+// ================================ CONTEXT: overnight range, previous day ================================
+var float onH = na                              // building
+var float onL = na
+var float ONH = na                              // finished (today's overnight range)
+var float ONL = na
+if inON
+    onH := inON[1] ? math.max(onH, high) : high
+    onL := inON[1] ? math.min(onL, low) : low
+if onEnd
+    ONH := onH
+    ONL := onL
+
+var float rthH = na                             // building
+var float rthL = na
+var float rthC = na
+var float pdH = na                              // previous finished cash day
+var float pdL = na
+var float pdC = na
+if inRth
+    rthH := inRth[1] ? math.max(rthH, high) : high
+    rthL := inRth[1] ? math.min(rthL, low) : low
+    rthC := close
+if rthEnd
+    pdH := rthH
+    pdL := rthL
+    pdC := rthC
+
+// ================================ PER-DAY STATE ================================
+var float orH = na                              // building
+var float orL = na
+var float ORH = na                              // finished
+var float ORL = na
+var float orW = na
+var bool  orReady = false
+var float rthOpen = na
+var string openLoc = "-"
+var float gapPts = na
+var float pdPct = na
+var int   tradesToday = 0
+var int   longsToday = 0
+var int   shortsToday = 0
+var int   dayCount = 0
+var int   totSignals = 0
+var int   totSkipped = 0
+var string lastNote = "-"
+var string pendTagL = ""                        // stop-order mode: tags of the resting orders
+var string pendTagS = ""
+
+if tradeStart
+    orReady := false
+    ORH := na
+    ORL := na
+    orW := na
+    rthOpen := open
+    openLoc := na(ONH) ? "-" : open > ONH ? "above" : open < ONL ? "below" : "inside"
+    gapPts := na(pdC) ? na : open - pdC
+    tradesToday := 0
+    longsToday := 0
+    shortsToday := 0
+    pendTagL := ""
+    pendTagS := ""
+    dayCount += 1
+
+f_signed(float x, string fmt) => na(x) ? "na" : (x >= 0 ? "+" : "") + str.tostring(x, fmt)
+
+// ================================ OPENING RANGE ================================
+if inOR
+    orH := inOR[1] ? math.max(orH, high) : high
+    orL := inOR[1] ? math.min(orL, low) : low
+if orEnd
+    ORH := orH
+    ORL := orL
+    orW := ORH - ORL
+    pdPct := na(pdH) or pdH - pdL <= 0 ? na : 100.0 * orW / (pdH - pdL)
+    orReady := orW >= minOrTicks * tick and (maxOrPd == 0 or na(pdPct) or pdPct <= maxOrPd)
+    if s_alerts
+        alert("ORB " + syminfo.ticker + " range set: high " + str.tostring(ORH, format.mintick) + " · low " + str.tostring(ORL, format.mintick) + " · width " + str.tostring(orW, "#.##") + " pts (" + str.tostring(pdPct, "#") + "% of yesterday) · open " + openLoc + " the overnight range · gap " + f_signed(gapPts, "#.##") + (orReady ? "" : " · range filtered out, no trade today"), alert.freq_once_per_bar)
+
+// ================================ TAG ================================
+f_tag(string side, float risk, float rr, int n) =>
+    side + "|ORB|or:" + str.tostring(orW, "#.#") + "|pd:" + str.tostring(pdPct, "#") + "|open:" + openLoc + "|gap:" + f_signed(gapPts, "#.#") + "|ent:" + (entryMode == "Close beyond the range" ? "close" : "stop") + "|risk:" + str.tostring(risk, "#.##") + "|rr:" + str.tostring(rr, "#.#") + "|n:" + str.tostring(n) + "|h:" + str.tostring(hour(time, tz)) + "|m:" + str.tostring(minute(time, tz)) + "|dow:" + str.tostring(dayofweek(time, tz))
+
+// stop / target for a given side and entry price. Returns [stopPx, tpPx, risk, rr]
+f_levels(bool isLong, float entryPx) =>
+    float stopPx = isLong ? (stopMode == "Opposite side of range" ? ORL - buf : stopMode == "Range midpoint" ? (ORH + ORL) / 2 : entryPx - stopFrac * orW) : (stopMode == "Opposite side of range" ? ORH + buf : stopMode == "Range midpoint" ? (ORH + ORL) / 2 : entryPx + stopFrac * orW)
+    float risk = isLong ? entryPx - stopPx : stopPx - entryPx
+    float tpPx = tpMode == "R multiple" ? (isLong ? entryPx + tpR * risk : entryPx - tpR * risk) : tpMode == "Range multiple" ? (isLong ? ORH + tpOrMult * orW : ORL - tpOrMult * orW) : na
+    float rr = na(tpPx) ? 0.0 : (isLong ? tpPx - entryPx : entryPx - tpPx) / risk
+    [stopPx, tpPx, risk, rr]
+
+bool okDirL = direction != "Short only"
+bool okDirS = direction != "Long only"
+bool canTrade = orReady and inEntry and inTrade and inWindow and flat and tradesToday < maxTrades
+bool closeMode = entryMode == "Close beyond the range"
+int  nTr = strategy.closedtrades + strategy.opentrades
+bool newTrade = nTr > nz(nTr[1])
+
+// ================================ ENTRIES · close-beyond mode ================================
+if closeMode and canTrade
+    bool brkUp = close > ORH + buf
+    bool brkDn = close < ORL - buf
+    // a breakout consumes its side for the day even when the risk filter skips it
+    if brkUp and okDirL and longsToday == 0
+        [stopPx, tpPx, risk, rr] = f_levels(true, close)
+        bool okRisk = risk > 0 and (maxRiskOr == 0 or risk <= maxRiskOr * orW) and (na(tpPx) or tpPx > close)
+        longsToday += 1
+        tradesToday += 1
+        if okRisk
+            string tg = f_tag("L", risk, rr, tradesToday)
+            strategy.entry("L", strategy.long, qty = 1, comment = tg)
+            strategy.exit("xL", "L", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
+            totSignals += 1
+            lastNote := "LONG " + tg
+            if s_alerts
+                alert("ORB " + syminfo.ticker + " LONG close above the range · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + (na(tpPx) ? "close" : str.tostring(tpPx, format.mintick)) + " · risk " + str.tostring(risk, "#.##") + " pts", alert.freq_once_per_bar)
+        else
+            totSkipped += 1
+            lastNote := "long skipped: risk " + str.tostring(risk, "#.##") + " vs range " + str.tostring(orW, "#.#")
+    else if brkDn and okDirS and shortsToday == 0
+        [stopPx, tpPx, risk, rr] = f_levels(false, close)
+        bool okRisk = risk > 0 and (maxRiskOr == 0 or risk <= maxRiskOr * orW) and (na(tpPx) or tpPx < close)
+        shortsToday += 1
+        tradesToday += 1
+        if okRisk
+            string tg = f_tag("S", risk, rr, tradesToday)
+            strategy.entry("S", strategy.short, qty = 1, comment = tg)
+            strategy.exit("xS", "S", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
+            totSignals += 1
+            lastNote := "SHORT " + tg
+            if s_alerts
+                alert("ORB " + syminfo.ticker + " SHORT close below the range · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + (na(tpPx) ? "close" : str.tostring(tpPx, format.mintick)) + " · risk " + str.tostring(risk, "#.##") + " pts", alert.freq_once_per_bar)
+        else
+            totSkipped += 1
+            lastNote := "short skipped: risk " + str.tostring(risk, "#.##") + " vs range " + str.tostring(orW, "#.#")
+
+// ================================ ENTRIES · stop-order mode ================================
+// Resting stop orders at both edges while flat; the first fill cancels the other side.
+if not closeMode
+    if canTrade
+        float entL = ORH + buf
+        float entS = ORL - buf
+        if okDirL and longsToday == 0
+            [stopPx, tpPx, risk, rr] = f_levels(true, entL)
+            if risk > 0 and (maxRiskOr == 0 or risk <= maxRiskOr * orW)
+                pendTagL := f_tag("L", risk, rr, tradesToday + 1)
+                strategy.entry("L", strategy.long, qty = 1, stop = entL, comment = pendTagL)
+                strategy.exit("xL", "L", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
+        if okDirS and shortsToday == 0
+            [stopPx, tpPx, risk, rr] = f_levels(false, entS)
+            if risk > 0 and (maxRiskOr == 0 or risk <= maxRiskOr * orW)
+                pendTagS := f_tag("S", risk, rr, tradesToday + 1)
+                strategy.entry("S", strategy.short, qty = 1, stop = entS, comment = pendTagS)
+                strategy.exit("xS", "S", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
+    // a fill: count it, cancel the other side. Detected from the trade count so that an entry that is
+    // stopped out inside the same bar is still counted (the position would already be flat at the close).
+    string newId = not newTrade ? "" : strategy.opentrades > 0 ? strategy.opentrades.entry_id(strategy.opentrades - 1) : strategy.closedtrades.entry_id(strategy.closedtrades - 1)
+    if newTrade and newId == "L"
+        strategy.cancel("S")
+        longsToday += 1
+        tradesToday += 1
+        totSignals += 1
+        lastNote := "LONG " + pendTagL
+        if s_alerts
+            alert("ORB " + syminfo.ticker + " LONG stop order filled at the range high", alert.freq_once_per_bar)
+    if newTrade and newId == "S"
+        strategy.cancel("L")
+        shortsToday += 1
+        tradesToday += 1
+        totSignals += 1
+        lastNote := "SHORT " + pendTagS
+        if s_alerts
+            alert("ORB " + syminfo.ticker + " SHORT stop order filled at the range low", alert.freq_once_per_bar)
+    // no entries after the entry window: pull the resting orders
+    if (entryEnd or not inWindow) and flat
+        strategy.cancel_all()
+
+// ================================ FLATTEN ================================
+if s_flat and tradeEnd
+    strategy.cancel_all()
+    if strategy.position_size != 0
+        strategy.close_all(comment = "time")
+        if s_alerts
+            alert("ORB " + syminfo.ticker + " end of trade window: flatten at market", alert.freq_once_per_bar)
+
+// ================================ VISUALS ================================
+var line lnH = na
+var line lnL = na
+var line lnOnH = na
+var line lnOnL = na
+if showDraw and orEnd
+    lnH := line.new(bar_index - 1, ORH, bar_index, ORH, color = orReady ? color.new(color.lime, 0) : color.new(color.gray, 50), width = 2)
+    lnL := line.new(bar_index - 1, ORL, bar_index, ORL, color = orReady ? color.new(color.red, 0) : color.new(color.gray, 50), width = 2)
+    label.new(bar_index, ORH, "OR " + str.tostring(orW, "#.#") + " · " + str.tostring(pdPct, "#") + "% pd · open " + openLoc + " · gap " + f_signed(gapPts, "#"), style = label.style_label_down, color = color.new(color.lime, 80), textcolor = color.white, size = size.tiny)
+    if not na(ONH)
+        lnOnH := line.new(bar_index - 1, ONH, bar_index, ONH, color = color.new(color.orange, 30), style = line.style_dashed)
+        lnOnL := line.new(bar_index - 1, ONL, bar_index, ONL, color = color.new(color.orange, 30), style = line.style_dashed)
+if showDraw and inTrade and not na(lnH)
+    line.set_x2(lnH, bar_index)
+    line.set_x2(lnL, bar_index)
+    if not na(lnOnH)
+        line.set_x2(lnOnH, bar_index)
+        line.set_x2(lnOnL, bar_index)
+bgcolor(inOR ? color.new(color.yellow, 92) : inEntry ? color.new(color.aqua, 96) : na)
+
+// ================================ DEBUG ================================
+var table dbg = table.new(position.bottom_left, 2, 5, bgcolor = color.new(color.black, 20), border_width = 1)
+if showDbg and barstate.islast
+    table.cell(dbg, 0, 0, "Range", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 0, orReady ? "high " + str.tostring(ORH, format.mintick) + " · low " + str.tostring(ORL, format.mintick) + " · width " + str.tostring(orW, "#.#") + " · " + str.tostring(pdPct, "#") + "% of prev day" : (inOR ? "building" : "not set"), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 1, "Context", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 1, "open " + openLoc + " overnight range (" + str.tostring(ONL, format.mintick) + " - " + str.tostring(ONH, format.mintick) + ") · gap " + f_signed(gapPts, "#.##") + " · prev day range " + str.tostring(pdH - pdL, "#.#"), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 2, "Today", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 2, "trades " + str.tostring(tradesToday) + "/" + str.tostring(maxTrades) + " · longs " + str.tostring(longsToday) + " · shorts " + str.tostring(shortsToday) + " · day " + str.tostring(dayCount), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 3, "Last", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 3, lastNote, text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 4, "Totals", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 4, "signals " + str.tostring(totSignals) + " · skipped " + str.tostring(totSkipped) + " · closed " + str.tostring(strategy.closedtrades) + " · equity " + str.tostring(strategy.equity, "#.##"), text_color = color.white, text_size = size.small)

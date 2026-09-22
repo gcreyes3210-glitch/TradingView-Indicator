@@ -100,3 +100,13 @@ Rule set: same overnight profile · RTH open must be outside value · after `acc
 | VP2y-ES | Entry 0930-1200, hold to 1600, MES | 53 | +184 | PF 1.10, years −29 (0.95) / +163 (1.36) / +50 (1.06). Best ES variant, still thin. Longs +236 / shorts −52 |
 | VP2x-ES | v2, Trade window 0930-1600, MES | 75 | −78 | PF 0.97, years −205 (PF 0.76) / +112 (PF 1.15) / +16 (PF 1.02). Afternoon entries (12:00–16:00 ET) −261 on 22 trades. ES stays flat under both windows |
 | VP2-ES | same on MES | 53 | +22 | Win 49%, PF 1.02, DD −325. Years +152 (PF 1.47) / +136 (PF 1.55) / −268 (PF 0.45). Longs +255 (63% win), shorts −233 (35%). 26 of 53 exits were the 12:00 flatten. Flat overall, 2 of 3 years positive. **Across both symbols 5 of 6 symbol-years ≥ 0 → lead worth one structural test (full-session window), not a system** |
+
+## Opening Range Breakout (`ORB_strategy.pine`) — v1
+Why: VP2y is the only rule that survived three years on both symbols, but ~20 trades a year is too few to trade or to learn from (user, 2026-09-22). ORB is the highest-frequency principled intraday rule (one trade most days) and needs no indicator or profile. Tested on MNQ first; ES only if a result needs a second symbol to settle it.
+Rule set (v1 defaults): opening range = 09:30–09:45 NY (three 5m bars) · entry = first 5m close beyond the range ± 2 ticks inside 09:45–11:30 · stop = other side of the range · target = 2R · one breakout per side, max 1 trade a day · flat at 16:00 · $1 commission per side + 1 tick slippage per order.
+Tag: `L|ORB|or:42|pd:18|open:inside|gap:+35|ent:close|risk:46|rr:2|n:1|h:9|m:50|dow:2` (or = range width pts, pd = width as % of previous RTH day range, open = 09:30 open vs overnight range, gap = open − previous close). Slice with `python3 tools/analyze_tags.py export.csv`.
+Planned variants, one change each, in this order: stop-order entry (ent:stop) · 09:30–10:00 range · no target (hold to close) · 1R / 3R · max 2 trades (reversal after a stop-out) · then any filter the tags justify (pd, open location, gap).
+
+| Run | Change | n | Net | Verdict |
+|---|---|---|---|---|
+| ORB1 | v1 defaults, MNQ 5m, 2023-09-22 → 2026-09-22 | | | awaiting export |
