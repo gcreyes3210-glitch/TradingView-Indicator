@@ -193,3 +193,10 @@ box.new(left = leftT, top = lC, right = rightT, bottom = hA, xloc = xloc.bar_tim
 ```
 
 Why time and not `bar_index`: an HTF candle has no bar index on a lower chart, and `request.security` cannot return one. `xloc.bar_time` maps a timestamp to the chart bar that contains it, which is exactly the candle where the gap formed, on any chart timeframe. In "Extend with price" the right edge is moved to the current bar every bar and frozen at mitigation; in "Fixed to the 3 candles" the box covers candle 1/2 through the close of candle 3 and never moves. IFVG boxes use the same anchoring (`Anchor IFVG box at` chooses the inversion candle or the original gap candle).
+
+## VP Value Area Fade (new, separate file)
+`VP_ValueArea_strategy.pine` is a fresh strategy, independent of the ICT indicator. It builds a volume profile over the
+overnight session (18:00 → 09:30 New York = Asia + London), takes POC / VAH / VAL from it, and during NY AM fades a
+failed excursion outside the value area back toward the POC (stop beyond the excursion extreme, flat at 12:00).
+Every entry comment carries a tag (`S|VAfade|open:above|ext:12.5|risk:18|rr:1.3|va:85|h:9`) for CSV analysis.
+Results live in `BACKTEST_LOG.md` under "VP Value Area Fade".

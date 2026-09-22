@@ -69,3 +69,13 @@ Debug check before export: "Last IFVG in" = 15m 1H 4H 1D NDOG, "SMT live" names 
 ## Pine limits (do not regress)
 Script must stay under 550 local scopes and 80,000 compiled tokens; the file sits near ~470 scopes and just under the token cap.
 `request.security` series are the main token cost. Do not add features without removing something.
+
+---
+# VP Value Area Fade (`VP_ValueArea_strategy.pine`)
+Rule set v1: profile 18:00→09:30 NY, VA 70 %, 1-pt rows · trade 09:30→12:00 NY · excursion ≥ 2 pts beyond VAH/VAL then a close back inside → entry toward POC · stop = excursion extreme + 2 pts · min RR 0.8 · max risk 50 pts · one trade per side per day · flat at 12:00.
+Every variant is judged on MNQ two years (2024-09-22 → 2026-09-22) and MES two years before any single trade is looked at.
+
+| Run | Change | n | Net | Verdict |
+|---|---|---|---|---|
+| VP1 | v1 as above, MNQ 5m, two years | pending | | |
+| VP1-ES | same on MES | pending | | |
