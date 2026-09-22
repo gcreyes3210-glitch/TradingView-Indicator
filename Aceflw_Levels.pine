@@ -18,7 +18,7 @@ indicator("Session Levels (ONVP · VWAP σ · expected move)", "Levels", overlay
 g1 = "1 · Sessions"
 tz       = input.string("America/New_York", "Timezone", options = ["America/New_York", "America/Chicago", "America/Los_Angeles", "UTC", "Europe/London"], group = g1)
 onSess   = input.session("1800-0930", "Overnight session (profile + high/low)", group = g1)
-rthSess  = input.session("0930-1600", "Cash session (levels are shown through it)", group = g1)
+rthSess  = input.session("0930-1600", "Cash session (VWAP / expected-move anchor option)", group = g1)
 fullSess = input.session("1800-1700", "Full session (VWAP anchor / expected-move anchor)", group = g1, tooltip = "The CME day. VWAP resets and the expected-move centre is set at the start of this session (18:00 NY).")
 
 g2 = "2 · Overnight volume profile"
@@ -49,11 +49,14 @@ showTbl  = input.bool(true, "Show the levels table", group = g5)
 // ================================ SESSION STATE ================================
 bool inON   = not na(time(timeframe.period, onSess, tz))
 bool inRth  = not na(time(timeframe.period, rthSess, tz))
-bool inFull = not na(time(timeframe.period, fullSess, tz))
 bool onStart  = inON and not inON[1]
 bool onEnd    = (not inON) and inON[1]
 bool rthStart = inRth and not inRth[1]
-bool fullStart = inFull and not inFull[1]
+// the full CME day has no gap in the bars (the 17:00-18:00 break has no bars), so time(session) never
+// switches off and "session start" has to come from the clock: first bar at or after the opening time.
+int openMin = int(str.tonumber(str.substring(fullSess, 0, 2))) * 60 + int(str.tonumber(str.substring(fullSess, 2, 4)))
+int mod = hour(time, tz) * 60 + minute(time, tz)
+bool fullStart = mod >= openMin and (na(mod[1]) or mod[1] < openMin or mod[1] > mod)
 float rowSize = rowTicks * syminfo.mintick
 int barMin = timeframe.isseconds ? 1 : timeframe.isminutes ? timeframe.multiplier : timeframe.isdaily ? 1440 : 1440
 
@@ -150,34 +153,53 @@ if onEnd and array.size(rows) > 2 and profVol > 0
                 array.push(profBoxes, box.new(bar_index - w, rowLo + (k + 1) * rowSize, bar_index, rowLo + k * rowSize, border_color = na, bgcolor = c))
 
 // draw the overnight levels through the cash session
+// Each level is one line from the bar the profile finished (09:30) to the current bar, and one label that
+// rides the right end. Both stay until the next profile finishes, so the current set is always on screen.
 var line lVah = na
 var line lPoc = na
 var line lVal = na
 var line lOnH = na
 var line lOnL = na
-f_line(float y, color c, int w, string st) => line.new(bar_index, y, bar_index + 1, y, color = c, width = w, style = st)
-f_lbl(float y, string txt, color c) => label.new(bar_index, y, txt, style = label.style_label_left, color = color.new(c, 75), textcolor = color.white, size = size.tiny)
+var label bVah = na
+var label bPoc = na
+var label bVal = na
+var label bOnH = na
+var label bOnL = na
+f_line(float y, color c, int w) => line.new(bar_index, y, bar_index + 1, y, color = c, width = w)
+f_lbl(float y, color c) => label.new(bar_index, y, "", style = label.style_label_left, color = color.new(c, 75), textcolor = color.white, size = size.tiny)
 if onEnd and not na(vah)
     if showProf
-        lVah := f_line(vah, color.new(color.blue, 0), 1, line.style_solid)
-        lPoc := f_line(poc, color.new(color.yellow, 0), 2, line.style_solid)
-        lVal := f_line(val, color.new(color.blue, 0), 1, line.style_solid)
-        f_lbl(vah, "ONVP VAH " + str.tostring(vah, format.mintick), color.blue)
-        f_lbl(poc, "POC " + str.tostring(poc, format.mintick), color.orange)
-        f_lbl(val, "ONVP VAL " + str.tostring(val, format.mintick), color.blue)
+        line.delete(lVah)
+        line.delete(lPoc)
+        line.delete(lVal)
+        label.delete(bVah)
+        label.delete(bPoc)
+        label.delete(bVal)
+        lVah := f_line(vah, color.new(color.blue, 0), 1)
+        lPoc := f_line(poc, color.new(color.yellow, 0), 2)
+        lVal := f_line(val, color.new(color.blue, 0), 1)
+        bVah := f_lbl(vah, color.blue)
+        bPoc := f_lbl(poc, color.orange)
+        bVal := f_lbl(val, color.blue)
     if showOnHL
-        lOnH := f_line(onH, color.new(color.white, 30), 1, line.style_solid)
-        lOnL := f_line(onL, color.new(color.white, 30), 1, line.style_solid)
-        f_lbl(onH, "OVN HIGH " + str.tostring(onH, format.mintick), color.gray)
-        f_lbl(onL, "OVN LOW " + str.tostring(onL, format.mintick), color.gray)
-if inRth
-    if not na(lVah)
-        line.set_x2(lVah, bar_index)
-        line.set_x2(lPoc, bar_index)
-        line.set_x2(lVal, bar_index)
-    if not na(lOnH)
-        line.set_x2(lOnH, bar_index)
-        line.set_x2(lOnL, bar_index)
+        line.delete(lOnH)
+        line.delete(lOnL)
+        label.delete(bOnH)
+        label.delete(bOnL)
+        lOnH := f_line(onH, color.new(color.white, 30), 1)
+        lOnL := f_line(onL, color.new(color.white, 30), 1)
+        bOnH := f_lbl(onH, color.gray)
+        bOnL := f_lbl(onL, color.gray)
+f_follow(line ln, label lb, string txt, float y) =>
+    if not na(ln)
+        line.set_x2(ln, bar_index)
+        label.set_x(lb, bar_index)
+        label.set_text(lb, txt + " " + str.tostring(y, format.mintick))
+f_follow(lVah, bVah, "ONVP VAH", vah)
+f_follow(lPoc, bPoc, "POC", poc)
+f_follow(lVal, bVal, "ONVP VAL", val)
+f_follow(lOnH, bOnH, "OVN HIGH", onH)
+f_follow(lOnL, bOnL, "OVN LOW", onL)
 
 // ================================ 3 · VWAP WITH SIGMA BANDS ================================
 bool vwReset = vwapAnch == "Full session (18:00)" ? fullStart : rthStart
