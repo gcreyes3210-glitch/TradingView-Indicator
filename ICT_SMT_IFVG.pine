@@ -810,7 +810,7 @@ f_hzMatch(HtfFVG z, float top, float bot, bool isBull) =>
 f_htfPrimaryIdx(float top, float bot, bool isBull, float px) =>
     int best = -1
     for [i, z] in htfList
-        if f_hzMatch(z, top, bot, isBull) and (best < 0 or f_hzBetter(z, array.get(htfList, best), px))
+        if f_hzMatch(z, top, bot, isBull) and (best < 0 or f_hzBetter(z, array.get(htfList, math.max(best, 0)), px))
             best := i
     best
 
@@ -1311,11 +1311,11 @@ f_calculateIFVGHTFScore(float top, float bot, bool isBull, float px, float prox)
     for [i, z] in htfList
         bool dirOk = not htfMatchDir or z.isBull == isBull
         bool near = top >= z.bottom - prox and bot <= z.top + prox
-        if dirOk and near and f_hzEligible(z) and (best < 0 or f_hzBetter(z, array.get(htfList, best), px))
+        if dirOk and near and f_hzEligible(z) and (best < 0 or f_hzBetter(z, array.get(htfList, math.max(best, 0)), px))
             best := i
     int pts = 0
     if best >= 0
-        HtfFVG zb = array.get(htfList, best)
+        HtfFVG zb = array.get(htfList, math.max(best, 0))
         float h = math.max(top - bot, syminfo.mintick)
         float ov = math.max(0.0, math.min(top, zb.top) - math.max(bot, zb.bottom)) / h
         float q = math.max(0.0, math.min(1.0, nz(zb.score, 0.0)))
@@ -2123,7 +2123,7 @@ f_selectBestHTFFVG(float px) =>
             for c = 0 to nComp - 1
                 int best = -1
                 for [i, zc] in htfList
-                    if zc.cluster == c and (best < 0 or f_selBetter(zc, array.get(htfList, best), px))
+                    if zc.cluster == c and (best < 0 or f_selBetter(zc, array.get(htfList, math.max(best, 0)), px))
                         best := i
                 for [i, zs] in htfList
                     zs.selected := zs.cluster == c ? i == best : zs.selected
