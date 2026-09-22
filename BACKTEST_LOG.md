@@ -32,7 +32,7 @@ Analysis of exports: the `Signal` column tag `L|5m|S63C|H13|M15|K15|D7|L10|T3|ht
 | C (2nd) | A − 1H swing SMTs + breakeven 1.0 R | 95 | +674 | 1H swing SMTs lost −1,211 on the 20 removed trades → **off**. Breakeven: rescued 16 stops (+2,126) but cut 8 winners (−2,934) and 3 time-exit winners (−475) → **off** |
 | C2 | C without breakeven | 93 | +1,312 | **current baseline** |
 | D | C2 − 15m zones (1H/4H/NDOG only) | 30 | −396 | higher zones alone lose and are too few → **15m slot stays on** |
-| E | C2 + Entry = Limit at IFVG 50 % (CE), 12-bar validity | pending | | tests the "buying the displacement close" problem |
+| E | C2 + Entry = Limit at IFVG 50 % (CE), 12-bar validity | 80 | +545 | PF 1.09 (C2 1.15), max DD −2,624 (C2 −3,068), avg win 191 vs 281, avg loss 123 vs 154. 18 C2 trades never filled and those were +2,410 in C2 (10 wins). Older half +992 / newer −447. Limit entry trims losses but misses the best runners → **market entry stays** |
 
 ## Findings that held in every run and both halves of the year
 * 5-minute HTF zones lose. 1H-swing-sweep SMTs lose. Breakeven at 1 R costs more winners than it saves.
@@ -42,9 +42,9 @@ Analysis of exports: the `Signal` column tag `L|5m|S63C|H13|M15|K15|D7|L10|T3|ht
   15m vs 1H+ zones (+1,234 vs +187, then −872 vs +762). Any of these would be curve fitting on 93 trades.
 
 ## Open experiments, in order
-1. Run E: limit entry at the IFVG midpoint (mechanical fix for entering at the top of the displacement candle).
-2. Partial exits (half at TP1, half at TP2; needs 2 contracts).
-3. Daily HTF slot back on (was off since Run C by accident; 5 trades in Run A).
+1. Partial exits (half at TP1, half at TP2; needs 2 contracts).
+2. Daily HTF slot back on (was off since Run C by accident; 5 trades in Run A).
+3. Optional limit-entry variant: CE limit but keep the original TP levels (Run E recomputed TPs from the smaller risk, so the winners were capped smaller).
 4. Re-weight the confluence score from data only once ≥ 200 trades of the final mechanics exist; until then the gate stays at 0.
 5. Second symbol (ES/MES with NQ correlated) for an independent sample.
 
