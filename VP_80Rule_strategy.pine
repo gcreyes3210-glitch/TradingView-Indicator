@@ -38,6 +38,7 @@ rowTicks  = input.int(4, "Profile row size (ticks)", minval = 1, group = grpP, t
 vaPct     = input.float(70, "Value area (% of session volume)", minval = 50, maxval = 95, step = 5, group = grpP, tooltip = "The value area is the price band around the POC that holds this share of the session's volume. 70 % is the Market Profile standard.")
 showProf  = input.bool(true, "Draw the profile histogram", group = grpP, tooltip = "Draws the rows of the finished profile at the RTH open. Off = only the three lines.")
 showLines = input.bool(true, "Draw VAH / POC / VAL lines", group = grpP)
+useIntra  = input.bool(true, "Build the profile from 1-minute intrabars", group = grpP, tooltip = "On: each chart bar's volume is placed using its 1-minute sub-bars (much closer to a tick profile). Bars where TradingView supplies no intrabar data fall back to spreading the bar's volume over its own range. The debug table shows the coverage.")
 
 // ================================ 2 · SETUP ================================
 grpS = "2 · Setup (80 % rule)"
@@ -73,8 +74,30 @@ float tick     = syminfo.mintick
 var array<float> rows = array.new_float()   // volume per row, row 0 = price rowLo
 var float rowLo = na                        // bottom price of row 0
 var float profVol = 0.0
+var int   barsProf = 0                      // chart bars that went into profiles
+var int   barsIntra = 0                     // ... of which had 1-minute intrabar data
 
 f_rowIdx(float px) => int(math.floor((px - rowLo) / rowSize + 1e-9))
+
+// 1-minute sub-bars of the current chart bar (empty arrays when unavailable)
+[ltfH, ltfL, ltfV] = request.security_lower_tf(syminfo.tickerid, "1", [high, low, volume])
+
+// add one (sub)bar's volume to the rows it touched, growing the row array as needed
+f_addBar(float h, float l, float v) =>
+    int iLo = f_rowIdx(l)
+    if iLo < 0
+        for k = 1 to -iLo
+            array.unshift(rows, 0.0)
+        rowLo := rowLo + iLo * rowSize
+        iLo := 0
+    int iHi = f_rowIdx(h)
+    while array.size(rows) <= iHi
+        array.push(rows, 0.0)
+    int nb = iHi - iLo + 1
+    float share = nz(v) / nb
+    for k = iLo to iHi
+        array.set(rows, k, array.get(rows, k) + share)
+    profVol += nz(v)
 
 if profStart
     array.clear(rows)
@@ -82,22 +105,13 @@ if profStart
     profVol := 0.0
 
 if inProf and not na(rowLo)
-    // grow the row array so that [low, high] is covered
-    int iLo = f_rowIdx(low)
-    if iLo < 0
-        for k = 1 to -iLo
-            array.unshift(rows, 0.0)
-        rowLo := rowLo + iLo * rowSize
-        iLo := 0
-    int iHi = f_rowIdx(high)
-    while array.size(rows) <= iHi
-        array.push(rows, 0.0)
-    // spread the bar's volume evenly over the rows it touched
-    int nb = iHi - iLo + 1
-    float share = nz(volume) / nb
-    for k = iLo to iHi
-        array.set(rows, k, array.get(rows, k) + share)
-    profVol += nz(volume)
+    barsProf += 1
+    if useIntra and array.size(ltfV) > 0
+        barsIntra += 1
+        for k = 0 to array.size(ltfV) - 1
+            f_addBar(array.get(ltfH, k), array.get(ltfL, k), array.get(ltfV, k))
+    else
+        f_addBar(high, low, volume)
 
 // ================================ FINISHED PROFILE (today's levels) ================================
 var float vah = na
@@ -278,7 +292,7 @@ bgcolor(inTrade ? color.new(color.aqua, 96) : na)
 var table dbg = table.new(position.bottom_left, 2, 6, bgcolor = color.new(color.black, 20), border_width = 1)
 if showDbg and barstate.islast
     table.cell(dbg, 0, 0, "Profile session", text_color = color.gray, text_size = size.small)
-    table.cell(dbg, 1, 0, profSess + " " + tz + " · rows " + str.tostring(array.size(rows)) + " · days " + str.tostring(dayCount), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 1, 0, profSess + " " + tz + " · rows " + str.tostring(array.size(rows)) + " · days " + str.tostring(dayCount) + " · 1m coverage " + str.tostring(barsProf > 0 ? 100.0 * barsIntra / barsProf : 0, "#") + "%", text_color = color.white, text_size = size.small)
     table.cell(dbg, 0, 1, "Today's levels", text_color = color.gray, text_size = size.small)
     table.cell(dbg, 1, 1, vaReady ? "VAH " + str.tostring(vah, format.mintick) + " · POC " + str.tostring(poc, format.mintick) + " · VAL " + str.tostring(val, format.mintick) + " · width " + str.tostring(vaW, "#.#") : "profile still building", text_color = color.white, text_size = size.small)
     table.cell(dbg, 0, 2, "Setup state", text_color = color.gray, text_size = size.small)
