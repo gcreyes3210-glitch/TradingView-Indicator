@@ -32,7 +32,7 @@ strategy("VP 80% Rule [v2]", "VP-80 v2", overlay = true, pyramiding = 0,
 // ================================ 1 · PROFILE ================================
 grpP = "1 · Profile"
 tz        = input.string("America/New_York", "Session timezone", options = ["America/New_York", "America/Chicago", "America/Los_Angeles", "UTC", "Europe/London"], group = grpP, tooltip = "The two session inputs below are written in this timezone. Default New York: the CME day opens 18:00, the cash session opens 09:30.")
-profSess  = input.session("1800-0930", "Profile session (builds the value area)", group = grpP, tooltip = "Volume inside this session builds the profile. Default = CME open to RTH open = Asia + London (the previous two sessions when you trade NY AM).")
+profSess  = input.session("1800-0930", "Profile session (builds the value area)", group = grpP, tooltip = "Volume inside this session builds the profile. Default 1800-0930 = CME open to RTH open = Asia + London (the overnight profile). Set 0930-1600 to use the PREVIOUS RTH day's profile instead (Dalton's original 80 % rule). Whatever the session, the finished levels become active at the start of the next Trade window.")
 tradeSess = input.session("0930-1200", "Trade window (hold until)", group = grpP, tooltip = "Every position is closed when this window ends. Entries are allowed inside it only up to the end of the Entry window below.")
 entrySess = input.session("0930-1200", "Entry window", group = grpP, tooltip = "New trades are only opened inside this window. Set it shorter than the Trade window to enter in the morning but let the trade run into the afternoon.")
 rowTicks  = input.int(4, "Profile row size (ticks)", minval = 1, group = grpP, tooltip = "Height of one profile row in ticks. NQ tick = 0.25, so 4 ticks = 1 point per row.")
@@ -135,6 +135,11 @@ var int   pocIdx = na
 var int   vahIdx = na
 var int   valIdx = na
 var int   profEndBar = na
+var float pVah = na                         // levels of the last FINISHED profile, waiting for the next trade window
+var float pPoc = na
+var float pVal = na
+var int   activeBar = na                    // bar on which today's levels became active
+bool tradeStart = inTrade and not inTrade[1]
 var int   dayCount = 0
 var line  lnVah = na
 var line  lnPoc = na
@@ -176,22 +181,11 @@ if profEnd and array.size(rows) > 2 and profVol > 0
     pocIdx := ip
     vahIdx := up
     valIdx := dn
-    poc := rowLo + (ip + 0.5) * rowSize
-    vah := rowLo + (up + 1) * rowSize
-    val := rowLo + dn * rowSize
+    pPoc := rowLo + (ip + 0.5) * rowSize
+    pVah := rowLo + (up + 1) * rowSize
+    pVal := rowLo + dn * rowSize
     profEndBar := bar_index
-    dayCount += 1
     lastDayCov := dayBars > 0 ? int(math.round(100.0 * dayIntra / dayBars)) : 0
-    if s_alerts
-        alert("VP80 " + syminfo.ticker + " levels: VAH " + str.tostring(vah, format.mintick) + " · POC " + str.tostring(poc, format.mintick) + " · VAL " + str.tostring(val, format.mintick) + " · open " + str.tostring(open, format.mintick) + (open > vah ? " ABOVE value → watch for a short after 6 closes inside" : open < val ? " BELOW value → watch for a long after 6 closes inside" : " inside value → no 80% setup today"), alert.freq_once_per_bar)
-    // ---- drawings
-    if showLines
-        lnVah := line.new(bar_index, vah, bar_index + 1, vah, color = color.new(color.orange, 0), width = 1)
-        lnPoc := line.new(bar_index, poc, bar_index + 1, poc, color = color.new(color.yellow, 0), width = 2)
-        lnVal := line.new(bar_index, val, bar_index + 1, val, color = color.new(color.orange, 0), width = 1)
-        label.new(bar_index, vah, "VAH " + str.tostring(vah, format.mintick), style = label.style_label_left, color = color.new(color.orange, 80), textcolor = color.white, size = size.tiny)
-        label.new(bar_index, poc, "POC " + str.tostring(poc, format.mintick), style = label.style_label_left, color = color.new(color.yellow, 80), textcolor = color.black, size = size.tiny)
-        label.new(bar_index, val, "VAL " + str.tostring(val, format.mintick), style = label.style_label_left, color = color.new(color.orange, 80), textcolor = color.white, size = size.tiny)
     if showProf and n <= 480
         for b in profBoxes
             box.delete(b)
@@ -205,13 +199,30 @@ if profEnd and array.size(rows) > 2 and profVol > 0
                 color c = k == ip ? color.new(color.yellow, 55) : inVa ? color.new(color.blue, 75) : color.new(color.gray, 85)
                 array.push(profBoxes, box.new(bar_index - w, rowLo + (k + 1) * rowSize, bar_index, rowLo + k * rowSize, border_color = na, bgcolor = c))
 
+// ---- the finished profile's levels become TODAY'S levels when the trade window opens
+if tradeStart and not na(pVah)
+    vah := pVah
+    poc := pPoc
+    val := pVal
+    activeBar := bar_index
+    dayCount += 1
+    if s_alerts
+        alert("VP80 " + syminfo.ticker + " levels: VAH " + str.tostring(vah, format.mintick) + " · POC " + str.tostring(poc, format.mintick) + " · VAL " + str.tostring(val, format.mintick) + " · open " + str.tostring(open, format.mintick) + (open > vah ? " ABOVE value → watch for a short after 6 closes inside" : open < val ? " BELOW value → watch for a long after 6 closes inside" : " inside value → no 80% setup today"), alert.freq_once_per_bar)
+    if showLines
+        lnVah := line.new(bar_index, vah, bar_index + 1, vah, color = color.new(color.orange, 0), width = 1)
+        lnPoc := line.new(bar_index, poc, bar_index + 1, poc, color = color.new(color.yellow, 0), width = 2)
+        lnVal := line.new(bar_index, val, bar_index + 1, val, color = color.new(color.orange, 0), width = 1)
+        label.new(bar_index, vah, "VAH " + str.tostring(vah, format.mintick), style = label.style_label_left, color = color.new(color.orange, 80), textcolor = color.white, size = size.tiny)
+        label.new(bar_index, poc, "POC " + str.tostring(poc, format.mintick), style = label.style_label_left, color = color.new(color.yellow, 80), textcolor = color.black, size = size.tiny)
+        label.new(bar_index, val, "VAL " + str.tostring(val, format.mintick), style = label.style_label_left, color = color.new(color.orange, 80), textcolor = color.white, size = size.tiny)
+
 // extend today's lines through the trade window
-if showLines and not na(lnVah) and (inTrade or profEnd)
+if showLines and not na(lnVah) and inTrade
     line.set_x2(lnVah, bar_index)
     line.set_x2(lnPoc, bar_index)
     line.set_x2(lnVal, bar_index)
 
-bool vaReady = not na(vah) and not na(val) and not na(poc) and not na(profEndBar) and bar_index >= profEndBar and not inProf
+bool vaReady = not na(vah) and not na(val) and not na(poc) and not na(activeBar) and bar_index >= activeBar and inTrade
 
 // ================================ SETUP STATE (per day) ================================
 var string openLoc = "-"      // above / inside / below at the 09:30 open
@@ -222,7 +233,7 @@ var int    totSignals = 0
 var int    totSkipped = 0
 var string lastNote = "-"
 
-if profEnd
+if tradeStart
     openLoc := na(vah) ? "-" : open > vah ? "above" : open < val ? "below" : "inside"
     outSide := 0
     accCount := 0
