@@ -28,7 +28,7 @@ rep("        var table dbgTable = table.new(position.bottom_right, 2, 12, border
 rep("        table.cell(dbgTable, 1, 11, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)",
     "        table.cell(dbgTable, 1, 11, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)\n"
     "        table.cell(dbgTable, 0, 12, \"STRATEGY\", bgcolor = color.gray, text_color = color.white)\n"
-    "        table.cell(dbgTable, 1, 12, \"orders submitted \" + str.tostring(stratOrders) + \" · skipped (window / qty / position) \" + str.tostring(stratSkipped) + \" · closed trades \" + str.tostring(strategy.closedtrades) + \" · open \" + str.tostring(strategy.opentrades) + \" · equity \" + str.tostring(strategy.equity, \"#.##\"), bgcolor = grayBg, text_color = color.white)")
+    "        table.cell(dbgTable, 1, 12, \"orders submitted \" + str.tostring(stratOrders) + \" · skipped (window / qty / position / direction / bias) \" + str.tostring(stratSkipped) + \" · closed trades \" + str.tostring(strategy.closedtrades) + \" · open \" + str.tostring(strategy.opentrades) + \" · equity \" + str.tostring(strategy.equity, \"#.##\"), bgcolor = grayBg, text_color = color.white)")
 
 # strategy inputs, right before the TYPES section
 rep("// ============================== TYPES ==============================", '''grpStrat = "S · Strategy (backtest only)"
@@ -42,6 +42,20 @@ s_entryMode  = input.string("Market at inversion close", "Entry", options = ["Ma
 s_limitBars  = input.int(12, "  limit valid for (chart bars)", minval = 1, group = grpStrat, tooltip = "A limit entry that is not filled within this many bars is cancelled.")
 s_beR        = input.float(0.0, "Move stop to breakeven after x R (0 = off)", minval = 0.0, step = 0.25, group = grpStrat, tooltip = "Once a confirmed bar has moved this many risk units (entry to stop distance) in the trade's favour, the stop is moved to the entry price. 0 = off.")
 s_useAlerts  = input.bool(false, "Fire strategy order alerts", group = grpStrat, tooltip = "Adds strategy order events to 'Any alert() function call' alerts (for broker / webhook forwarding). The indicator alerts stay as they are.")
+s_direction  = input.string("Both", "Trade direction", options = ["Both", "Long only", "Short only"], group = grpStrat, tooltip = "Backtest gate: which side of the indicator's signals the strategy is allowed to take. Signals on the other side are counted as skipped.")
+s_biasMode   = input.string("Off", "Daily bias gate", options = ["Off", "Midnight NY open", "CME daily open (18:00 ET)", "Previous day close"], group = grpStrat, tooltip = "Backtest gate: a buy is taken only when the signal bar closes ABOVE the reference, a sell only when it closes BELOW it. Midnight NY open = ICT true-day open (00:00 America/New_York). CME daily open = the 18:00 ET session open. Previous day close = last close before the CME day change.")
+
+// ---- daily bias references (no request.security: tracked on the chart series) ----
+var float s_midOpen = na
+var float s_dOpen   = na
+var float s_pdClose = na
+var float s_lastCls = na
+bool s_newCmeDay = timeframe.change("D")
+bool s_newNyDay  = hour(time, "America/New_York") == 0 and (bar_index == 0 or hour(time[1], "America/New_York") != 0)
+s_pdClose := s_newCmeDay ? s_lastCls : s_pdClose
+s_dOpen   := s_newCmeDay ? open : s_dOpen
+s_midOpen := s_newNyDay ? open : s_midOpen
+s_lastCls := close
 
 // ============================== TYPES ==============================''')
 
@@ -58,7 +72,10 @@ rep('''            string summary = f_onSignal(s)
             int qty = s_qtyMode == "Fixed 1 contract" ? 1 : s_qtyMode == "Fixed 2 contracts" ? 2 : int(nz(array.get(lastPlan, 5), 0))
             bool sameSideOpen = s.isBull ? strategy.position_size > 0 : strategy.position_size < 0
             bool otherSideOpen = s.isBull ? strategy.position_size < 0 : strategy.position_size > 0
-            bool canEnter = inWindow and qty > 0 and not sameSideOpen and (not otherSideOpen or s_allowRev)
+            bool dirOk = s_direction == "Both" or (s.isBull ? s_direction == "Long only" : s_direction == "Short only")
+            float biasRef = s_biasMode == "Midnight NY open" ? s_midOpen : s_biasMode == "CME daily open (18:00 ET)" ? s_dOpen : s_biasMode == "Previous day close" ? s_pdClose : na
+            bool biasOk = na(biasRef) or (s.isBull ? close > biasRef : close < biasRef)
+            bool canEnter = inWindow and qty > 0 and dirOk and biasOk and not sameSideOpen and (not otherSideOpen or s_allowRev)
             if not canEnter
                 stratSkipped += 1
             if canEnter
