@@ -20,7 +20,15 @@ def rep(old, new, count=1):
     src = src.replace(old, new)
 
 rep('indicator("ICT SMT + IFVG in HTF FVG", shorttitle = "ICT SMT/IFVG", overlay = true, max_boxes_count = 500, max_labels_count = 500, max_lines_count = 500)',
-    'strategy("ICT SMT + IFVG in HTF FVG · Strategy", shorttitle = "ICT SMT/IFVG STRAT", overlay = true, max_boxes_count = 500, max_labels_count = 500, max_lines_count = 500, pyramiding = 0, calc_on_every_tick = false, process_orders_on_close = true, initial_capital = 25000, default_qty_type = strategy.fixed, default_qty_value = 1, commission_type = strategy.commission.cash_per_contract, commission_value = 1.0, slippage = 1)')
+    'strategy("ICT SMT + IFVG in HTF FVG · Strategy", shorttitle = "ICT SMT/IFVG STRAT", overlay = true, max_boxes_count = 500, max_labels_count = 500, max_lines_count = 500, pyramiding = 0, calc_on_every_tick = false, process_orders_on_close = true, initial_capital = 25000, default_qty_type = strategy.fixed, default_qty_value = 1, commission_type = strategy.commission.cash_per_contract, commission_value = 1.0, slippage = 1, margin_long = 0, margin_short = 0)')
+
+# strategy counters next to the last-plan array, and a STRATEGY row in the debug table
+rep("var array<float> lastPlan = array.new_float(6, na)\n", "var array<float> lastPlan = array.new_float(6, na)\nvar int stratOrders = 0\nvar int stratSkipped = 0\n")
+rep("        var table dbgTable = table.new(position.bottom_right, 2, 14, border_width = 1)", "        var table dbgTable = table.new(position.bottom_right, 2, 15, border_width = 1)")
+rep("        table.cell(dbgTable, 1, 13, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)",
+    "        table.cell(dbgTable, 1, 13, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)\n"
+    "        table.cell(dbgTable, 0, 14, \"STRATEGY\", bgcolor = color.gray, text_color = color.white)\n"
+    "        table.cell(dbgTable, 1, 14, \"orders submitted \" + str.tostring(stratOrders) + \" · skipped (window / qty / position) \" + str.tostring(stratSkipped) + \" · closed trades \" + str.tostring(strategy.closedtrades) + \" · open \" + str.tostring(strategy.opentrades) + \" · equity \" + str.tostring(strategy.equity, \"#.##\"), bgcolor = grayBg, text_color = color.white)")
 
 # strategy inputs, right before the TYPES section
 rep("// ============================== TYPES ==============================", '''grpStrat = "S · Strategy (backtest only)"
@@ -48,7 +56,10 @@ rep('''            string summary = f_onSignal(s)
             bool sameSideOpen = s.isBull ? strategy.position_size > 0 : strategy.position_size < 0
             bool otherSideOpen = s.isBull ? strategy.position_size < 0 : strategy.position_size > 0
             bool canEnter = inWindow and qty > 0 and not sameSideOpen and (not otherSideOpen or s_allowRev)
+            if not canEnter
+                stratSkipped += 1
             if canEnter
+                stratOrders += 1
                 string oid = (s.isBull ? "L" : "S") + "|" + s.tag
                 if otherSideOpen
                     strategy.close_all(comment = "reverse")
