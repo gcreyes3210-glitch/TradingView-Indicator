@@ -81,9 +81,10 @@ Every variant is judged on MNQ two years (2024-09-22 → 2026-09-22) and MES two
 | VP1-ES | same on MES | 198 | −1,388 | PF 0.77, years 0.97 / 1.08 / 0.41. Open-below days +431 (24 trades) is the only positive slice, and it is 'above' that was positive on NQ → noise. **Consistent non-edge on both symbols** |
 
 ## VP 80 % Rule (`VP_80Rule_strategy.pine`) — v2
+Profile check 2026-09-22: strategy VAH 30,866 / POC 30,771 / VAL 30,749 vs Aceflw ONVP 30,845 / 30,776.5 / 30,753 (POC and VAL within a row or two; VAH ~20 pts higher, methodology difference, accepted).
 Rule set: same overnight profile · RTH open must be outside value · after `acceptBars` (6 × 5m = 30 min) consecutive closes back inside value, enter toward the far edge · stop = edge + 0.25 × VA width · min RR 0.8 · max risk 1 × VA width · one trade per day · flat at 12:00. All thresholds relative to the value-area width.
 
 | Run | Change | n | Net | Verdict |
 |---|---|---|---|---|
-| VP2 | v2 defaults, MNQ 5m, 2023-09-22 → 2026-09-22 | pending | | |
+| VP2 | v2 defaults, MNQ 5m, 2023-09-22 → 2026-09-22 | 58 | +1,088 | Win 52%, PF 1.42, max DD −475, longest losing streak 6. **All three years ≥ 0**: +416 (PF 1.53) / +31 (PF 1.03) / +641 (PF 2.04). Longs +662 / shorts +426, open-above +426 / open-below +662. Exits: 24 time / 19 stop / 15 target → the far edge is often not reached by 12:00. ~19 trades a year: small sample, first positive multi-year result of the project. Awaiting ES |
 | VP2-ES | same on MES | pending | | |
