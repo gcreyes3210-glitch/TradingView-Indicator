@@ -160,8 +160,6 @@ syncBars       = input.int(3, "Swing sync window (bars, 0 = same candle)", minva
 smtConfirmBars = input.int(3, "SMT confirmation bars", minval = 1, group = grpSMT, tooltip = "An SMT becomes CONFIRMED this many bars after the sweep / swing if the other market has not taken its level.")
 smtLifeBars    = input.int(30, "SMT setup lifetime (bars)", minval = 1, group = grpSMT, tooltip = "Counted from the sweeper's latest extreme.")
 smtMaxDays     = input.int(7, "Max SMT age (days, 0 = OFF)", minval = 0, group = grpSMT, tooltip = "An SMT older than this (by timestamp, from the candle on which it was detected) EXPIRES: it can no longer confirm, pair with an IFVG, fire a Buy/Sell or count in the sequence, and it is removed from the active list on every bar.")
-smtMerge       = input.bool(true, "Merge SMT labels that share the same extreme (high / low)", group = grpSMT, tooltip = "When several liquidity sweeps or pivot divergences (other references, other engine timeframes) produce SMTs anchored to the SAME price extreme, only one label is drawn and the others are appended to it ('+PDL[3m]').")
-smtMergeTicks  = input.int(0, "  merge tolerance (ticks)", minval = 0, group = grpSMT, tooltip = "Two SMT extremes count as the same edge when they are within this many ticks of each other.")
 smtBullClr     = input.color(color.teal, "Bullish SMT", group = grpSMT, tooltip = "Color of bullish SMT labels, connector lines and pivot trendlines.")
 smtBearClr     = input.color(color.red, "Bearish SMT", group = grpSMT, tooltip = "Color of bearish SMT labels, connector lines and pivot trendlines.")
 removeInvalidatedSMT = input.bool(true, "Remove an SMT immediately once it's broken/invalidated", group = grpSMT, tooltip = "On: the moment the other market also takes the level (whether that happens before or after the SMT confirmed), its label/connector line is deleted right away instead of lingering until it naturally expires.")
@@ -369,8 +367,6 @@ type SMTSetup
     bool   dirty = true
     label  lbl
     line   ln
-    int    anchorId = -1
-    int    hostId = -1
     // fixed detection timestamp (never updated) + Phase 3 event layer
     int    detectTime
     int    sweepTime
@@ -387,15 +383,6 @@ type SMTSetup
     float  prevB
     float  curB
     label  mk
-
-// one drawn SMT label per (direction, extreme price): other SMTs at the same edge join it
-type SmtAnchor
-    int    id
-    bool   isBull
-    float  price
-    label  lbl
-    string extra = ""
-    bool   alive = true
 
 type LiqRef
     string   name
@@ -539,8 +526,6 @@ type SigInfo
 
 // ============================== STATE ==============================
 var array<HtfFVG>    htfList = array.new<HtfFVG>()
-var array<SmtAnchor> smtAnchors = array.new<SmtAnchor>()
-var array<int>       smtAnchorSeq = array.new_int(1, 0)
 var array<SigMark>   sigList = array.new<SigMark>()
 var int    lastSigBar  = na
 var bool   lastSigBull = false
@@ -1038,43 +1023,6 @@ f_reason(Engine e, SMTSetup s) =>
 f_engSummary(Engine e) =>
     not e.enabled ? e.tfName + ": off" : e.tfName + ": smt " + str.tostring(e.cntSmtConf) + "/" + str.tostring(e.cntSmtDev) + (e.entryTf ? " buy " + str.tostring(e.cntBuy) + " sell " + str.tostring(e.cntSell) : " (SMT only)")
 
-// ---- SMT label de-duplication by extreme edge ----
-// One label per (direction, extreme price).  A later SMT at the same edge (another reference, another
-// engine timeframe) is appended to that label instead of drawing an overlapping one.  Labels only.
-f_anchorGet(int id) =>
-    SmtAnchor out = na
-    for a in smtAnchors
-        if a.id == id and id >= 0
-            out := a
-    out
-
-f_anchorFind(bool isBull, float price) =>
-    int out = -1
-    float tol = smtMergeTicks * syminfo.mintick + syminfo.mintick * 0.01
-    for a in smtAnchors
-        if out < 0 and a.alive and a.isBull == isBull and not na(a.lbl) and math.abs(a.price - price) <= tol
-            out := a.id
-    out
-
-f_anchorNew(bool isBull, float price, label lb) =>
-    if array.size(smtAnchors) > 0
-        for i = array.size(smtAnchors) - 1 to 0
-            SmtAnchor a = array.get(smtAnchors, i)
-            if not a.alive
-                array.remove(smtAnchors, i)
-    int id = array.get(smtAnchorSeq, 0) + 1
-    array.set(smtAnchorSeq, 0, id)
-    array.push(smtAnchors, SmtAnchor.new(id = id, isBull = isBull, price = price, lbl = lb))
-    while array.size(smtAnchors) > 200
-        array.shift(smtAnchors)
-    id
-
-f_anchorKill(int id) =>
-    SmtAnchor a = f_anchorGet(id)
-    if not na(a)
-        a.alive := false
-    true
-
 // ---- methods that change objects ----
 // label.delete / line.delete / box.delete accept na, so no guards are needed
 method kill(SMTSetup this) =>
@@ -1085,7 +1033,6 @@ method kill(SMTSetup this) =>
     this.ln := na
     label.delete(this.mk)
     this.mk := na
-    f_anchorKill(this.anchorId)
     true
 
 // (re)arm a fixed level reference (PDH, PDL, PWH, PWL) with fresh levels
@@ -1121,44 +1068,14 @@ method draw(SMTSetup this, Engine e) =>
     string sty = not showSmtShapes ? label.style_none : this.isBull ? label.style_label_up : label.style_label_down
     color txtCol = showSmtShapes ? color.white : col
     if showOk or showRej
-        // de-duplication: a new label at an extreme that already carries a live SMT label joins that label
-        if smtMerge and showOk and na(this.lbl) and this.hostId < 0
-            int hid = f_anchorFind(this.isBull, this.legPrice)
-            if hid >= 0 and hid != this.anchorId
-                SmtAnchor host = f_anchorGet(hid)
-                if not na(host)
-                    this.hostId := hid
-                    string add = " +" + this.refName + "[" + e.tfName + "]"
-                    host.extra := host.extra + add
-                    label.set_text(host.lbl, label.get_text(host.lbl) + add)
-        if this.hostId >= 0
-            SmtAnchor hostA = f_anchorGet(this.hostId)
-            if na(hostA) or not hostA.alive or na(hostA.lbl)
-                this.hostId := -1
-        if this.hostId < 0
-            string extraTxt = ""
-            if this.anchorId >= 0
-                SmtAnchor own = f_anchorGet(this.anchorId)
-                if not na(own)
-                    extraTxt := own.extra
-            string txtAll = txt + extraTxt
-            if na(this.lbl)
-                this.lbl := label.new(x = this.legTime, y = this.legPrice, text = txtAll, xloc = xloc.bar_time, style = sty, color = col, textcolor = txtCol, size = f_size(smtLabelSize), tooltip = tt)
-            else
-                label.set_xy(this.lbl, this.legTime, this.legPrice)
-                label.set_text(this.lbl, txtAll)
-                label.set_color(this.lbl, col)
-                label.set_textcolor(this.lbl, txtCol)
-                label.set_tooltip(this.lbl, tt)
-            if smtMerge and showOk
-                if this.anchorId < 0
-                    this.anchorId := f_anchorNew(this.isBull, this.legPrice, this.lbl)
-                else
-                    SmtAnchor own2 = f_anchorGet(this.anchorId)
-                    if not na(own2)
-                        own2.price := this.legPrice
-                        own2.lbl := this.lbl
-                        own2.alive := true
+        if na(this.lbl)
+            this.lbl := label.new(x = this.legTime, y = this.legPrice, text = txt, xloc = xloc.bar_time, style = sty, color = col, textcolor = txtCol, size = f_size(smtLabelSize), tooltip = tt)
+        else
+            label.set_xy(this.lbl, this.legTime, this.legPrice)
+            label.set_text(this.lbl, txt)
+            label.set_color(this.lbl, col)
+            label.set_textcolor(this.lbl, txtCol)
+            label.set_tooltip(this.lbl, tt)
         // connector: swept level -> sweep extreme (sweep SMT) or previous swing -> new swing (pivot SMT trendline)
         bool lineOn = this.pivMode ? pivShowLine : showSmtLines
         string lsty = this.pivMode ? f_lineStyle(pivLineStyle) : line.style_dotted
@@ -1193,7 +1110,6 @@ method draw(SMTSetup this, Engine e) =>
         this.ln := na
         label.delete(this.mk)
         this.mk := na
-        f_anchorKill(this.anchorId)
     true
 
 // ---- universal pivot SMT (section 3b) ----
@@ -2378,28 +2294,11 @@ if barstate.islast
     SMTSetup newestS = na
 
     // eligible / total per slot
-    if array.size(htfList) > 0
-        for i = 0 to array.size(htfList) - 1
-            HtfFVG zc = array.get(htfList, i)
-            array.set(cnt, zc.slot, array.get(cnt, zc.slot) + 1)
-            if f_hzEligible(zc)
-                array.set(cntE, zc.slot, array.get(cntE, zc.slot) + 1)
-    if useHtf1
-        htfTxt += nameH1 + ":" + str.tostring(array.get(cntE, 1)) + "/" + str.tostring(array.get(cnt, 1)) + " "
-    if useHtf2
-        htfTxt += nameH2 + ":" + str.tostring(array.get(cntE, 2)) + "/" + str.tostring(array.get(cnt, 2)) + " "
-    if useHtf3
-        htfTxt += nameH3 + ":" + str.tostring(array.get(cntE, 3)) + "/" + str.tostring(array.get(cnt, 3)) + " "
-    if useHtf4
-        htfTxt += nameH4 + ":" + str.tostring(array.get(cntE, 4)) + "/" + str.tostring(array.get(cnt, 4)) + " "
-    if useHtf5
-        htfTxt += nameH5 + ":" + str.tostring(array.get(cntE, 5)) + "/" + str.tostring(array.get(cnt, 5)) + " "
-    if useHtf6
-        htfTxt += nameH6 + ":" + str.tostring(array.get(cntE, 6)) + "/" + str.tostring(array.get(cnt, 6)) + " "
-    if useHtf7
-        htfTxt += nameH7 + ":" + str.tostring(array.get(cntE, 7)) + "/" + str.tostring(array.get(cnt, 7)) + " "
-    if useHtf8
-        htfTxt += nameH8 + ":" + str.tostring(array.get(cntE, 8)) + "/" + str.tostring(array.get(cnt, 8)) + " "
+    for zc in htfList
+        array.set(cnt, zc.slot, array.get(cnt, zc.slot) + 1)
+        array.set(cntE, zc.slot, array.get(cntE, zc.slot) + (f_hzEligible(zc) ? 1 : 0))
+    for sd in htfSlots
+        htfTxt += sd.en ? sd.name + ":" + str.tostring(array.get(cntE, sd.slot)) + "/" + str.tostring(array.get(cnt, sd.slot)) + " " : ""
     if useNdog
         htfTxt += "NDOG:" + str.tostring(array.get(cntE, 9)) + "/" + str.tostring(array.get(cnt, 9))
 
@@ -2474,22 +2373,8 @@ if barstate.islast
         string liveTxt = "none live"
         string blockTxt = "-"
         string lastTag = eC.lastIfvgTag
-        if useHtf1
-            htfChk += nameH1 + (str.contains(lastTag, "|" + nameH1 + "|") ? "✓ " : "✗ ")
-        if useHtf2
-            htfChk += nameH2 + (str.contains(lastTag, "|" + nameH2 + "|") ? "✓ " : "✗ ")
-        if useHtf3
-            htfChk += nameH3 + (str.contains(lastTag, "|" + nameH3 + "|") ? "✓ " : "✗ ")
-        if useHtf4
-            htfChk += nameH4 + (str.contains(lastTag, "|" + nameH4 + "|") ? "✓ " : "✗ ")
-        if useHtf5
-            htfChk += nameH5 + (str.contains(lastTag, "|" + nameH5 + "|") ? "✓ " : "✗ ")
-        if useHtf6
-            htfChk += nameH6 + (str.contains(lastTag, "|" + nameH6 + "|") ? "✓ " : "✗ ")
-        if useHtf7
-            htfChk += nameH7 + (str.contains(lastTag, "|" + nameH7 + "|") ? "✓ " : "✗ ")
-        if useHtf8
-            htfChk += nameH8 + (str.contains(lastTag, "|" + nameH8 + "|") ? "✓ " : "✗ ")
+        for sd in htfSlots
+            htfChk += sd.en ? sd.name + (str.contains(lastTag, "|" + sd.name + "|") ? "✓ " : "✗ ") : ""
         if useNdog
             htfChk += "NDOG" + (str.contains(lastTag, "|NDOG|") ? "✓ " : "✗ ")
         // lifecycle state of every active zone (newest first)
