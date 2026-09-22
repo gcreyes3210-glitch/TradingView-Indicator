@@ -211,3 +211,11 @@ losing year. Nothing else is used to filter; the overnight range, the gap and th
 (`L|ORB|or:42|pd:18|on:inside|gap:+35|ent:close|risk:46|rr:2|n:1|h:9|m:50|dow:2`) so one export shows which
 regime filters would have mattered. `tools/analyze_tags.py` slices any tagged export by year, exit, side and every tag
 field. Results live in `BACKTEST_LOG.md` under "Opening Range Breakout".
+
+## Session Levels indicator (Aceflw-style level set)
+`Aceflw_Levels.pine` is an overlay indicator, not a strategy, meant to sit under the ORB strategy: overnight volume
+profile VAH / POC / VAL (1-minute intrabar build), overnight high / low, session VWAP with ±1σ / ±2σ bands, and
+expected-move bands anchored at the 18:00 session open for a short and a long horizon. Pine has no implied-volatility
+feed, so the expected move uses realised volatility (standard deviation of bar returns over a lookback, scaled by the
+square root of the horizon). A corner table lists the levels and the cumulative session delta from 1-minute up/down
+volume. Footprint bid/ask cells and options levels (Vol Trigger, Call Wall) cannot be built in Pine.
