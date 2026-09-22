@@ -46,6 +46,7 @@ Debug check before export: "Last IFVG in" = 15m 1H 4H 1D NDOG, "SMT live" names 
 | J | Run I settings on **MES1!** (correlated NQ1!), quantity was Risk-module (1–23 ct) so results normalised per contract | 114 | −688 per contract | **Does not transfer.** Win 32%, PF 0.88, both halves negative (−615 / −73). Longs +378 (44% win), shorts −1,066 (23% win). By zone: 15m −455, 4H −338, 1D −188, 1H +81, NDOG +212. Raw risk-sized net −7,738 |
 | K | Run I settings on MNQ, **prior year** (2024-09-22 → 2025-09-22), Fixed 1 ct | 86 | −2,028 | **Out of sample fails.** Win 29%, PF 0.72, both halves negative (−1,377 / −652), max DD −2,380, longest losing streak 9. Longs +24, shorts −2,052. 15m zones −720, 1H −512. No sub-group is positive in all three samples (I, J, K) |
 | L | Run I settings, **Long only**, three samples | 51 / 42 / 51 | +1,092 / +144 / +119 | NQ this yr PF 1.19, NQ prior yr PF 1.04, ES this yr PF 1.05. Never negative, but two of three are flat: 144 trades, +1,355 total, about +9 per trade. Removing shorts removes the losses, it does not create an edge → **not tradeable on its own; shorts confirmed as the losing side** |
+| M | Run I settings, Both directions, **Daily bias gate = Midnight NY open** | 45 / 38 | +1,935 / −2,534 | NQ this yr PF 1.45, NQ prior yr PF 0.39 (worst run of the series, both sides negative). The gate keeps trades already moving with the day and drops the fresh reversals, so it removes winners in a mean-reverting year and keeps late entries in a trending one → **rejected** |
 
 ## Findings that held in every run and both halves of the year
 * 5-minute HTF zones lose. 1H-swing-sweep SMTs lose. Breakeven at 1 R costs more winners than it saves.
@@ -57,9 +58,8 @@ Debug check before export: "Last IFVG in" = 15m 1H 4H 1D NDOG, "SMT live" names 
   15m vs 1H+ zones (+1,234 vs +187, then −872 vs +762). Any of these would be curve fitting on 93 trades.
 
 ## Open experiments, in order
-1. Long-only variant across all three samples (I, J, K): the one split that was never negative. Cheap to test (run with sells disabled) but on 41–48 trades per sample it is a hint, not a system.
-2. Diagnose why shorts fail: sweep-high SMT shorts in a bull year are counter-trend by construction. A daily-bias gate (only trade in the direction of the daily HTF zone / above-below the daily open) is the ICT-consistent fix and should be tested on all three samples at once, never on one.
-3. Optional limit-entry variant: CE limit but keep the original TP levels (Run E recomputed TPs from the smaller risk, so the winners were capped smaller).
+1. (done: L long-only = flat, M midnight bias = rejected)
+1. Optional limit-entry variant: CE limit but keep the original TP levels (Run E recomputed TPs from the smaller risk, so the winners were capped smaller).
 4. Re-weight the confluence score only once an entry rule survives all three samples; until then the gate stays at 0.
 
 ## Pine limits (do not regress)
