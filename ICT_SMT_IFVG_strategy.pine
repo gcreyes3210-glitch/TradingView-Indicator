@@ -246,6 +246,8 @@ s_qtyMode    = input.string("Risk module contracts", "Quantity", options = ["Ris
 s_exitModel  = input.string("TP1", "Exit model", options = ["TP1", "TP2", "Swing TP (fallback TP1)", "Half at TP1, rest at TP2", "Stop / time only"], group = grpStrat, tooltip = "Which of the risk module's targets closes the trade. Every model uses the section 10 stop. Half at TP1 needs at least 2 contracts. Stop / time only = no target, the trade runs until the stop or the time stop.")
 s_timeStop   = input.bool(true, "Time stop = 'Close an open trade plan after' bars", group = grpStrat, tooltip = "Closes the position at market after the section 10 'Close an open trade plan after (chart bars)' input.")
 s_allowRev   = input.bool(false, "Opposite signal reverses an open position", group = grpStrat, tooltip = "Off: a signal against the open position is ignored. On: the position is closed and reversed.")
+s_entryMode  = input.string("Market at inversion close", "Entry", options = ["Market at inversion close", "Limit at IFVG 50% (CE)"], group = grpStrat, tooltip = "Market: fills at the close of the inversion candle (the indicator's entry). Limit at CE: a limit order at the IFVG's 50% level, cancelled if not filled within the bars below. Stop = the risk module's stop; targets are re-computed from the limit price with the section 10 risk:reward ratios.")
+s_limitBars  = input.int(12, "  limit valid for (chart bars)", minval = 1, group = grpStrat, tooltip = "A limit entry that is not filled within this many bars is cancelled.")
 s_beR        = input.float(0.0, "Move stop to breakeven after x R (0 = off)", minval = 0.0, step = 0.25, group = grpStrat, tooltip = "Once a confirmed bar has moved this many risk units (entry to stop distance) in the trade's favour, the stop is moved to the entry price. 0 = off.")
 s_useAlerts  = input.bool(false, "Fire strategy order alerts", group = grpStrat, tooltip = "Adds strategy order events to 'Any alert() function call' alerts (for broker / webhook forwarding). The indicator alerts stay as they are.")
 
@@ -524,6 +526,7 @@ type SigInfo
     float  tpSwing
     string info
     string tag = ""
+    float  ifvgCe
 
 // ============================== STATE ==============================
 var array<HtfFVG>    htfList = array.new<HtfFVG>()
@@ -540,6 +543,8 @@ var int stratSkipped = 0
 // open position memory for the breakeven rule: [entry, stop, tp1, tp2, tpMain, qty, half-model flag, breakeven done]
 var array<float> posMem = array.new_float(8, na)
 var string posOid = ""
+var string pendOid = ""
+var int pendBar = na
 chartMs = timeframe.in_seconds() * 1000
 dayMs = 24 * 60 * 60 * 1000
 // HTF FVG / NDOG lifecycle states
@@ -1901,7 +1906,7 @@ f_runEngine(Engine e, Feed f) =>
                                 if not na(sf.lbl)
                                     label.set_tooltip(sf.lbl, "Timeframe: " + e.tfName + "\n" + sf.tip + "\nSIGNAL: " + info)
                                 // everything the risk module needs: entry = feed close, both stop candidates, swing target
-                                sig := SigInfo.new(isBull = sf.isBull, tfName = e.tfName, entry = f.c, slSweep = sf.sweepExt, slIfvg = sf.isBull ? zf.bottom : zf.top, tpSwing = f_swingTarget(e.refs, sf.isBull, f.c, aPH, aPL), info = info, tag = f_ifvgLogTag(zf, sf.refName + (sf.confirmed ? "+" : "~"), e.tfName))
+                                sig := SigInfo.new(isBull = sf.isBull, tfName = e.tfName, entry = f.c, slSweep = sf.sweepExt, slIfvg = sf.isBull ? zf.bottom : zf.top, tpSwing = f_swingTarget(e.refs, sf.isBull, f.c, aPH, aPL), info = info, tag = f_ifvgLogTag(zf, sf.refName + (sf.confirmed ? "+" : "~"), e.tfName), ifvgCe = (zf.top + zf.bottom) / 2)
                                 e.lastBuyBar := sf.isBull ? e.idx : e.lastBuyBar
                                 e.lastSellBar := sf.isBull ? e.lastSellBar : e.idx
                                 e.cntBuy := e.cntBuy + (sf.isBull ? 1 : 0)
@@ -1946,7 +1951,7 @@ f_runEngine(Engine e, Feed f) =>
                             if not na(bestS.lbl)
                                 label.set_tooltip(bestS.lbl, "Timeframe: " + e.tfName + "\n" + bestS.tip + "\nSIGNAL: " + infoN)
                         e.ifvgDbg := e.ifvgDbg + " | SIGNAL bar " + str.tostring(e.idx) + " (SMT optional)"
-                        sig := SigInfo.new(isBull = zn.isBull, tfName = e.tfName, entry = f.c, slSweep = slSw, slIfvg = zn.isBull ? zn.bottom : zn.top, tpSwing = f_swingTarget(e.refs, zn.isBull, f.c, aPH, aPL), info = infoN, tag = f_ifvgLogTag(zn, hasS ? slName : "none", e.tfName))
+                        sig := SigInfo.new(isBull = zn.isBull, tfName = e.tfName, entry = f.c, slSweep = slSw, slIfvg = zn.isBull ? zn.bottom : zn.top, tpSwing = f_swingTarget(e.refs, zn.isBull, f.c, aPH, aPL), info = infoN, tag = f_ifvgLogTag(zn, hasS ? slName : "none", e.tfName), ifvgCe = (zn.top + zn.bottom) / 2)
                         e.lastBuyBar := zn.isBull ? e.idx : e.lastBuyBar
                         e.lastSellBar := zn.isBull ? e.lastSellBar : e.idx
                         e.cntBuy := e.cntBuy + (zn.isBull ? 1 : 0)
@@ -2232,11 +2237,21 @@ if barstate.isconfirmed
                 string oid = (s.isBull ? "L" : "S") + "|" + s.tag
                 if otherSideOpen
                     strategy.close_all(comment = "reverse")
+                // entry price: the inversion close (market) or the IFVG 50% level (limit); targets follow the entry price
+                bool limitMode = s_entryMode == "Limit at IFVG 50% (CE)" and not na(s.ifvgCe)
+                float entryPx = limitMode ? s.ifvgCe : s.entry
+                float riskL = math.abs(entryPx - lastPlanSl)
+                lastPlanTp1 := limitMode ? (s.isBull ? entryPx + riskL * tp1RR : entryPx - riskL * tp1RR) : lastPlanTp1
+                lastPlanTp2 := limitMode ? (tp2RR > 0 ? (s.isBull ? entryPx + riskL * tp2RR : entryPx - riskL * tp2RR) : na) : lastPlanTp2
                 float tpMain = s_exitModel == "TP2" ? (na(lastPlanTp2) ? lastPlanTp1 : lastPlanTp2) : s_exitModel == "Swing TP (fallback TP1)" ? (na(lastPlanTpSw) ? lastPlanTp1 : lastPlanTpSw) : lastPlanTp1
-                strategy.entry(oid, s.isBull ? strategy.long : strategy.short, qty = qty, comment = oid, alert_message = s_useAlerts ? "ENTRY " + oid : na)
+                if pendOid != ""
+                    strategy.cancel(pendOid)
+                strategy.entry(oid, s.isBull ? strategy.long : strategy.short, qty = qty, limit = limitMode ? entryPx : na, comment = oid, alert_message = s_useAlerts ? "ENTRY " + oid : na)
+                pendOid := limitMode ? oid : ""
+                pendBar := bar_index
                 bool halfModel = s_exitModel == "Half at TP1, rest at TP2" and qty >= 2 and not na(lastPlanTp2)
                 posOid := oid
-                array.set(posMem, 0, s.entry)
+                array.set(posMem, 0, entryPx)
                 array.set(posMem, 1, lastPlanSl)
                 array.set(posMem, 2, lastPlanTp1)
                 array.set(posMem, 3, lastPlanTp2)
@@ -2262,6 +2277,13 @@ if barstate.isconfirmed
             else
                 sellSignal := true
                 sellMsg += (sellMsg != "" ? " | " : "") + summary + " · " + s.info
+
+    // ---------- strategy twin: unfilled limit entries expire ----------
+    if pendOid != "" and strategy.position_size != 0
+        pendOid := ""
+    if pendOid != "" and bar_index - pendBar > s_limitBars
+        strategy.cancel(pendOid)
+        pendOid := ""
 
     // ---------- strategy twin: breakeven (re-issues the exit orders with the stop at the entry price) ----------
     if s_beR > 0 and strategy.position_size != 0 and strategy.opentrades > 0 and nz(array.get(posMem, 7), 0) == 0

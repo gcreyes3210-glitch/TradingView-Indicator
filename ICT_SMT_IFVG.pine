@@ -513,6 +513,7 @@ type SigInfo
     float  tpSwing
     string info
     string tag = ""
+    float  ifvgCe
 
 // ============================== STATE ==============================
 var array<HtfFVG>    htfList = array.new<HtfFVG>()
@@ -1885,7 +1886,7 @@ f_runEngine(Engine e, Feed f) =>
                                 if not na(sf.lbl)
                                     label.set_tooltip(sf.lbl, "Timeframe: " + e.tfName + "\n" + sf.tip + "\nSIGNAL: " + info)
                                 // everything the risk module needs: entry = feed close, both stop candidates, swing target
-                                sig := SigInfo.new(isBull = sf.isBull, tfName = e.tfName, entry = f.c, slSweep = sf.sweepExt, slIfvg = sf.isBull ? zf.bottom : zf.top, tpSwing = f_swingTarget(e.refs, sf.isBull, f.c, aPH, aPL), info = info, tag = f_ifvgLogTag(zf, sf.refName + (sf.confirmed ? "+" : "~"), e.tfName))
+                                sig := SigInfo.new(isBull = sf.isBull, tfName = e.tfName, entry = f.c, slSweep = sf.sweepExt, slIfvg = sf.isBull ? zf.bottom : zf.top, tpSwing = f_swingTarget(e.refs, sf.isBull, f.c, aPH, aPL), info = info, tag = f_ifvgLogTag(zf, sf.refName + (sf.confirmed ? "+" : "~"), e.tfName), ifvgCe = (zf.top + zf.bottom) / 2)
                                 e.lastBuyBar := sf.isBull ? e.idx : e.lastBuyBar
                                 e.lastSellBar := sf.isBull ? e.lastSellBar : e.idx
                                 e.cntBuy := e.cntBuy + (sf.isBull ? 1 : 0)
@@ -1930,7 +1931,7 @@ f_runEngine(Engine e, Feed f) =>
                             if not na(bestS.lbl)
                                 label.set_tooltip(bestS.lbl, "Timeframe: " + e.tfName + "\n" + bestS.tip + "\nSIGNAL: " + infoN)
                         e.ifvgDbg := e.ifvgDbg + " | SIGNAL bar " + str.tostring(e.idx) + " (SMT optional)"
-                        sig := SigInfo.new(isBull = zn.isBull, tfName = e.tfName, entry = f.c, slSweep = slSw, slIfvg = zn.isBull ? zn.bottom : zn.top, tpSwing = f_swingTarget(e.refs, zn.isBull, f.c, aPH, aPL), info = infoN, tag = f_ifvgLogTag(zn, hasS ? slName : "none", e.tfName))
+                        sig := SigInfo.new(isBull = zn.isBull, tfName = e.tfName, entry = f.c, slSweep = slSw, slIfvg = zn.isBull ? zn.bottom : zn.top, tpSwing = f_swingTarget(e.refs, zn.isBull, f.c, aPH, aPL), info = infoN, tag = f_ifvgLogTag(zn, hasS ? slName : "none", e.tfName), ifvgCe = (zn.top + zn.bottom) / 2)
                         e.lastBuyBar := zn.isBull ? e.idx : e.lastBuyBar
                         e.lastSellBar := zn.isBull ? e.lastSellBar : e.idx
                         e.cntBuy := e.cntBuy + (zn.isBull ? 1 : 0)
