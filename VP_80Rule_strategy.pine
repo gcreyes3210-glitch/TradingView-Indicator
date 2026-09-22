@@ -61,6 +61,7 @@ s_from   = input.time(timestamp("2020-01-01T00:00:00"), "Test window start", gro
 s_to     = input.time(timestamp("2030-01-01T00:00:00"), "Test window end", group = grpX)
 s_flat   = input.bool(true, "Flatten at the end of the trade window", group = grpX, tooltip = "Closes any open position on the first bar after the trade window (comment 'time').")
 showDbg  = input.bool(true, "Show debug table", group = grpX)
+s_alerts = input.bool(true, "Fire alert() messages (levels, open outside value, entries, exits)", group = grpX, tooltip = "Create one alert on this strategy with condition 'Any alert() function call'. You then get: the day's VAH/POC/VAL at 09:30, a heads-up when the open is outside value, the entry with stop and target, and the flatten.")
 
 // ================================ SESSION STATE ================================
 bool inProf  = not na(time(timeframe.period, profSess, tz))
@@ -181,6 +182,8 @@ if profEnd and array.size(rows) > 2 and profVol > 0
     profEndBar := bar_index
     dayCount += 1
     lastDayCov := dayBars > 0 ? int(math.round(100.0 * dayIntra / dayBars)) : 0
+    if s_alerts
+        alert("VP80 " + syminfo.ticker + " levels: VAH " + str.tostring(vah, format.mintick) + " · POC " + str.tostring(poc, format.mintick) + " · VAL " + str.tostring(val, format.mintick) + " · open " + str.tostring(open, format.mintick) + (open > vah ? " ABOVE value → watch for a short after 6 closes inside" : open < val ? " BELOW value → watch for a long after 6 closes inside" : " inside value → no 80% setup today"), alert.freq_once_per_bar)
     // ---- drawings
     if showLines
         lnVah := line.new(bar_index, vah, bar_index + 1, vah, color = color.new(color.orange, 0), width = 1)
@@ -266,6 +269,8 @@ if accepted and outSide == 1 and okDirS
         string tg = f_tag("S", risk, rr)
         strategy.entry("S", strategy.short, qty = 1, comment = tg)
         strategy.exit("xS", "S", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
+        if s_alerts
+            alert("VP80 " + syminfo.ticker + " SHORT accepted back inside value · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + str.tostring(tpPx, format.mintick) + " · risk " + str.tostring(risk, "#.##") + " pts · RR " + str.tostring(rr, "#.#"), alert.freq_once_per_bar)
         totSignals += 1
         lastNote := "SHORT " + tg
     else
@@ -285,6 +290,8 @@ if accepted and outSide == -1 and okDirL
         string tg = f_tag("L", risk, rr)
         strategy.entry("L", strategy.long, qty = 1, comment = tg)
         strategy.exit("xL", "L", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
+        if s_alerts
+            alert("VP80 " + syminfo.ticker + " LONG accepted back inside value · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + str.tostring(tpPx, format.mintick) + " · risk " + str.tostring(risk, "#.##") + " pts · RR " + str.tostring(rr, "#.#"), alert.freq_once_per_bar)
         totSignals += 1
         lastNote := "LONG " + tg
     else
@@ -297,6 +304,8 @@ if accepted and outSide == -1 and okDirL
 // flatten at the end of the window
 if s_flat and tradeEnd and strategy.position_size != 0
     strategy.close_all(comment = "time")
+    if s_alerts
+        alert("VP80 " + syminfo.ticker + " end of trade window: flatten at market", alert.freq_once_per_bar)
 
 // ================================ VISUALS ================================
 plotshape(inTrade and not inTrade[1], "trade window start", shape.flag, location.top, color = color.new(color.aqua, 40), size = size.tiny)
