@@ -152,54 +152,31 @@ if onEnd and array.size(rows) > 2 and profVol > 0
                 color c = k == ip ? color.new(color.yellow, 55) : (k >= dn and k <= up) ? color.new(color.blue, 75) : color.new(color.gray, 85)
                 array.push(profBoxes, box.new(bar_index - w, rowLo + (k + 1) * rowSize, bar_index, rowLo + k * rowSize, border_color = na, bgcolor = c))
 
-// draw the overnight levels through the cash session
-// Each level is one line from the bar the profile finished (09:30) to the current bar, and one label that
-// rides the right end. Both stay until the next profile finishes, so the current set is always on screen.
-var line lVah = na
-var line lPoc = na
-var line lVal = na
-var line lOnH = na
-var line lOnL = na
-var label bVah = na
-var label bPoc = na
-var label bVal = na
-var label bOnH = na
-var label bOnL = na
-f_line(float y, color c, int w) => line.new(bar_index, y, bar_index + 1, y, color = c, width = w)
-f_lbl(float y, color c) => label.new(bar_index, y, "", style = label.style_label_left, color = color.new(c, 75), textcolor = color.white, size = size.tiny)
-if onEnd and not na(vah)
-    if showProf
-        line.delete(lVah)
-        line.delete(lPoc)
-        line.delete(lVal)
-        label.delete(bVah)
-        label.delete(bPoc)
-        label.delete(bVal)
-        lVah := f_line(vah, color.new(color.blue, 0), 1)
-        lPoc := f_line(poc, color.new(color.yellow, 0), 2)
-        lVal := f_line(val, color.new(color.blue, 0), 1)
-        bVah := f_lbl(vah, color.blue)
-        bPoc := f_lbl(poc, color.orange)
-        bVal := f_lbl(val, color.blue)
-    if showOnHL
-        line.delete(lOnH)
-        line.delete(lOnL)
-        label.delete(bOnH)
-        label.delete(bOnL)
-        lOnH := f_line(onH, color.new(color.white, 30), 1)
-        lOnL := f_line(onL, color.new(color.white, 30), 1)
-        bOnH := f_lbl(onH, color.gray)
-        bOnL := f_lbl(onL, color.gray)
-f_follow(line ln, label lb, string txt, float y) =>
-    if not na(ln)
-        line.set_x2(ln, bar_index)
-        label.set_x(lb, bar_index)
+// Levels are plotted as series that hold their value from the bar the profile finishes (09:30) until the next
+// profile replaces them. On the replacement bar the plot outputs na so the change is a break, not a vertical line.
+// Plots also show their current value on the price scale, like Aceflw's axis labels.
+bool lvlBreak = onEnd
+plot(showProf and not lvlBreak ? vah : na, "ONVP VAH", color.new(color.blue, 0), 1, plot.style_linebr)
+plot(showProf and not lvlBreak ? poc : na, "POC", color.new(color.yellow, 0), 2, plot.style_linebr)
+plot(showProf and not lvlBreak ? val : na, "ONVP VAL", color.new(color.blue, 0), 1, plot.style_linebr)
+plot(showOnHL and not lvlBreak ? onH : na, "OVN HIGH", color.new(color.white, 30), 1, plot.style_linebr)
+plot(showOnHL and not lvlBreak ? onL : na, "OVN LOW", color.new(color.white, 30), 1, plot.style_linebr)
+
+// one label per level, moved to the last bar
+var label bVah = label.new(na, na, "", style = label.style_label_left, color = color.new(color.blue, 75), textcolor = color.white, size = size.tiny)
+var label bPoc = label.new(na, na, "", style = label.style_label_left, color = color.new(color.orange, 75), textcolor = color.white, size = size.tiny)
+var label bVal = label.new(na, na, "", style = label.style_label_left, color = color.new(color.blue, 75), textcolor = color.white, size = size.tiny)
+var label bOnH = label.new(na, na, "", style = label.style_label_left, color = color.new(color.gray, 75), textcolor = color.white, size = size.tiny)
+var label bOnL = label.new(na, na, "", style = label.style_label_left, color = color.new(color.gray, 75), textcolor = color.white, size = size.tiny)
+f_lbl(label lb, bool on, string txt, float y) =>
+    if barstate.islast
+        label.set_xy(lb, bar_index, on ? y : na)
         label.set_text(lb, txt + " " + str.tostring(y, format.mintick))
-f_follow(lVah, bVah, "ONVP VAH", vah)
-f_follow(lPoc, bPoc, "POC", poc)
-f_follow(lVal, bVal, "ONVP VAL", val)
-f_follow(lOnH, bOnH, "OVN HIGH", onH)
-f_follow(lOnL, bOnL, "OVN LOW", onL)
+f_lbl(bVah, showProf, "ONVP VAH", vah)
+f_lbl(bPoc, showProf, "POC", poc)
+f_lbl(bVal, showProf, "ONVP VAL", val)
+f_lbl(bOnH, showOnHL, "OVN HIGH", onH)
+f_lbl(bOnL, showOnHL, "OVN LOW", onL)
 
 // ================================ 3 · VWAP WITH SIGMA BANDS ================================
 bool vwReset = vwapAnch == "Full session (18:00)" ? fullStart : rthStart
@@ -216,11 +193,12 @@ sPPV += hlc3 * hlc3 * volume
 float vwap = sV > 0 ? sPV / sV : na
 float vwVar = sV > 0 ? math.max(sPPV / sV - vwap * vwap, 0.0) : na
 float vwSd = math.sqrt(vwVar)
-plot(showVwap ? vwap : na, "VWAP", color.new(color.purple, 0), 2)
-plot(showVwap ? vwap + vwSig1 * vwSd : na, "VWAP +1σ", color.new(color.purple, 40), 1, plot.style_line)
-plot(showVwap ? vwap - vwSig1 * vwSd : na, "VWAP -1σ", color.new(color.purple, 40), 1, plot.style_line)
-plot(showVwap ? vwap + vwSig2 * vwSd : na, "VWAP +2σ", color.new(color.purple, 60), 1, plot.style_circles)
-plot(showVwap ? vwap - vwSig2 * vwSd : na, "VWAP -2σ", color.new(color.purple, 60), 1, plot.style_circles)
+bool vwOn = showVwap and not vwReset          // na on the reset bar: no vertical join between sessions
+plot(vwOn ? vwap : na, "VWAP", color.new(color.purple, 0), 2, plot.style_linebr)
+plot(vwOn ? vwap + vwSig1 * vwSd : na, "VWAP +1σ", color.new(color.purple, 40), 1, plot.style_linebr)
+plot(vwOn ? vwap - vwSig1 * vwSd : na, "VWAP -1σ", color.new(color.purple, 40), 1, plot.style_linebr)
+plot(vwOn ? vwap + vwSig2 * vwSd : na, "VWAP +2σ", color.new(color.purple, 60), 1, plot.style_circles)
+plot(vwOn ? vwap - vwSig2 * vwSd : na, "VWAP -2σ", color.new(color.purple, 60), 1, plot.style_circles)
 
 // ================================ 4 · EXPECTED-MOVE BANDS ================================
 bool emReset = emAnch == "Full session (18:00)" ? fullStart : rthStart
@@ -234,7 +212,7 @@ if emReset
     emC := open
     emS1 := emC * sdBar * math.sqrt(emH1 / barMin)
     emS2 := emC * sdBar * math.sqrt(emH2 / barMin)
-bool emOn = showEm and not na(emC)
+bool emOn = showEm and not na(emC) and not emReset   // na on the reset bar: no vertical join
 plot(emOn ? emC + emS1 : na, "EM short +1σ", color.new(color.aqua, 30), 1, plot.style_linebr)
 plot(emOn ? emC - emS1 : na, "EM short -1σ", color.new(color.aqua, 30), 1, plot.style_linebr)
 plot(emOn and emShow2 ? emC + 2 * emS1 : na, "EM short +2σ", color.new(color.aqua, 60), 1, plot.style_linebr)
