@@ -12,11 +12,11 @@
 //
 //  Context is carried in the entry TAG, not used to filter, so ONE export answers the regime questions:
 //    or   = opening-range width in points          pd  = range width as % of the previous RTH day's range
-//    open = 09:30 open vs the overnight (18:00-09:30) range: above / inside / below
+//    on   = where the opening range sits vs the overnight (18:00-09:30) range: inside / topBreak / botBreak / above / below
 //    gap  = 09:30 open minus the previous RTH close, points
 //    ent  = close | stop (entry mode)   risk / rr as at entry   n = trade number today   h / m / dow = entry time
 //
-//  Example tag:  L|ORB|or:42|pd:18|open:inside|gap:+35|ent:close|risk:46|rr:2|n:1|h:9|m:50|dow:2
+//  Example tag:  L|ORB|or:42|pd:18|on:inside|gap:+35|ent:close|risk:46|rr:2|n:1|h:9|m:50|dow:2
 //  Costs: $1 commission per contract per side and 1 tick of slippage per order are built in, because at
 //  ~200 trades a year the fills decide whether the rule is real.
 // =====================================================================================================
@@ -32,7 +32,7 @@ tz        = input.string("America/New_York", "Session timezone", options = ["Ame
 orSess    = input.session("0930-0945", "Opening range", group = grpP, tooltip = "High / low of the bars inside this window form the range. 0930-0945 = the first three 5-minute bars. Try 0930-1000 (six bars) as the slower variant.")
 entrySess = input.session("0945-1130", "Entry window", group = grpP, tooltip = "Breakouts are only taken inside this window. It should start where the opening range ends.")
 tradeSess = input.session("0930-1600", "Trade window (hold until)", group = grpP, tooltip = "Every position is closed on the first bar after this window (comment 'time'). Per-day counters reset at its start.")
-onSess    = input.session("1800-0930", "Overnight session (context only)", group = grpP, tooltip = "Its high / low go into the tag (open above / inside / below the overnight range). Not used to filter in v1.")
+onSess    = input.session("1800-0930", "Overnight session (context only)", group = grpP, tooltip = "Its high / low go into the tag (where the opening range sits against the overnight range: inside, topBreak, botBreak, above, below). Not used to filter in v1.")
 rthSess   = input.session("0930-1600", "Cash session (previous-day context only)", group = grpP, tooltip = "Previous day's range and close from this session go into the tag (pd, gap). Not used to filter in v1.")
 
 // ================================ 2 · ENTRY ================================
@@ -137,7 +137,7 @@ if tradeStart
     ORL := na
     orW := na
     rthOpen := open
-    openLoc := na(ONH) ? "-" : open > ONH ? "above" : open < ONL ? "below" : "inside"
+    openLoc := "-"
     gapPts := na(pdC) ? na : open - pdC
     tradesToday := 0
     longsToday := 0
@@ -156,6 +156,8 @@ if orEnd
     ORH := orH
     ORL := orL
     orW := ORH - ORL
+    // where the finished range sits against the overnight range (the 09:30 open itself is always inside it)
+    openLoc := na(ONH) ? "-" : ORL > ONH ? "above" : ORH < ONL ? "below" : ORH > ONH ? "topBreak" : ORL < ONL ? "botBreak" : "inside"
     pdPct := na(pdH) or pdH - pdL <= 0 ? na : 100.0 * orW / (pdH - pdL)
     orReady := orW >= minOrTicks * tick and (maxOrPd == 0 or na(pdPct) or pdPct <= maxOrPd)
     if s_alerts
@@ -163,7 +165,7 @@ if orEnd
 
 // ================================ TAG ================================
 f_tag(string side, float risk, float rr, int n) =>
-    side + "|ORB|or:" + str.tostring(orW, "#.#") + "|pd:" + str.tostring(pdPct, "#") + "|open:" + openLoc + "|gap:" + f_signed(gapPts, "#.#") + "|ent:" + (entryMode == "Close beyond the range" ? "close" : "stop") + "|risk:" + str.tostring(risk, "#.##") + "|rr:" + str.tostring(rr, "#.#") + "|n:" + str.tostring(n) + "|h:" + str.tostring(hour(time, tz)) + "|m:" + str.tostring(minute(time, tz)) + "|dow:" + str.tostring(dayofweek(time, tz))
+    side + "|ORB|or:" + str.tostring(orW, "#.#") + "|pd:" + str.tostring(pdPct, "#") + "|on:" + openLoc + "|gap:" + f_signed(gapPts, "#.#") + "|ent:" + (entryMode == "Close beyond the range" ? "close" : "stop") + "|risk:" + str.tostring(risk, "#.##") + "|rr:" + str.tostring(rr, "#.#") + "|n:" + str.tostring(n) + "|h:" + str.tostring(hour(time, tz)) + "|m:" + str.tostring(minute(time, tz)) + "|dow:" + str.tostring(dayofweek(time, tz))
 
 // stop / target for a given side and entry price. Returns [stopPx, tpPx, risk, rr]
 f_levels(bool isLong, float entryPx) =>
@@ -275,7 +277,7 @@ var line lnOnL = na
 if showDraw and orEnd
     lnH := line.new(bar_index - 1, ORH, bar_index, ORH, color = orReady ? color.new(color.lime, 0) : color.new(color.gray, 50), width = 2)
     lnL := line.new(bar_index - 1, ORL, bar_index, ORL, color = orReady ? color.new(color.red, 0) : color.new(color.gray, 50), width = 2)
-    label.new(bar_index, ORH, "OR " + str.tostring(orW, "#.#") + " · " + str.tostring(pdPct, "#") + "% pd · open " + openLoc + " · gap " + f_signed(gapPts, "#"), style = label.style_label_down, color = color.new(color.lime, 80), textcolor = color.white, size = size.tiny)
+    label.new(bar_index, ORH, "OR " + str.tostring(orW, "#.#") + " · " + str.tostring(pdPct, "#") + "% pd · overnight " + openLoc + " · gap " + f_signed(gapPts, "#"), style = label.style_label_down, color = color.new(color.lime, 80), textcolor = color.white, size = size.tiny)
     if not na(ONH)
         lnOnH := line.new(bar_index - 1, ONH, bar_index, ONH, color = color.new(color.orange, 30), style = line.style_dashed)
         lnOnL := line.new(bar_index - 1, ONL, bar_index, ONL, color = color.new(color.orange, 30), style = line.style_dashed)
@@ -293,7 +295,7 @@ if showDbg and barstate.islast
     table.cell(dbg, 0, 0, "Range", text_color = color.gray, text_size = size.small)
     table.cell(dbg, 1, 0, orReady ? "high " + str.tostring(ORH, format.mintick) + " · low " + str.tostring(ORL, format.mintick) + " · width " + str.tostring(orW, "#.#") + " · " + str.tostring(pdPct, "#") + "% of prev day" : (inOR ? "building" : "not set"), text_color = color.white, text_size = size.small)
     table.cell(dbg, 0, 1, "Context", text_color = color.gray, text_size = size.small)
-    table.cell(dbg, 1, 1, "open " + openLoc + " overnight range (" + str.tostring(ONL, format.mintick) + " - " + str.tostring(ONH, format.mintick) + ") · gap " + f_signed(gapPts, "#.##") + " · prev day range " + str.tostring(pdH - pdL, "#.#"), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 1, 1, "range " + openLoc + " overnight range (" + str.tostring(ONL, format.mintick) + " - " + str.tostring(ONH, format.mintick) + ") · gap " + f_signed(gapPts, "#.##") + " · prev day range " + str.tostring(pdH - pdL, "#.#"), text_color = color.white, text_size = size.small)
     table.cell(dbg, 0, 2, "Today", text_color = color.gray, text_size = size.small)
     table.cell(dbg, 1, 2, "trades " + str.tostring(tradesToday) + "/" + str.tostring(maxTrades) + " · longs " + str.tostring(longsToday) + " · shorts " + str.tostring(shortsToday) + " · day " + str.tostring(dayCount), text_color = color.white, text_size = size.small)
     table.cell(dbg, 0, 3, "Last", text_color = color.gray, text_size = size.small)

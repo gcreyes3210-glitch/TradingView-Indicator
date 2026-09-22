@@ -206,6 +206,6 @@ Results live in `BACKTEST_LOG.md` under "VP Value Area Fade".
 the opening range; the first 5-minute close beyond it is the trade, stop on the other side of the range, target 2R,
 flat at the close, one breakout per side per day. Entry can also be a resting stop order at the range edge. Nothing
 else is used to filter in v1; the overnight range, the gap and the previous day's range go into the entry tag
-(`L|ORB|or:42|pd:18|open:inside|gap:+35|ent:close|risk:46|rr:2|n:1|h:9|m:50|dow:2`) so one export shows which
+(`L|ORB|or:42|pd:18|on:inside|gap:+35|ent:close|risk:46|rr:2|n:1|h:9|m:50|dow:2`) so one export shows which
 regime filters would have mattered. `tools/analyze_tags.py` slices any tagged export by year, exit, side and every tag
 field. Results live in `BACKTEST_LOG.md` under "Opening Range Breakout".
