@@ -117,7 +117,6 @@ htfMaxDays    = input.int(7, "HTF FVG / NDOG max age (days)", minval = 1, group 
 htfFirstRetest = input.bool(false, "Require First HTF FVG Retest", group = grpHTF, tooltip = "ON: a zone counts for HTF confluence only during its FIRST retest = the first time price re-enters the zone after having been fully outside it since creation. The creation bar never counts. The first retest is consumed (firstRetestUsed) when price leaves the zone again; later returns do not qualify. Applied through HTF eligibility only, on top of the lifecycle and age rules. OFF: Phase 1 behaviour.")
 htfMaxAgeBars  = input.int(0, "Max HTF FVG Age (own-TF bars, 0 = OFF)", minval = 0, group = grpHTF, tooltip = "Age = (current bar time - creation time) / the zone's OWN timeframe length, so a 1H zone is aged in 1H bars on any chart (NDOG: days). Once age exceeds this, the zone is no longer eligible for HTF confluence. Lifecycle state is NOT changed and the box stays under the existing visual rules. 0 = OFF (Phase 1 behaviour).")
 useNdog       = input.bool(true, "Use NDOG (New Day Opening Gap) as an HTF zone", group = grpHTF, tooltip = "NDOG = the gap between the last close of the previous trading day and the first open of the new day, read from the chart's own confirmed bars (no request.security). Gap up = bullish zone (support), gap down = bearish zone (resistance). It uses the same 50% CE lifecycle, the same 'removed when price' rule (checked on chart bars) and the same 'Max active per timeframe' cap as the HTF FVGs.")
-htfAnchor     = input.string("Candle 2 (gap candle)", "Anchor HTF FVG box at", options = ["Candle 1 (first of the 3)", "Candle 2 (gap candle)"], group = grpHTF, tooltip = "The LEFT edge of the box is drawn on the historical HTF candle where the 3-candle FVG formed (time-anchored, so it sits on the right candles on any chart timeframe) instead of floating ahead of price.")
 htfExtendMode = input.string("Extend with price", "HTF FVG box width", options = ["Extend with price", "Fixed to the 3 candles"], group = grpHTF, tooltip = "Extend with price: the right edge follows the current bar (+ 'Extend boxes' bars) until the gap is mitigated, then freezes. Fixed: the box only covers the 3-candle sequence (candle 1/2 to the close of candle 3).")
 htfMaxPerTf   = input.int(6, "Max active FVGs per timeframe", minval = 1, maxval = 20, group = grpHTF, tooltip = "Newest zones kept per HTF timeframe. When the cap is exceeded the oldest zone of that timeframe leaves the active list.")
 htfMinGapTicks = input.int(0, "Min HTF FVG size (ticks)", minval = 0, group = grpHTF, tooltip = "HTF gaps smaller than this many ticks are ignored. 0 = any size.")
@@ -146,21 +145,19 @@ i_htfSelectScope   = input.string("Overlapping zones only", "Selection scope", o
 i_htfScoring       = input.bool(true, "Enable Probability Scoring", group = grpSel, tooltip = "Computes the composite score for every candidate (shown in the debug tables). OFF: the Auto mode and every tie use only the deterministic chain (fresher, higher timeframe, larger displacement, most recent). The strict / CE modes are unaffected by this switch except for their tie-breaks.")
 i_wFresh           = input.float(0.35, "Freshness Weight", minval = 0.0, step = 0.05, group = grpSel, tooltip = "Weight of the freshness / mitigation component. Freshness = state score (FRESH 1.0, TOUCHED 0.8, PARTIALLY_MITIGATED 0.55, CE_50_MITIGATED 0.3) x (1 - 0.5 x deepest penetration of the gap so far). DEFENDED / FILLED / INVALIDATED zones are never candidates (existing lifecycle). The four weights are normalised: score = sum(weight x component) / sum(weights), always 0..1.")
 i_wConf            = input.float(0.20, "Liquidity/Confluence Weight", minval = 0.0, step = 0.05, group = grpSel, tooltip = "Weight of the liquidity confluence component: PDH / PDL (1.0 each), PWH / PWL (1.0 each), previous-day and previous-week 50% equilibrium (0.5 each) and every unswept HTF swing of the chart engine (0.75 each) that lies inside the zone or within the proximity below. Points are divided by 'points for full score' and capped at 1.")
-i_wDisp            = input.float(0.20, "Displacement Weight", minval = 0.0, step = 0.05, group = grpSel, tooltip = "Weight of the displacement / gap-quality component, measured on the closed HTF candles that formed the gap and normalised by that timeframe's own ATR: gap / ATR (1.0 at 0.75 ATR), displacement-candle range / ATR (1.0 at 2 ATR), body / range of the displacement candle, and optionally relative volume. The average of the available sub-scores is used (an NDOG has a gap only).")
+i_wDisp            = input.float(0.20, "Displacement Weight", minval = 0.0, step = 0.05, group = grpSel, tooltip = "Weight of the displacement / gap-quality component, measured on the closed HTF candles that formed the gap and normalised by that timeframe's own ATR: gap / ATR (1.0 at 0.75 ATR), displacement-candle range / ATR (1.0 at 2 ATR) and body / range of the displacement candle. The average of the available sub-scores is used (an NDOG has a gap only).")
 i_wTf              = input.float(0.25, "Timeframe Weight", minval = 0.0, step = 0.05, group = grpSel, tooltip = "Weight of the structural timeframe component: log-scaled rank of the zone's timeframe between the smallest and the largest ENABLED HTF slot (NDOG counts as 1 day), so it works for any HTF configuration. Structural preference only: a deeply mitigated 4H loses to a fresh, high-quality 1H under the default weights.")
 i_confProxAtr      = input.float(0.5, "Level proximity (x chart ATR)", minval = 0.0, step = 0.1, group = grpSel, tooltip = "A liquidity level counts as confluence when it lies inside the zone or within this many chart ATRs of its edges. 0 = inside only.")
 i_confSat          = input.float(2.0, "Confluence points for full score", minval = 0.5, step = 0.5, group = grpSel, tooltip = "Confluence points at which the confluence component reaches 1.0 (2.0 = two major levels, or one major level plus one equilibrium and one HTF swing).")
-i_useRelVol        = input.bool(false, "Use relative volume in the displacement score", group = grpSel, tooltip = "Adds volume of the displacement candle / its 20-candle average (1.0 at 2x) to the displacement component. Off by default: only enable on symbols with real exchange volume (index futures yes, spot FX no). Missing volume is ignored, never scored.")
 i_ceTieTicks       = input.int(4, "CE mode: proximity tie tolerance (ticks)", minval = 0, group = grpSel, tooltip = "Deepest CE mode: candidates whose CE distance to the current close differs by at most this many ticks are treated as equally close and the composite score / tie chain decides.")
 i_htfHideLosers    = input.bool(true, "Hide non-selected overlapping zones", group = grpSel, tooltip = "Non-selected candidates keep their box object and lifecycle but are drawn fully transparent until they are selected (e.g. when the winner becomes DEFENDED or FILLED). The selected zone gets a 2-px border. No boxes are created or deleted by the selection engine.")
-i_htfSelDebug      = input.bool(false, "Debug Selection Engine", group = grpSel, tooltip = "Table (middle left): every candidate with cluster, selected flag, composite score, freshness / confluence / displacement / timeframe components, state and CE. Off by default.")
 
 grpSMT = "3 · SMT engine"
 correlatedSym  = input.symbol("CME_MINI:ES1!", "Correlated symbol", group = grpSMT, tooltip = "ES for an NQ chart, NQ for an ES chart. Either market can be the one that takes the liquidity or makes the new swing.")
 tolTicks       = input.int(2, "SMT tolerance (ticks)", minval = 0, group = grpSMT, tooltip = "A market only 'takes' a level (or makes a higher high / lower low) if it trades beyond it by MORE than this. Each market uses its OWN tick size.")
 pivotLeft      = input.int(5, "Feed swing: bars left", minval = 1, group = grpSMT, tooltip = "Bars to the LEFT of a candle that must have lower highs / higher lows for it to be a swing (ta.pivothigh / ta.pivotlow). Used by the swing liquidity references (section 4) AND by the universal pivot SMT (section 3b).")
 pivotRight     = input.int(5, "Feed swing: bars right", minval = 1, group = grpSMT, tooltip = "Bars to the RIGHT that must not exceed the swing. This is the delay before a swing is confirmed, and the only source of delay for swing references and pivot SMTs.")
-syncBars       = input.int(3, "Swing sync window (bars)", minval = 0, group = grpSMT, tooltip = "Liquidity-sweep swings (section 4): the other market's level for a swing = its extreme within +/- this many bars of the swing. Used up to a maximum of the 'bars right' value. The pivot SMT has its own alignment window in section 3b.")
+syncBars       = input.int(3, "Swing sync window (bars, 0 = same candle)", minval = 0, group = grpSMT, tooltip = "The other market's price for a swing = its extreme within +/- this many bars of the swing candle. 0 = exactly the swing candle (same timestamp on both markets). Used by the sweep references (section 4) AND by the universal pivot SMT (section 3b). Capped at 'bars right'.")
 smtConfirmBars = input.int(3, "SMT confirmation bars", minval = 1, group = grpSMT, tooltip = "An SMT becomes CONFIRMED this many bars after the sweep / swing if the other market has not taken its level. The sweeper can keep making new extremes meanwhile; it does not reset the count.")
 smtLifeBars    = input.int(30, "SMT setup lifetime (bars)", minval = 1, group = grpSMT, tooltip = "Counted from the sweeper's latest extreme. After this the SMT can no longer produce a signal.")
 smtMaxDays     = input.int(7, "Max SMT age (days, 0 = OFF)", minval = 0, group = grpSMT, tooltip = "An SMT older than this (by timestamp, from the candle on which it was detected) EXPIRES: it can no longer confirm, pair with an IFVG, fire a Buy/Sell or count in the sequence, and it is removed from the active list on every bar. With 'Keep marks on past bars' ON its label stays on the chart as history; OFF deletes the label too. 0 = never expire by age.")
@@ -172,8 +169,7 @@ removeInvalidatedSMT = input.bool(true, "Remove an SMT immediately once it's bro
 minSmtTf       = input.timeframe("1", "Minimum timeframe for SMT display", group = grpSMT, tooltip = "Only SMTs found by an engine running on THIS timeframe or higher are drawn. Example: set to 15 on a 1m chart -> the 1m chart's own SMTs are hidden, but the 15m feed's SMTs (section 8) are still drawn on the 1m chart. The engines keep running underneath either way.")
 
 grpPiv = "3b · Universal pivot SMT (every swing high / low vs the correlated market)"
-usePivSmt     = input.bool(true, "Enable universal pivot SMT", group = grpPiv, tooltip = "Compares EVERY confirmed swing high / low (ta.pivothigh / ta.pivotlow with the swing lengths of section 3) of the chart symbol with the correlated symbol on the SAME candle, and every swing of the correlated symbol with the chart symbol. Bearish SMT: one market makes a higher high while the other fails to (lower or equal high). Bullish SMT: one market makes a lower low while the other fails to (higher or equal low). Nothing is limited to session or key levels. A pivot SMT joins the normal SMT pipeline: confirmation, invalidation when the failing market later takes its swing, label merging, IFVG pairing, Buy/Sell and alerts. It runs in every engine (chart + higher-timeframe feeds).")
-pivSync       = input.int(0, "Alignment window (bars, 0 = same candle)", minval = 0, group = grpPiv, tooltip = "0: the other market's price is read on exactly the same candle as the swing (exact timestamp alignment). N: its extreme within +/- N candles of the swing is used instead, for markets whose swings print a candle or two apart. Capped at 'Feed swing: bars right'.")
+usePivSmt     = input.bool(true, "Enable universal pivot SMT", group = grpPiv, tooltip = "Compares EVERY confirmed swing high / low (ta.pivothigh / ta.pivotlow with the swing lengths of section 3) of the chart symbol with the correlated symbol on the same candle (+/- the 'Swing sync window' of section 3; set it to 0 for exact same-candle alignment), and every swing of the correlated symbol with the chart symbol. Bearish SMT: one market makes a higher high while the other fails to (lower or equal high). Bullish SMT: one market makes a lower low while the other fails to (higher or equal low). Nothing is limited to session or key levels. A pivot SMT joins the normal SMT pipeline: confirmation, invalidation when the failing market later takes its swing, label merging, IFVG pairing, Buy/Sell and alerts. It runs in every engine (chart + higher-timeframe feeds).")
 pivMaxGap     = input.int(80, "Max bars between the two swings (0 = OFF)", minval = 0, group = grpPiv, tooltip = "A new swing is only compared with the previous swing of the same side (high vs high, low vs low) when they are at most this many feed bars apart. An older previous swing is not compared, but the new swing still becomes the 'previous' one for the next comparison.")
 pivShowLine   = input.bool(true, "Draw divergence trendline (previous swing → new swing)", group = grpPiv, tooltip = "Line between the two swing points of the chart symbol that were compared. Uses the SMT colors of section 3 (faded while the SMT is only developing).")
 pivLineWidth  = input.int(2, "  trendline width", minval = 1, maxval = 4, group = grpPiv, tooltip = "Width of the divergence trendline.")
@@ -334,7 +330,6 @@ type HtfFVG
     float  gapAtr
     float  rangeAtr
     float  bodyRatio
-    float  relVol
     float  freshS = 0.0
     float  confS = 0.0
     float  dispS = 0.0
@@ -429,7 +424,6 @@ type HtfSlot
     float  cC
     float  hA
     float  lA
-    int    tA
     int    tM
     int    tcC
     float  o2
@@ -437,8 +431,6 @@ type HtfSlot
     float  l2
     float  c2
     float  atr2
-    float  v2
-    float  va2
 
 type SigMark
     int   markBar
@@ -473,16 +465,6 @@ type Feed
     float  postHiB
     float  postLoB
     float  corrTick
-    // pivot SMT alignment (section 3b): both markets' extreme within +/- pivSync bars of the swing candle,
-    // and their extreme over the bars AFTER that window up to the current candle
-    float  pvHiA
-    float  pvLoA
-    float  pvHiB
-    float  pvLoB
-    float  pvPostHiA
-    float  pvPostLoA
-    float  pvPostHiB
-    float  pvPostLoB
 
 // the complete state of one SMT + IFVG engine (one per feed timeframe)
 type Engine
@@ -966,29 +948,28 @@ f_invalidateHtf(int slot, bool isNew, float hC, float lC, float cC) =>
 //   tA / tM   = OPEN time of candle 1 / candle 2,  tcC     = CLOSE time of candle 3
 // The box is anchored with xloc.bar_time on those historical candles, so it sits on the gap
 // candle on ANY chart timeframe instead of starting at the current bar and floating ahead of price.
-f_addHtf(bool isNew, bool en, string name, int slot, float hC, float lC, float hA, float lA, int tA, int tM, int tcC, float o2, float h2, float l2, float c2, float atr2, float v2, float va2) =>
-    bool valid = isNew and en and not na(hC) and not na(lC) and not na(hA) and not na(lA) and not na(tA) and not na(tM) and not na(tcC)
+f_addHtf(bool isNew, bool en, string name, int slot, float hC, float lC, float hA, float lA, int tM, int tcC, float o2, float h2, float l2, float c2, float atr2) =>
+    bool valid = isNew and en and not na(hC) and not na(lC) and not na(hA) and not na(lA) and not na(tM) and not na(tcC)
     // displacement metrics of the gap candle (candle 2), normalised by that timeframe's own ATR
     float atrS = na(atr2) or atr2 <= 0.0 ? na : atr2
     float rng2 = na(h2) or na(l2) ? na : math.max(h2 - l2, syminfo.mintick)
     float rangeAtr2 = na(atrS) or na(rng2) ? na : rng2 / atrS
     float bodyR2 = na(rng2) or na(o2) or na(c2) ? na : math.abs(c2 - o2) / rng2
-    float relV2 = na(v2) or na(va2) or va2 <= 0.0 ? na : v2 / va2
     float minGap = htfMinGapTicks * syminfo.mintick
     bool bullGap = valid and lC > hA and (lC - hA) >= minGap
     bool bearGap = valid and hC < lA and (lA - hC) >= minGap
     box hbBull = na
     box hbBear = na
-    int leftT = htfAnchor == "Candle 1 (first of the 3)" ? tA : tM
+    int leftT = tM
     int rightT = htfExtendMode == "Extend with price" ? time + fvgExtend * chartMs : tcC
     if bullGap
         if showHTF
             hbBull := box.new(left = leftT, top = lC, right = rightT, bottom = hA, xloc = xloc.bar_time, border_color = htfBull, bgcolor = htfBull, text = name, text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
-        array.push(htfList, HtfFVG.new(isBull = true, top = lC, bottom = hA, tf = name, slot = slot, b = hbBull, ce = (lC + hA) / 2, bornT = time, tfSec = f_slotSec(slot), createdBar = bar_index, createdTime = time, gapAtr = na(atrS) ? na : (lC - hA) / atrS, rangeAtr = rangeAtr2, bodyRatio = bodyR2, relVol = relV2))
+        array.push(htfList, HtfFVG.new(isBull = true, top = lC, bottom = hA, tf = name, slot = slot, b = hbBull, ce = (lC + hA) / 2, bornT = time, tfSec = f_slotSec(slot), createdBar = bar_index, createdTime = time, gapAtr = na(atrS) ? na : (lC - hA) / atrS, rangeAtr = rangeAtr2, bodyRatio = bodyR2))
     if bearGap
         if showHTF
             hbBear := box.new(left = leftT, top = lA, right = rightT, bottom = hC, xloc = xloc.bar_time, border_color = htfBear, bgcolor = htfBear, text = name, text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
-        array.push(htfList, HtfFVG.new(isBull = false, top = lA, bottom = hC, tf = name, slot = slot, b = hbBear, ce = (lA + hC) / 2, bornT = time, tfSec = f_slotSec(slot), createdBar = bar_index, createdTime = time, gapAtr = na(atrS) ? na : (lA - hC) / atrS, rangeAtr = rangeAtr2, bodyRatio = bodyR2, relVol = relV2))
+        array.push(htfList, HtfFVG.new(isBull = false, top = lA, bottom = hC, tf = name, slot = slot, b = hbBear, ce = (lA + hC) / 2, bornT = time, tfSec = f_slotSec(slot), createdBar = bar_index, createdTime = time, gapAtr = na(atrS) ? na : (lA - hC) / atrS, rangeAtr = rangeAtr2, bodyRatio = bodyR2))
     if bullGap or bearGap
         f_capHtf(slot)
     true
@@ -1335,20 +1316,6 @@ sessOtherIn = f_inScoreSess(i_sessOther)
 sessPtsNow = sessNyAmIn ? 15 : sessLdnIn ? 15 : sessNyPmIn ? 10 : sessOtherIn ? 5 : 0
 sessNameNow = sessNyAmIn ? "NY AM" : sessLdnIn ? "London" : sessNyPmIn ? "NY PM" : sessOtherIn ? "Other" : ""
 
-// universal pivot SMT alignment (chart TF): both markets' extreme within +/- pivSyncEff bars of the swing candle
-// (pivSync = 0 -> exactly the swing candle, i.e. high[pivotRight] / corrHigh[pivotRight]: same timestamp on both)
-// and their extreme over the bars after that window up to the current bar (has the failing market taken its swing since?)
-pivSyncEff = math.min(pivSync, pivotRight)
-pivPostLen = math.max(pivotRight - pivSyncEff, 1)
-pvHiA = ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff]
-pvLoA = ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff]
-pvHiB = ta.highest(corrHigh, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff]
-pvLoB = ta.lowest(corrLow, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff]
-pvPostHiA = ta.highest(high, pivPostLen)
-pvPostLoA = ta.lowest(low, pivPostLen)
-pvPostHiB = ta.highest(corrHigh, pivPostLen)
-pvPostLoB = ta.lowest(corrLow, pivPostLen)
-
 // HTF swings (confirmed HTF pivots, last closed HTF bar only: [1] + lookahead_on = no future data)
 swSyncEff = math.min(swSync, swR)
 swPostLen = math.max(swR - swSyncEff, 1)
@@ -1369,8 +1336,8 @@ bool pwNew = not na(pwhA) and not na(pwlA) and not na(pwhB) and not na(pwlB) and
 
 // HTF FVG data: last CLOSED HTF bars only ([1] offsets + lookahead_on = no future data, same on history and realtime)
 //   [1] = candle 3 (last closed), [2] = candle 2 (the gap candle), [3] = candle 1
-//   time[3] / time[2] = open time of candle 1 / 2 (box anchors), time_close[1] = close of candle 3 (fixed-width box)
-//   o2/h2/l2/c2 = candle 2 OHLC, atr2 = ATR on that timeframe at candle 2, v2/va2 = its volume and 20-candle average
+//   time[2] = open time of candle 2 (box anchor), time_close[1] = close of candle 3 (fixed-width box)
+//   o2/h2/l2/c2 = candle 2 OHLC, atr2 = ATR on that timeframe at candle 2
 //   (displacement metrics of the selection engine; all from CLOSED HTF candles, same on history and realtime)
 nameH1 = f_tfName(htfTf1)
 nameH2 = f_tfName(htfTf2)
@@ -1380,14 +1347,14 @@ nameH5 = f_tfName(htfTf5)
 nameH6 = f_tfName(htfTf6)
 nameH7 = f_tfName(htfTf7)
 nameH8 = f_tfName(htfTf8)
-[hC1, lC1, cC1, hA1, lA1, tC1, tA1, tM1, tX1, o21, h21, l21, c21, atr21, v21, va21] = request.security(syminfo.tickerid, htfTf1, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
-[hC2, lC2, cC2, hA2, lA2, tC2, tA2, tM2, tX2, o22, h22, l22, c22, atr22, v22, va22] = request.security(syminfo.tickerid, htfTf2, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
-[hC3, lC3, cC3, hA3, lA3, tC3, tA3, tM3, tX3, o23, h23, l23, c23, atr23, v23, va23] = request.security(syminfo.tickerid, htfTf3, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
-[hC4, lC4, cC4, hA4, lA4, tC4, tA4, tM4, tX4, o24, h24, l24, c24, atr24, v24, va24] = request.security(syminfo.tickerid, htfTf4, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
-[hC5, lC5, cC5, hA5, lA5, tC5, tA5, tM5, tX5, o25, h25, l25, c25, atr25, v25, va25] = request.security(syminfo.tickerid, htfTf5, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
-[hC6, lC6, cC6, hA6, lA6, tC6, tA6, tM6, tX6, o26, h26, l26, c26, atr26, v26, va26] = request.security(syminfo.tickerid, htfTf6, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
-[hC7, lC7, cC7, hA7, lA7, tC7, tA7, tM7, tX7, o27, h27, l27, c27, atr27, v27, va27] = request.security(syminfo.tickerid, htfTf7, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
-[hC8, lC8, cC8, hA8, lA8, tC8, tA8, tM8, tX8, o28, h28, l28, c28, atr28, v28, va28] = request.security(syminfo.tickerid, htfTf8, [high[1], low[1], close[1], high[3], low[3], time[1], time[3], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2], volume[2], ta.sma(volume, 20)[2]], lookahead = barmerge.lookahead_on)
+[hC1, lC1, cC1, hA1, lA1, tC1, tM1, tX1, o21, h21, l21, c21, atr21] = request.security(syminfo.tickerid, htfTf1, [high[1], low[1], close[1], high[3], low[3], time[1], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2]], lookahead = barmerge.lookahead_on)
+[hC2, lC2, cC2, hA2, lA2, tC2, tM2, tX2, o22, h22, l22, c22, atr22] = request.security(syminfo.tickerid, htfTf2, [high[1], low[1], close[1], high[3], low[3], time[1], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2]], lookahead = barmerge.lookahead_on)
+[hC3, lC3, cC3, hA3, lA3, tC3, tM3, tX3, o23, h23, l23, c23, atr23] = request.security(syminfo.tickerid, htfTf3, [high[1], low[1], close[1], high[3], low[3], time[1], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2]], lookahead = barmerge.lookahead_on)
+[hC4, lC4, cC4, hA4, lA4, tC4, tM4, tX4, o24, h24, l24, c24, atr24] = request.security(syminfo.tickerid, htfTf4, [high[1], low[1], close[1], high[3], low[3], time[1], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2]], lookahead = barmerge.lookahead_on)
+[hC5, lC5, cC5, hA5, lA5, tC5, tM5, tX5, o25, h25, l25, c25, atr25] = request.security(syminfo.tickerid, htfTf5, [high[1], low[1], close[1], high[3], low[3], time[1], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2]], lookahead = barmerge.lookahead_on)
+[hC6, lC6, cC6, hA6, lA6, tC6, tM6, tX6, o26, h26, l26, c26, atr26] = request.security(syminfo.tickerid, htfTf6, [high[1], low[1], close[1], high[3], low[3], time[1], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2]], lookahead = barmerge.lookahead_on)
+[hC7, lC7, cC7, hA7, lA7, tC7, tM7, tX7, o27, h27, l27, c27, atr27] = request.security(syminfo.tickerid, htfTf7, [high[1], low[1], close[1], high[3], low[3], time[1], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2]], lookahead = barmerge.lookahead_on)
+[hC8, lC8, cC8, hA8, lA8, tC8, tM8, tX8, o28, h28, l28, c28, atr28] = request.security(syminfo.tickerid, htfTf8, [high[1], low[1], close[1], high[3], low[3], time[1], time[2], time_close[1], open[2], high[2], low[2], close[2], ta.atr(atrLen)[2]], lookahead = barmerge.lookahead_on)
 newH1 = not na(tC1) and (na(tC1[1]) or tC1 != tC1[1])
 newH2 = not na(tC2) and (na(tC2[1]) or tC2 != tC2[1])
 newH3 = not na(tC3) and (na(tC3[1]) or tC3 != tC3[1])
@@ -1396,11 +1363,11 @@ newH5 = not na(tC5) and (na(tC5[1]) or tC5 != tC5[1])
 newH6 = not na(tC6) and (na(tC6[1]) or tC6 != tC6[1])
 newH7 = not na(tC7) and (na(tC7[1]) or tC7 != tC7[1])
 newH8 = not na(tC8) and (na(tC8[1]) or tC8 != tC8[1])
-array<HtfSlot> htfSlots = array.from(HtfSlot.new(isNew = newH1, en = useHtf1, name = nameH1, slot = 1, hC = hC1, lC = lC1, cC = cC1, hA = hA1, lA = lA1, tA = tA1, tM = tM1, tcC = tX1, o2 = o21, h2 = h21, l2 = l21, c2 = c21, atr2 = atr21, v2 = v21, va2 = va21), HtfSlot.new(isNew = newH2, en = useHtf2, name = nameH2, slot = 2, hC = hC2, lC = lC2, cC = cC2, hA = hA2, lA = lA2, tA = tA2, tM = tM2, tcC = tX2, o2 = o22, h2 = h22, l2 = l22, c2 = c22, atr2 = atr22, v2 = v22, va2 = va22), HtfSlot.new(isNew = newH3, en = useHtf3, name = nameH3, slot = 3, hC = hC3, lC = lC3, cC = cC3, hA = hA3, lA = lA3, tA = tA3, tM = tM3, tcC = tX3, o2 = o23, h2 = h23, l2 = l23, c2 = c23, atr2 = atr23, v2 = v23, va2 = va23), HtfSlot.new(isNew = newH4, en = useHtf4, name = nameH4, slot = 4, hC = hC4, lC = lC4, cC = cC4, hA = hA4, lA = lA4, tA = tA4, tM = tM4, tcC = tX4, o2 = o24, h2 = h24, l2 = l24, c2 = c24, atr2 = atr24, v2 = v24, va2 = va24), HtfSlot.new(isNew = newH5, en = useHtf5, name = nameH5, slot = 5, hC = hC5, lC = lC5, cC = cC5, hA = hA5, lA = lA5, tA = tA5, tM = tM5, tcC = tX5, o2 = o25, h2 = h25, l2 = l25, c2 = c25, atr2 = atr25, v2 = v25, va2 = va25), HtfSlot.new(isNew = newH6, en = useHtf6, name = nameH6, slot = 6, hC = hC6, lC = lC6, cC = cC6, hA = hA6, lA = lA6, tA = tA6, tM = tM6, tcC = tX6, o2 = o26, h2 = h26, l2 = l26, c2 = c26, atr2 = atr26, v2 = v26, va2 = va26), HtfSlot.new(isNew = newH7, en = useHtf7, name = nameH7, slot = 7, hC = hC7, lC = lC7, cC = cC7, hA = hA7, lA = lA7, tA = tA7, tM = tM7, tcC = tX7, o2 = o27, h2 = h27, l2 = l27, c2 = c27, atr2 = atr27, v2 = v27, va2 = va27), HtfSlot.new(isNew = newH8, en = useHtf8, name = nameH8, slot = 8, hC = hC8, lC = lC8, cC = cC8, hA = hA8, lA = lA8, tA = tA8, tM = tM8, tcC = tX8, o2 = o28, h2 = h28, l2 = l28, c2 = c28, atr2 = atr28, v2 = v28, va2 = va28))
+array<HtfSlot> htfSlots = array.from(HtfSlot.new(isNew = newH1, en = useHtf1, name = nameH1, slot = 1, hC = hC1, lC = lC1, cC = cC1, hA = hA1, lA = lA1, tM = tM1, tcC = tX1, o2 = o21, h2 = h21, l2 = l21, c2 = c21, atr2 = atr21), HtfSlot.new(isNew = newH2, en = useHtf2, name = nameH2, slot = 2, hC = hC2, lC = lC2, cC = cC2, hA = hA2, lA = lA2, tM = tM2, tcC = tX2, o2 = o22, h2 = h22, l2 = l22, c2 = c22, atr2 = atr22), HtfSlot.new(isNew = newH3, en = useHtf3, name = nameH3, slot = 3, hC = hC3, lC = lC3, cC = cC3, hA = hA3, lA = lA3, tM = tM3, tcC = tX3, o2 = o23, h2 = h23, l2 = l23, c2 = c23, atr2 = atr23), HtfSlot.new(isNew = newH4, en = useHtf4, name = nameH4, slot = 4, hC = hC4, lC = lC4, cC = cC4, hA = hA4, lA = lA4, tM = tM4, tcC = tX4, o2 = o24, h2 = h24, l2 = l24, c2 = c24, atr2 = atr24), HtfSlot.new(isNew = newH5, en = useHtf5, name = nameH5, slot = 5, hC = hC5, lC = lC5, cC = cC5, hA = hA5, lA = lA5, tM = tM5, tcC = tX5, o2 = o25, h2 = h25, l2 = l25, c2 = c25, atr2 = atr25), HtfSlot.new(isNew = newH6, en = useHtf6, name = nameH6, slot = 6, hC = hC6, lC = lC6, cC = cC6, hA = hA6, lA = lA6, tM = tM6, tcC = tX6, o2 = o26, h2 = h26, l2 = l26, c2 = c26, atr2 = atr26), HtfSlot.new(isNew = newH7, en = useHtf7, name = nameH7, slot = 7, hC = hC7, lC = lC7, cC = cC7, hA = hA7, lA = lA7, tM = tM7, tcC = tX7, o2 = o27, h2 = h27, l2 = l27, c2 = c27, atr2 = atr27), HtfSlot.new(isNew = newH8, en = useHtf8, name = nameH8, slot = 8, hC = hC8, lC = lC8, cC = cC8, hA = hA8, lA = lA8, tM = tM8, tcC = tX8, o2 = o28, h2 = h28, l2 = l28, c2 = c28, atr2 = atr28))
 
 // ============================== FEEDS ==============================
 // chart feed = the current confirmed chart bar, every bar
-Feed fChart = Feed.new(isNew = true, t = time, tMid = time[1], pivT = time[pivotRight], o = open, h = high, l = low, c = close, h2 = high[2], l2 = low[2], atr = atrValue, phA = phA, plA = plA, winHiA = winHiA, winLoA = winLoA, postHiA = postHiA, postLoA = postLoA, ch = corrHigh, cl = corrLow, phB = phB, plB = plB, winHiB = winHiB, winLoB = winLoB, postHiB = postHiB, postLoB = postLoB, corrTick = corrTick, pvHiA = pvHiA, pvLoA = pvLoA, pvHiB = pvHiB, pvLoB = pvLoB, pvPostHiA = pvPostHiA, pvPostLoA = pvPostLoA, pvPostHiB = pvPostHiB, pvPostLoB = pvPostLoB)
+Feed fChart = Feed.new(isNew = true, t = time, tMid = time[1], pivT = time[pivotRight], o = open, h = high, l = low, c = close, h2 = high[2], l2 = low[2], atr = atrValue, phA = phA, plA = plA, winHiA = winHiA, winLoA = winLoA, postHiA = postHiA, postLoA = postLoA, ch = corrHigh, cl = corrLow, phB = phB, plB = plB, winHiB = winHiB, winLoB = winLoB, postHiB = postHiB, postLoB = postLoB, corrTick = corrTick)
 
 // higher-timeframe feeds: the LAST CLOSED candle of that timeframe ([1] + lookahead_on = no future data)
 // for both the chart symbol and the correlated symbol, with the same pivot / window / ATR values the
@@ -1409,22 +1376,22 @@ enF1 = useMtf and useF1 and timeframe.in_seconds(tfF1) > chartSec
 enF2 = useMtf and useF2 and timeframe.in_seconds(tfF2) > chartSec
 enF3 = useMtf and useF3 and timeframe.in_seconds(tfF3) > chartSec
 enF4 = useMtf and useF4 and timeframe.in_seconds(tfF4) > chartSec
-[a1o, a1h, a1l, a1c, a1h2, a1l2, a1t, a1tm, a1pt, a1atr, a1ph, a1pl, a1wh, a1wl, a1posh, a1posl, a1pvh, a1pvl, a1pph, a1ppl] = request.security(syminfo.tickerid, tfF1, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
-[b1h, b1l, b1ph, b1pl, b1wh, b1wl, b1posh, b1posl, b1tick, b1pvh, b1pvl, b1pph, b1ppl] = request.security(correlatedSym, tfF1, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick, ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
-[a2o, a2h, a2l, a2c, a2h2, a2l2, a2t, a2tm, a2pt, a2atr, a2ph, a2pl, a2wh, a2wl, a2posh, a2posl, a2pvh, a2pvl, a2pph, a2ppl] = request.security(syminfo.tickerid, tfF2, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
-[b2h, b2l, b2ph, b2pl, b2wh, b2wl, b2posh, b2posl, b2tick, b2pvh, b2pvl, b2pph, b2ppl] = request.security(correlatedSym, tfF2, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick, ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
-[a3o, a3h, a3l, a3c, a3h2, a3l2, a3t, a3tm, a3pt, a3atr, a3ph, a3pl, a3wh, a3wl, a3posh, a3posl, a3pvh, a3pvl, a3pph, a3ppl] = request.security(syminfo.tickerid, tfF3, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
-[b3h, b3l, b3ph, b3pl, b3wh, b3wl, b3posh, b3posl, b3tick, b3pvh, b3pvl, b3pph, b3ppl] = request.security(correlatedSym, tfF3, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick, ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
-[a4o, a4h, a4l, a4c, a4h2, a4l2, a4t, a4tm, a4pt, a4atr, a4ph, a4pl, a4wh, a4wl, a4posh, a4posl, a4pvh, a4pvl, a4pph, a4ppl] = request.security(syminfo.tickerid, tfF4, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
-[b4h, b4l, b4ph, b4pl, b4wh, b4wl, b4posh, b4posl, b4tick, b4pvh, b4pvl, b4pph, b4ppl] = request.security(correlatedSym, tfF4, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1], syminfo.mintick, ta.highest(high, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.lowest(low, 2 * pivSyncEff + 1)[pivotRight - pivSyncEff + 1], ta.highest(high, pivPostLen)[1], ta.lowest(low, pivPostLen)[1]], lookahead = barmerge.lookahead_on)
+[a1o, a1h, a1l, a1c, a1h2, a1l2, a1t, a1tm, a1pt, a1atr, a1ph, a1pl, a1wh, a1wl, a1posh, a1posl] = request.security(syminfo.tickerid, tfF1, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[b1h, b1l, b1ph, b1pl, b1wh, b1wl, b1posh, b1posl] = request.security(correlatedSym, tfF1, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[a2o, a2h, a2l, a2c, a2h2, a2l2, a2t, a2tm, a2pt, a2atr, a2ph, a2pl, a2wh, a2wl, a2posh, a2posl] = request.security(syminfo.tickerid, tfF2, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[b2h, b2l, b2ph, b2pl, b2wh, b2wl, b2posh, b2posl] = request.security(correlatedSym, tfF2, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[a3o, a3h, a3l, a3c, a3h2, a3l2, a3t, a3tm, a3pt, a3atr, a3ph, a3pl, a3wh, a3wl, a3posh, a3posl] = request.security(syminfo.tickerid, tfF3, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[b3h, b3l, b3ph, b3pl, b3wh, b3wl, b3posh, b3posl] = request.security(correlatedSym, tfF3, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[a4o, a4h, a4l, a4c, a4h2, a4l2, a4t, a4tm, a4pt, a4atr, a4ph, a4pl, a4wh, a4wl, a4posh, a4posl] = request.security(syminfo.tickerid, tfF4, [open[1], high[1], low[1], close[1], high[3], low[3], time[1], time[2], time[pivotRight + 1], ta.atr(atrLen)[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
+[b4h, b4l, b4ph, b4pl, b4wh, b4wl, b4posh, b4posl] = request.security(correlatedSym, tfF4, [high[1], low[1], ta.pivothigh(high, pivotLeft, pivotRight)[1], ta.pivotlow(low, pivotLeft, pivotRight)[1], ta.highest(high, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.lowest(low, 2 * syncEff + 1)[pivotRight - syncEff + 1], ta.highest(high, postLen)[1], ta.lowest(low, postLen)[1]], lookahead = barmerge.lookahead_on)
 newF1 = enF1 and not na(a1t) and (na(a1t[1]) or a1t != a1t[1])
 newF2 = enF2 and not na(a2t) and (na(a2t[1]) or a2t != a2t[1])
 newF3 = enF3 and not na(a3t) and (na(a3t[1]) or a3t != a3t[1])
 newF4 = enF4 and not na(a4t) and (na(a4t[1]) or a4t != a4t[1])
-Feed fF1 = Feed.new(isNew = newF1, t = a1t, tMid = a1tm, pivT = a1pt, o = a1o, h = a1h, l = a1l, c = a1c, h2 = a1h2, l2 = a1l2, atr = a1atr, phA = a1ph, plA = a1pl, winHiA = a1wh, winLoA = a1wl, postHiA = a1posh, postLoA = a1posl, ch = b1h, cl = b1l, phB = b1ph, plB = b1pl, winHiB = b1wh, winLoB = b1wl, postHiB = b1posh, postLoB = b1posl, corrTick = nz(b1tick, syminfo.mintick), pvHiA = a1pvh, pvLoA = a1pvl, pvHiB = b1pvh, pvLoB = b1pvl, pvPostHiA = a1pph, pvPostLoA = a1ppl, pvPostHiB = b1pph, pvPostLoB = b1ppl)
-Feed fF2 = Feed.new(isNew = newF2, t = a2t, tMid = a2tm, pivT = a2pt, o = a2o, h = a2h, l = a2l, c = a2c, h2 = a2h2, l2 = a2l2, atr = a2atr, phA = a2ph, plA = a2pl, winHiA = a2wh, winLoA = a2wl, postHiA = a2posh, postLoA = a2posl, ch = b2h, cl = b2l, phB = b2ph, plB = b2pl, winHiB = b2wh, winLoB = b2wl, postHiB = b2posh, postLoB = b2posl, corrTick = nz(b2tick, syminfo.mintick), pvHiA = a2pvh, pvLoA = a2pvl, pvHiB = b2pvh, pvLoB = b2pvl, pvPostHiA = a2pph, pvPostLoA = a2ppl, pvPostHiB = b2pph, pvPostLoB = b2ppl)
-Feed fF3 = Feed.new(isNew = newF3, t = a3t, tMid = a3tm, pivT = a3pt, o = a3o, h = a3h, l = a3l, c = a3c, h2 = a3h2, l2 = a3l2, atr = a3atr, phA = a3ph, plA = a3pl, winHiA = a3wh, winLoA = a3wl, postHiA = a3posh, postLoA = a3posl, ch = b3h, cl = b3l, phB = b3ph, plB = b3pl, winHiB = b3wh, winLoB = b3wl, postHiB = b3posh, postLoB = b3posl, corrTick = nz(b3tick, syminfo.mintick), pvHiA = a3pvh, pvLoA = a3pvl, pvHiB = b3pvh, pvLoB = b3pvl, pvPostHiA = a3pph, pvPostLoA = a3ppl, pvPostHiB = b3pph, pvPostLoB = b3ppl)
-Feed fF4 = Feed.new(isNew = newF4, t = a4t, tMid = a4tm, pivT = a4pt, o = a4o, h = a4h, l = a4l, c = a4c, h2 = a4h2, l2 = a4l2, atr = a4atr, phA = a4ph, plA = a4pl, winHiA = a4wh, winLoA = a4wl, postHiA = a4posh, postLoA = a4posl, ch = b4h, cl = b4l, phB = b4ph, plB = b4pl, winHiB = b4wh, winLoB = b4wl, postHiB = b4posh, postLoB = b4posl, corrTick = nz(b4tick, syminfo.mintick), pvHiA = a4pvh, pvLoA = a4pvl, pvHiB = b4pvh, pvLoB = b4pvl, pvPostHiA = a4pph, pvPostLoA = a4ppl, pvPostHiB = b4pph, pvPostLoB = b4ppl)
+Feed fF1 = Feed.new(isNew = newF1, t = a1t, tMid = a1tm, pivT = a1pt, o = a1o, h = a1h, l = a1l, c = a1c, h2 = a1h2, l2 = a1l2, atr = a1atr, phA = a1ph, plA = a1pl, winHiA = a1wh, winLoA = a1wl, postHiA = a1posh, postLoA = a1posl, ch = b1h, cl = b1l, phB = b1ph, plB = b1pl, winHiB = b1wh, winLoB = b1wl, postHiB = b1posh, postLoB = b1posl, corrTick = corrTick)
+Feed fF2 = Feed.new(isNew = newF2, t = a2t, tMid = a2tm, pivT = a2pt, o = a2o, h = a2h, l = a2l, c = a2c, h2 = a2h2, l2 = a2l2, atr = a2atr, phA = a2ph, plA = a2pl, winHiA = a2wh, winLoA = a2wl, postHiA = a2posh, postLoA = a2posl, ch = b2h, cl = b2l, phB = b2ph, plB = b2pl, winHiB = b2wh, winLoB = b2wl, postHiB = b2posh, postLoB = b2posl, corrTick = corrTick)
+Feed fF3 = Feed.new(isNew = newF3, t = a3t, tMid = a3tm, pivT = a3pt, o = a3o, h = a3h, l = a3l, c = a3c, h2 = a3h2, l2 = a3l2, atr = a3atr, phA = a3ph, plA = a3pl, winHiA = a3wh, winLoA = a3wl, postHiA = a3posh, postLoA = a3posl, ch = b3h, cl = b3l, phB = b3ph, plB = b3pl, winHiB = b3wh, winLoB = b3wl, postHiB = b3posh, postLoB = b3posl, corrTick = corrTick)
+Feed fF4 = Feed.new(isNew = newF4, t = a4t, tMid = a4tm, pivT = a4pt, o = a4o, h = a4h, l = a4l, c = a4c, h2 = a4h2, l2 = a4l2, atr = a4atr, phA = a4ph, plA = a4pl, winHiA = a4wh, winLoA = a4wl, postHiA = a4posh, postLoA = a4posl, ch = b4h, cl = b4l, phB = b4ph, plB = b4pl, winHiB = b4wh, winLoB = b4wl, postHiB = b4posh, postLoB = b4posl, corrTick = corrTick)
 
 // one engine per feed (state lives across bars)
 var Engine eC = f_newEngine(f_tfName(timeframe.period), true, allowedEntryTF, chartSec >= minSmtSec, chartSec, true)
@@ -1599,12 +1566,13 @@ f_runEngine(Engine e, Feed f) =>
             // ---------- C3. universal pivot SMT: every confirmed swing of EITHER market vs the other market on the same candle ----------
             // Four tracks: highs / lows anchored on the chart market (its pivot + the correlated market's aligned
             // extreme) and highs / lows anchored on the correlated market (its pivot + the chart market's aligned extreme).
-            // A track whose pivot is na this bar is skipped inside f_pivSmt (no detection, no track update).
+            // Alignment = the 'Swing sync window' of section 3 (0 = same candle). A track whose pivot is na this
+            // bar is skipped inside f_pivSmt (no detection, no track update).
             if corrOkF and usePivSmt
-                bearDet := f_pivRun(e, f, e.tHiA, true, f.phA, f.pvHiB, f.pvPostHiA, f.pvPostHiB, pivIdx, f.pivT, tolA, tolB) or bearDet
-                bullDet := f_pivRun(e, f, e.tLoA, false, f.plA, f.pvLoB, f.pvPostLoA, f.pvPostLoB, pivIdx, f.pivT, tolA, tolB) or bullDet
-                bearDet := f_pivRun(e, f, e.tHiB, true, f.pvHiA, f.phB, f.pvPostHiA, f.pvPostHiB, pivIdx, f.pivT, tolA, tolB) or bearDet
-                bullDet := f_pivRun(e, f, e.tLoB, false, f.pvLoA, f.plB, f.pvPostLoA, f.pvPostLoB, pivIdx, f.pivT, tolA, tolB) or bullDet
+                bearDet := f_pivRun(e, f, e.tHiA, true, f.phA, f.winHiB, f.postHiA, f.postHiB, pivIdx, f.pivT, tolA, tolB) or bearDet
+                bullDet := f_pivRun(e, f, e.tLoA, false, f.plA, f.winLoB, f.postLoA, f.postLoB, pivIdx, f.pivT, tolA, tolB) or bullDet
+                bearDet := f_pivRun(e, f, e.tHiB, true, f.winHiA, f.phB, f.postHiA, f.postHiB, pivIdx, f.pivT, tolA, tolB) or bearDet
+                bullDet := f_pivRun(e, f, e.tLoB, false, f.winLoA, f.plB, f.postLoA, f.postLoB, pivIdx, f.pivT, tolA, tolB) or bullDet
 
             // ---------- D. SMT state machine over every reference ----------
             if corrOkF
@@ -2258,9 +2226,8 @@ f_calculateConfluenceScore(HtfFVG z, float prox) =>
 // C. displacement / gap quality from the frozen creation metrics (own-TF ATR normalised): average of the
 // available sub-scores, so a symbol's raw price scale never dominates and an NDOG (gap only) still scores.
 f_calculateDisplacementScore(HtfFVG z) =>
-    bool useV = i_useRelVol and not na(z.relVol)
-    float sum = nz(f_clamp01(z.gapAtr / 0.75)) + nz(f_clamp01(z.rangeAtr / 2.0)) + nz(f_clamp01(z.bodyRatio)) + (useV ? f_clamp01((z.relVol - 0.5) / 1.5) : 0.0)
-    int n = (na(z.gapAtr) ? 0 : 1) + (na(z.rangeAtr) ? 0 : 1) + (na(z.bodyRatio) ? 0 : 1) + (useV ? 1 : 0)
+    float sum = nz(f_clamp01(z.gapAtr / 0.75)) + nz(f_clamp01(z.rangeAtr / 2.0)) + nz(f_clamp01(z.bodyRatio))
+    int n = (na(z.gapAtr) ? 0 : 1) + (na(z.rangeAtr) ? 0 : 1) + (na(z.bodyRatio) ? 0 : 1)
     n > 0 ? sum / n : 0.0
 
 // D. timeframe hierarchy: 0 for the smallest enabled HTF, 1 for the largest, log-scaled in between
@@ -2354,7 +2321,7 @@ if barstate.isconfirmed
         f_invalidateHtf(sd.slot, sd.isNew, sd.hC, sd.lC, sd.cC)
     f_invalidateHtf(9, useNdog, high, low, close)
     for sd in htfSlots
-        f_addHtf(sd.isNew, sd.en, sd.name, sd.slot, sd.hC, sd.lC, sd.hA, sd.lA, sd.tA, sd.tM, sd.tcC, sd.o2, sd.h2, sd.l2, sd.c2, sd.atr2, sd.v2, sd.va2)
+        f_addHtf(sd.isNew, sd.en, sd.name, sd.slot, sd.hC, sd.lC, sd.hA, sd.lA, sd.tM, sd.tcC, sd.o2, sd.h2, sd.l2, sd.c2, sd.atr2)
     f_addNdog(newDay, close[1], open, atrValue)
     // ---------- selection engine: ONE winner per cluster of overlapping candidates, before the engines run ----------
     f_selectBestHTFFVG(close)
@@ -2592,7 +2559,7 @@ if barstate.islast
     table.cell(infoTable, 1, 11, htfTxt + " · " + feedTxt, bgcolor = grayBg, text_color = color.white, text_halign = text.align_left, text_size = size.tiny)
 
     if showDebug
-        var table dbgTable = table.new(position.bottom_right, 2, 14, border_width = 1)
+        var table dbgTable = table.new(position.bottom_right, 2, 12, border_width = 1)
         string htfChk = ""
         string liveTxt = "none live"
         string blockTxt = "-"
@@ -2657,26 +2624,14 @@ if barstate.islast
         table.cell(dbgTable, 1, 9, feedDbg, bgcolor = grayBg, text_color = color.white)
         table.cell(dbgTable, 0, 10, "HTF zone states", bgcolor = color.gray, text_color = color.white)
         table.cell(dbgTable, 1, 10, hzTxt, bgcolor = grayBg, text_color = color.white)
-        // ---- Phase 3: context + event sequence for the chart engine ----
-        string p3Ctx = "no IFVG yet"
-        string p3Seq = eC.lastSeq
-        if not na(tl)
-            string primTxt = tl.primaryTag != "" ? tl.primaryTag + (tl.primaryBull ? " Bullish" : " Bearish") : "none"
-            string alignTxt = tl.primaryTag == "" ? "n/a" : (tl.primaryBull == tl.isBull ? "YES" : "NO")
-            p3Ctx := "HTF primary: " + primTxt + " · LTF: " + (tl.isBull ? "BULLISH" : "BEARISH") + " · aligned: " + alignTxt + " (" + htfDirFilter + ")"
-        string evTxt = "Sweep/SMT: " + (na(newestS) ? "no" : "yes @" + str.tostring(newestS.sweepBar)) + " · SMT conf: " + (na(newestS) or not newestS.confirmed ? "no" : "yes @" + str.tostring(newestS.confirmBar)) + " · Disp: " + (na(newestS) ? "-" : (newestS.isBull ? (na(eC.lastBullDispBar) ? "no" : "yes @" + str.tostring(eC.lastBullDispBar)) : (na(eC.lastBearDispBar) ? "no" : "yes @" + str.tostring(eC.lastBearDispBar)))) + " · IFVG: " + (na(eC.lastIfvgBar) ? "no" : "yes @" + str.tostring(eC.lastIfvgBar)) + " · seq filter " + (seqFilter ? "ON" : "OFF") + " · disp filter " + dispFilter
-        table.cell(dbgTable, 0, 11, "P3 context", bgcolor = color.gray, text_color = color.white)
-        table.cell(dbgTable, 1, 11, p3Ctx + "\n" + evTxt, bgcolor = grayBg, text_color = color.white)
-        table.cell(dbgTable, 0, 12, "P3 last sequence", bgcolor = color.gray, text_color = color.white)
-        table.cell(dbgTable, 1, 12, p3Seq, bgcolor = grayBg, text_color = color.white)
         string ladderTxt = ""
         if array.size(ifvgLadder) > 0
             for i = 0 to array.size(ifvgLadder) - 1
                 Engine el = array.get(ifvgLadder, i)
                 ladderTxt += (ladderTxt != "" ? " → " : "") + el.tfName + "(" + str.tostring(array.size(el.rawList)) + ")"
         string ifvgDbgTxt = "IFVG TF ok: " + (eC.ifvgTf ? "yes" : "NO (chart > 5m)") + " · mode " + (ifvgResolve == "Per-feed (legacy)" ? "per-feed" : "resolved") + " · chart pool " + str.tostring(array.size(eC.rawList)) + " waiting · ladder " + (ladderTxt == "" ? "none" : ladderTxt) + " · close " + str.tostring(close, format.mintick) + "\nlast: " + eC.ifvgDbg
-        table.cell(dbgTable, 0, 13, "IFVG DEBUG", bgcolor = color.gray, text_color = color.white)
-        table.cell(dbgTable, 1, 13, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)
+        table.cell(dbgTable, 0, 11, "IFVG DEBUG", bgcolor = color.gray, text_color = color.white)
+        table.cell(dbgTable, 1, 11, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)
 
     // ---- Phase 2 HTF zone table: one row per active zone (newest first, max 20) ----
     if showHtfDebug
@@ -2706,33 +2661,3 @@ if barstate.islast
                     table.cell(hzTable, 10, row, zt.candidate ? (zt.selected ? "SEL" : "hidden") : "-", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
                     table.cell(hzTable, 11, row, zt.candidate ? str.tostring(zt.score, "0.00") : "-", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
                 row += 1
-
-    // ---- selection engine debug: every candidate with cluster, winner flag, composite score and components ----
-    if i_htfSelDebug
-        var table selTable = table.new(position.middle_left, 11, 21, border_width = 1)
-        table.clear(selTable, 0, 0, 10, 20)
-        string selHdr = "Cluster|TF|Dir|State|Sel|Score|Fresh|Conf|Disp|TF wt|CE"
-        array<string> selHdrs = str.split(selHdr, "|")
-        for c = 0 to 10
-            table.cell(selTable, c, 0, array.get(selHdrs, c), bgcolor = color.gray, text_color = color.white, text_size = size.tiny)
-        table.cell(selTable, 0, 20, "mode", bgcolor = color.gray, text_color = color.white, text_size = size.tiny)
-        table.cell(selTable, 1, 20, i_htfSelectionMode + " · " + i_htfSelectScope + (i_htfScoring ? "" : " · scoring OFF"), bgcolor = color.new(color.gray, 50), text_color = color.white, text_size = size.tiny)
-        table.merge_cells(selTable, 1, 20, 10, 20)
-        if array.size(htfList) > 0
-            int srow = 1
-            for i = array.size(htfList) - 1 to 0
-                HtfFVG zq = array.get(htfList, i)
-                if zq.candidate and srow <= 19
-                    color sBg = zq.selected ? color.new(color.green, 60) : color.new(color.gray, 70)
-                    table.cell(selTable, 0, srow, str.tostring(zq.cluster), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(selTable, 1, srow, zq.tf, bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(selTable, 2, srow, zq.isBull ? "▲" : "▼", bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(selTable, 3, srow, f_hzStateName(zq.state), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(selTable, 4, srow, zq.selected ? "WINNER" : "", bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(selTable, 5, srow, str.tostring(zq.score, "0.000"), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(selTable, 6, srow, str.tostring(zq.freshS, "0.00"), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(selTable, 7, srow, str.tostring(zq.confS, "0.00"), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(selTable, 8, srow, str.tostring(zq.dispS, "0.00"), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(selTable, 9, srow, str.tostring(zq.tfS, "0.00"), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(selTable, 10, srow, str.tostring(zq.ce, format.mintick), bgcolor = sBg, text_color = color.white, text_size = size.tiny)
-                    srow += 1

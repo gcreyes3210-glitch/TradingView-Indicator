@@ -24,11 +24,11 @@ rep('indicator("ICT SMT + IFVG in HTF FVG", shorttitle = "ICT SMT/IFVG", overlay
 
 # strategy counters next to the last-plan array, and a STRATEGY row in the debug table
 rep("var array<float> lastPlan = array.new_float(6, na)\n", "var array<float> lastPlan = array.new_float(6, na)\nvar int stratOrders = 0\nvar int stratSkipped = 0\n")
-rep("        var table dbgTable = table.new(position.bottom_right, 2, 14, border_width = 1)", "        var table dbgTable = table.new(position.bottom_right, 2, 15, border_width = 1)")
-rep("        table.cell(dbgTable, 1, 13, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)",
-    "        table.cell(dbgTable, 1, 13, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)\n"
-    "        table.cell(dbgTable, 0, 14, \"STRATEGY\", bgcolor = color.gray, text_color = color.white)\n"
-    "        table.cell(dbgTable, 1, 14, \"orders submitted \" + str.tostring(stratOrders) + \" · skipped (window / qty / position) \" + str.tostring(stratSkipped) + \" · closed trades \" + str.tostring(strategy.closedtrades) + \" · open \" + str.tostring(strategy.opentrades) + \" · equity \" + str.tostring(strategy.equity, \"#.##\"), bgcolor = grayBg, text_color = color.white)")
+rep("        var table dbgTable = table.new(position.bottom_right, 2, 12, border_width = 1)", "        var table dbgTable = table.new(position.bottom_right, 2, 13, border_width = 1)")
+rep("        table.cell(dbgTable, 1, 11, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)",
+    "        table.cell(dbgTable, 1, 11, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)\n"
+    "        table.cell(dbgTable, 0, 12, \"STRATEGY\", bgcolor = color.gray, text_color = color.white)\n"
+    "        table.cell(dbgTable, 1, 12, \"orders submitted \" + str.tostring(stratOrders) + \" · skipped (window / qty / position) \" + str.tostring(stratSkipped) + \" · closed trades \" + str.tostring(strategy.closedtrades) + \" · open \" + str.tostring(strategy.opentrades) + \" · equity \" + str.tostring(strategy.equity, \"#.##\"), bgcolor = grayBg, text_color = color.white)")
 
 # strategy inputs, right before the TYPES section
 rep("// ============================== TYPES ==============================", '''grpStrat = "S · Strategy (backtest only)"
