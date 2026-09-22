@@ -43,18 +43,21 @@ Debug check before export: "Last IFVG in" = 15m 1H 4H 1D NDOG, "SMT live" names 
 | G | F mechanics but Exit = TP2 only (3 R), 1 contract | 93 | +2,885 | Matches the estimate from F legs exactly. PF 1.31, win 34%, max DD −3,055, both halves positive (+1,394 / +1,491), longest losing streak 10. 5 stop-outs had reached 2 R first (−537) → **new baseline** |
 | H | G but TP2 = 4 R | 93 | +2,820 | Flat vs G: PF 1.30, win 32%, DD −2,900. 17 of the 24 3 R winners reached 4 R (+1,668), 2 reversed to stop (−994), 5 ran out of time short of 4 R (−738). Net effect ≈ 0 → **stay at 3 R** |
 | I | G + HTF slot 7 (Daily) on | 95 | +3,105 | 5 new daily-zone trades: 1 win (+1,050), 4 stops (−501). 3 4H trades displaced (+330). Net +220, all from one trade. PF 1.32, DD −1,912 (the June win cushions the June–July streak). Too few trades to judge → **left on (design intent), unproven** |
+| J | Run I settings on **MES1!** (correlated NQ1!), quantity was Risk-module (1–23 ct) so results normalised per contract | 114 | −688 per contract | **Does not transfer.** Win 32%, PF 0.88, both halves negative (−615 / −73). Longs +378 (44% win), shorts −1,066 (23% win). By zone: 15m −455, 4H −338, 1D −188, 1H +81, NDOG +212. Raw risk-sized net −7,738 |
 
 ## Findings that held in every run and both halves of the year
 * 5-minute HTF zones lose. 1H-swing-sweep SMTs lose. Breakeven at 1 R costs more winners than it saves.
+* **The NQ edge did not transfer to ES/MES (Run J).** Same rules, same year, opposite result. Treat the NQ numbers as one sample, not a validated system, until a forward test or a second year agrees.
 
 ## Findings that flipped between halves (regime, NOT to be gated on)
 * Confluence score ≥ 70 (neutral, then −1,588), killzone sessions (mildly positive, then −1,771), displacement ≥ 12 (neutral, then −1,100),
   15m vs 1H+ zones (+1,234 vs +187, then −872 vs +762). Any of these would be curve fitting on 93 trades.
 
 ## Open experiments, in order
-1. Second symbol (ES/MES with NQ correlated) for an independent sample of the Run G/I mechanics.
-2. Optional limit-entry variant: CE limit but keep the original TP levels (Run E recomputed TPs from the smaller risk, so the winners were capped smaller).
-3. Re-weight the confluence score from data only once ≥ 200 trades of the final mechanics exist; until then the gate stays at 0.
+1. Second year on MNQ (Deep Backtesting window 2024-09 → 2025-09) with Run I settings: does the NQ edge hold out of sample?
+2. Run J again with Fixed 1 contract only if a same-quantity comparison is wanted (per-contract normalisation already answers the question).
+3. Optional limit-entry variant: CE limit but keep the original TP levels (Run E recomputed TPs from the smaller risk, so the winners were capped smaller).
+4. Re-weight the confluence score from data only once ≥ 200 trades of the final mechanics exist; until then the gate stays at 0.
 
 ## Pine limits (do not regress)
 Script must stay under 550 local scopes and 80,000 compiled tokens; the file sits near ~470 scopes and just under the token cap.
