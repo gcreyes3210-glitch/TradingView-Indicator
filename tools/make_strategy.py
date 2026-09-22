@@ -40,7 +40,11 @@ rep('''            string summary = f_onSignal(s)
 ''', '''            string summary = f_onSignal(s)
             // ---------- strategy twin: orders from the risk module's numbers, tagged with the score components ----------
             bool inWindow = time >= s_from and time <= s_to
-            int qty = s_qtyMode == "Fixed 1 contract" ? 1 : lastPlanCt
+            float lastPlanSl = array.get(lastPlan, 1)
+            float lastPlanTp1 = array.get(lastPlan, 2)
+            float lastPlanTp2 = array.get(lastPlan, 3)
+            float lastPlanTpSw = array.get(lastPlan, 4)
+            int qty = s_qtyMode == "Fixed 1 contract" ? 1 : int(nz(array.get(lastPlan, 5), 0))
             bool sameSideOpen = s.isBull ? strategy.position_size > 0 : strategy.position_size < 0
             bool otherSideOpen = s.isBull ? strategy.position_size < 0 : strategy.position_size > 0
             bool canEnter = inWindow and qty > 0 and not sameSideOpen and (not otherSideOpen or s_allowRev)

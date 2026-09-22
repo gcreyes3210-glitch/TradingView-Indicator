@@ -566,13 +566,9 @@ var int    lastSigBar  = na
 var bool   lastSigBull = false
 var string lastSigTxt  = "No Trade"
 var string lastPlanTxt = "-"
-// last plan numbers (read by the strategy twin generated from this file, harmless here)
-var float lastPlanEntry = na
-var float lastPlanSl = na
-var float lastPlanTp1 = na
-var float lastPlanTp2 = na
-var float lastPlanTpSw = na
-var int   lastPlanCt = 0
+// last plan numbers [entry, sl, tp1, tp2, swing tp, contracts] (functions may mutate an array, not a global);
+// read by the strategy twin generated from this file, harmless here
+var array<float> lastPlan = array.new_float(6, na)
 chartMs = timeframe.in_seconds() * 1000
 dayMs = 24 * 60 * 60 * 1000
 // HTF FVG / NDOG lifecycle states
@@ -2507,12 +2503,12 @@ f_onSignal(SigInfo s) =>
             lnSw := line.new(bar_index, tpSw, x2, tpSw, color = color.blue, width = 1, style = line.style_dashed)
         label pl = label.new(x2, sl, planTxt, style = label.style_label_left, color = color.new(s.isBull ? color.green : color.red, 25), textcolor = color.white, size = size.small, tooltip = tt)
         array.push(plans, TradePlan.new(isBull = s.isBull, tfName = s.tfName, startBar = bar_index, entry = s.entry, sl = sl, tp1 = tp1, tp2 = tp2, tpSw = tpSw, contracts = ct, riskPts = riskPts, riskUsd = riskUsd, txt = planTxt, lnE = lnE, lnS = lnS, lnT1 = lnT1, lnT2 = lnT2, lnSw = lnSw, lbl = pl))
-    lastPlanEntry := s.entry
-    lastPlanSl := sl
-    lastPlanTp1 := tp1
-    lastPlanTp2 := tp2
-    lastPlanTpSw := tpSw
-    lastPlanCt := ct
+    array.set(lastPlan, 0, s.entry)
+    array.set(lastPlan, 1, sl)
+    array.set(lastPlan, 2, tp1)
+    array.set(lastPlan, 3, tp2)
+    array.set(lastPlan, 4, tpSw)
+    array.set(lastPlan, 5, ct)
     dirTxt + " " + s.tfName + " · " + str.tostring(ct) + " ct · SL " + str.tostring(riskPts, format.mintick) + " pts · $" + str.tostring(riskUsd, "#.##")
 
 // ============================== HTF FVG SELECTION ENGINE (section 2b) ==============================
