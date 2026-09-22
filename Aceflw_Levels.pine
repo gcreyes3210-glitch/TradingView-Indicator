@@ -9,11 +9,10 @@
 //    4. Expected-move bands anchored at the session open: open +/- 1 and 2 sigma for two horizons.
 //       Pine has no implied-volatility feed, so sigma is REALISED: the standard deviation of bar returns over a
 //       lookback, scaled by the square root of the horizon. Same shape as Aceflw's bands, different input.
-//    5. Cumulative session delta (up-volume minus down-volume from 1-minute bars) in the corner table.
+//    5. Cumulative session delta (up-volume minus down-volume, classified from 1-minute bars) in the corner table.
 //  Not possible in Pine: bid/ask footprint cells, options levels (Vol Trigger, Call Wall, gamma).
 // =====================================================================================================
 indicator("Session Levels (ONVP · VWAP σ · expected move)", "Levels", overlay = true, max_lines_count = 500, max_labels_count = 200, max_boxes_count = 500)
-import TradingView/ta/7 as tv
 
 // ================================ INPUTS ================================
 g1 = "1 · Sessions"
@@ -224,11 +223,24 @@ plot(emOn and emShow2 ? emC + 2 * emS2 : na, "EM long +2σ", color.new(color.ora
 plot(emOn and emShow2 ? emC - 2 * emS2 : na, "EM long -2σ", color.new(color.orange, 60), 1, plot.style_linebr)
 
 // ================================ 5 · SESSION DELTA ================================
-[upV, dnV, dV] = tv.requestUpAndDownVolume("1")
+// up/down volume from 1-minute bars: a 1-minute bar's volume counts as buying when it closes above its open,
+// selling when below; a doji is split by where the close sits in the bar's range.
+[ltfO, ltfC] = request.security_lower_tf(syminfo.tickerid, "1", [open, close])
+float dV = 0.0
+if array.size(ltfV) > 0
+    for k = 0 to array.size(ltfV) - 1
+        float o = array.get(ltfO, k)
+        float c = array.get(ltfC, k)
+        float h = array.get(ltfH, k)
+        float l = array.get(ltfL, k)
+        float v = nz(array.get(ltfV, k))
+        dV += c > o ? v : c < o ? -v : (h > l ? v * (2 * (c - l) / (h - l) - 1) : 0.0)
+else
+    dV := close > open ? nz(volume) : close < open ? -nz(volume) : 0.0
 var float cumDelta = 0.0
 if fullStart
     cumDelta := 0.0
-cumDelta += nz(dV)
+cumDelta += dV
 
 // ================================ TABLE ================================
 var table t = table.new(position.top_right, 2, 9, bgcolor = color.new(color.black, 30), border_width = 1)
