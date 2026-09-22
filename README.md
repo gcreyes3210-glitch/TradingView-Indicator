@@ -204,8 +204,10 @@ Results live in `BACKTEST_LOG.md` under "VP Value Area Fade".
 ## Opening Range Breakout (new, separate file)
 `ORB_strategy.pine` is the third, independent strategy: the high / low of the first 15 minutes of the cash session is
 the opening range; the first 5-minute close beyond it is the trade, stop on the other side of the range, target 2R,
-flat at the close, one breakout per side per day. Entry can also be a resting stop order at the range edge. Nothing
-else is used to filter in v1; the overnight range, the gap and the previous day's range go into the entry tag
+flat at the close, one breakout per side per day. Entry can also be a resting stop order at the range edge. After
+ORB1–ORB5 the defaults are the tested candidate: no target (hold to the close) and trade only on days whose opening
+range already breaks the overnight (18:00–09:30) high or low. 2020-01 → 2026-09 on MNQ: 821 trades, PF 1.28, one
+losing year. Nothing else is used to filter; the overnight range, the gap and the previous day's range go into the entry tag
 (`L|ORB|or:42|pd:18|on:inside|gap:+35|ent:close|risk:46|rr:2|n:1|h:9|m:50|dow:2`) so one export shows which
 regime filters would have mattered. `tools/analyze_tags.py` slices any tagged export by year, exit, side and every tag
 field. Results live in `BACKTEST_LOG.md` under "Opening Range Breakout".
