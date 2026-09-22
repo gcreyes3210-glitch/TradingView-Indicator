@@ -34,7 +34,7 @@ rep("        table.cell(dbgTable, 1, 11, ifvgDbgTxt, bgcolor = grayBg, text_colo
 rep("// ============================== TYPES ==============================", '''grpStrat = "S · Strategy (backtest only)"
 s_from       = input.time(timestamp("2024-01-01T00:00:00"), "Test window start", group = grpStrat, tooltip = "Entries are only taken inside the window. Tune settings on one window (in-sample), then re-run on a later window the tuning never saw (out-of-sample) and keep only changes that hold up there.")
 s_to         = input.time(timestamp("2030-01-01T00:00:00"), "Test window end", group = grpStrat)
-s_qtyMode    = input.string("Risk module contracts", "Quantity", options = ["Risk module contracts", "Fixed 1 contract"], group = grpStrat, tooltip = "Risk module contracts = the count from section 10 (Account risk / (stop distance x point value)). 0 contracts = the signal is skipped, so set Account risk and Point value for the symbol you test.")
+s_qtyMode    = input.string("Risk module contracts", "Quantity", options = ["Risk module contracts", "Fixed 1 contract", "Fixed 2 contracts"], group = grpStrat, tooltip = "Risk module contracts = the count from section 10 (Account risk / (stop distance x point value)). 0 contracts = the signal is skipped, so set Account risk and Point value for the symbol you test. Fixed 2 contracts is needed for the Half at TP1, rest at TP2 exit model.")
 s_exitModel  = input.string("TP1", "Exit model", options = ["TP1", "TP2", "Swing TP (fallback TP1)", "Half at TP1, rest at TP2", "Stop / time only"], group = grpStrat, tooltip = "Which of the risk module's targets closes the trade. Every model uses the section 10 stop. Half at TP1 needs at least 2 contracts. Stop / time only = no target, the trade runs until the stop or the time stop.")
 s_timeStop   = input.bool(true, "Time stop = 'Close an open trade plan after' bars", group = grpStrat, tooltip = "Closes the position at market after the section 10 'Close an open trade plan after (chart bars)' input.")
 s_allowRev   = input.bool(false, "Opposite signal reverses an open position", group = grpStrat, tooltip = "Off: a signal against the open position is ignored. On: the position is closed and reversed.")
@@ -55,7 +55,7 @@ rep('''            string summary = f_onSignal(s)
             float lastPlanTp1 = array.get(lastPlan, 2)
             float lastPlanTp2 = array.get(lastPlan, 3)
             float lastPlanTpSw = array.get(lastPlan, 4)
-            int qty = s_qtyMode == "Fixed 1 contract" ? 1 : int(nz(array.get(lastPlan, 5), 0))
+            int qty = s_qtyMode == "Fixed 1 contract" ? 1 : s_qtyMode == "Fixed 2 contracts" ? 2 : int(nz(array.get(lastPlan, 5), 0))
             bool sameSideOpen = s.isBull ? strategy.position_size > 0 : strategy.position_size < 0
             bool otherSideOpen = s.isBull ? strategy.position_size < 0 : strategy.position_size > 0
             bool canEnter = inWindow and qty > 0 and not sameSideOpen and (not otherSideOpen or s_allowRev)
