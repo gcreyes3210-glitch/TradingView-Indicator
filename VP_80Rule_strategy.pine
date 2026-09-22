@@ -33,7 +33,8 @@ strategy("VP 80% Rule [v2]", "VP-80 v2", overlay = true, pyramiding = 0,
 grpP = "1 · Profile"
 tz        = input.string("America/New_York", "Session timezone", options = ["America/New_York", "America/Chicago", "America/Los_Angeles", "UTC", "Europe/London"], group = grpP, tooltip = "The two session inputs below are written in this timezone. Default New York: the CME day opens 18:00, the cash session opens 09:30.")
 profSess  = input.session("1800-0930", "Profile session (builds the value area)", group = grpP, tooltip = "Volume inside this session builds the profile. Default = CME open to RTH open = Asia + London (the previous two sessions when you trade NY AM).")
-tradeSess = input.session("0930-1200", "Trade window", group = grpP, tooltip = "Entries are only taken inside this window and every position is closed when it ends.")
+tradeSess = input.session("0930-1200", "Trade window (hold until)", group = grpP, tooltip = "Every position is closed when this window ends. Entries are allowed inside it only up to the end of the Entry window below.")
+entrySess = input.session("0930-1200", "Entry window", group = grpP, tooltip = "New trades are only opened inside this window. Set it shorter than the Trade window to enter in the morning but let the trade run into the afternoon.")
 rowTicks  = input.int(4, "Profile row size (ticks)", minval = 1, group = grpP, tooltip = "Height of one profile row in ticks. NQ tick = 0.25, so 4 ticks = 1 point per row.")
 vaPct     = input.float(70, "Value area (% of session volume)", minval = 50, maxval = 95, step = 5, group = grpP, tooltip = "The value area is the price band around the POC that holds this share of the session's volume. 70 % is the Market Profile standard.")
 showProf  = input.bool(true, "Draw the profile histogram", group = grpP, tooltip = "Draws the rows of the finished profile at the RTH open. Off = only the three lines.")
@@ -64,6 +65,7 @@ showDbg  = input.bool(true, "Show debug table", group = grpX)
 // ================================ SESSION STATE ================================
 bool inProf  = not na(time(timeframe.period, profSess, tz))
 bool inTrade = not na(time(timeframe.period, tradeSess, tz))
+bool inEntry = inTrade and not na(time(timeframe.period, entrySess, tz))
 bool profStart = inProf and not inProf[1]
 bool profEnd   = (not inProf) and inProf[1]
 bool tradeEnd  = (not inTrade) and inTrade[1]
@@ -252,7 +254,7 @@ f_tag(string side, float risk, float rr) =>
 bool okDirS = direction != "Long only"
 bool okDirL = direction != "Short only"
 bool okVa   = vaReady and (minVaTicks == 0 or vaW >= minVaTicks * tick)
-bool accepted = vaReady and inTrade and inWindow and flat and okVa and outSide != 0 and accCount == acceptBars and (not onePerDay or tradesToday == 0)
+bool accepted = vaReady and inEntry and inWindow and flat and okVa and outSide != 0 and accCount == acceptBars and (not onePerDay or tradesToday == 0)
 
 if accepted and outSide == 1 and okDirS
     float stopPx = vah + stopVaFrac * vaW
