@@ -11,7 +11,7 @@ Pine caps a script at 550 local scopes and 80,000 compiled tokens. To stay under
 * the engine, the HTF slot handling and SMT drawing run through arrays / single passes (see `MAIN`);
 * the pivot SMT now uses the section 3 `Swing sync window` (set it to 0 for exact same-candle alignment) instead of its own window, which removed eight requested series per feed;
 * relative volume was dropped from the HTF selection displacement score, and the HTF box is always anchored on the gap candle (three requested series per HTF slot);
-* the separate selection-engine debug table and the two Phase 3 debug rows were removed (the HTF zone debug table keeps `Sel` / `Score`, the strategy debug table keeps the STRATEGY row).
+* the separate selection-engine debug table and the two Phase 3 debug rows were removed (the HTF zone debug table was later removed for size; the strategy debug table keeps the STRATEGY row).
 
 ## IFVG confluence score (previous version)
 

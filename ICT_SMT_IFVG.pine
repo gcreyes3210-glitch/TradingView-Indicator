@@ -70,7 +70,6 @@ showSmtShapes  = input.bool(true, "Show SMT label shapes (colored boxes)", group
 smtLabelSize   = input.string("Tiny", "SMT label size", options = ["Tiny", "Small", "Normal", "Large"], group = grpView, tooltip = "Text size of the SMT labels.")
 sigMarkSize    = input.string("Normal", "Buy/Sell mark size", options = ["Tiny", "Small", "Normal", "Large"], group = grpView, tooltip = "Text size of the ▲ BUY / ▼ SELL marks.")
 showDebug      = input.bool(true, "Show debug information", group = grpView, tooltip = "Debug table (bottom right) plus small gray notes on the chart explaining why an IFVG did not pair with an SMT.")
-showHtfDebug   = input.bool(false, "Show HTF zone debug table", group = grpView, tooltip = "Compact table (bottom left): every active HTF FVG / NDOG with timeframe, type, direction, lifecycle state, eligibility, age (own-TF bars), age expired, first retest available / used, and which zone is the PRIMARY context at the current close.")
 keepHistory    = input.bool(true, "Keep SMT / signal marks on past bars", group = grpView, tooltip = "On: SMT labels, Buy/Sell marks and the HTF FVGs / IFVGs used by a signal stay on the chart when you scroll back, so you can review old days.")
 keepAllIfvg    = input.bool(false, "Keep ALL IFVG boxes on past bars", group = grpView, tooltip = "Off: an IFVG box disappears when it is invalidated or too old (unless it produced a signal).")
 
@@ -2400,32 +2399,3 @@ if barstate.islast
         string ifvgDbgTxt = "IFVG TF ok: " + (eC.ifvgTf ? "yes" : "NO (chart > 5m)") + " · chart pool " + str.tostring(array.size(eC.rawList)) + " waiting · ladder " + (ladderTxt == "" ? "none" : ladderTxt) + " · close " + str.tostring(close, format.mintick) + "\nlast: " + eC.ifvgDbg
         table.cell(dbgTable, 0, 11, "IFVG DEBUG", bgcolor = color.gray, text_color = color.white)
         table.cell(dbgTable, 1, 11, ifvgDbgTxt, bgcolor = grayBg, text_color = color.white)
-
-    // ---- Phase 2 HTF zone table: one row per active zone (newest first, max 20) ----
-    if showHtfDebug
-        var table hzTable = table.new(position.bottom_left, 12, 21, border_width = 1)
-        table.clear(hzTable, 0, 0, 11, 20)
-        string hdr = "TF|Type|Dir|State|Elig|Age|AgeExp|Retest|Used|Primary|Sel|Score"
-        array<string> hdrs = str.split(hdr, "|")
-        for c = 0 to 11
-            table.cell(hzTable, c, 0, array.get(hdrs, c), bgcolor = color.gray, text_color = color.white, text_size = size.tiny)
-        if array.size(htfList) > 0
-            int row = 1
-            for i = array.size(htfList) - 1 to 0
-                HtfFVG zt = array.get(htfList, i)
-                if row <= 20
-                    bool el = f_hzEligible(zt)
-                    color rowBg = zt.isPrimary ? color.new(color.blue, 40) : el ? color.new(color.green, 70) : color.new(color.gray, 60)
-                    table.cell(hzTable, 0, row, zt.tf, bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 1, row, zt.slot == 9 ? "NDOG" : "FVG", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 2, row, zt.isBull ? "▲" : "▼", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 3, row, f_hzStateName(zt.state), bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 4, row, el ? "yes" : (not f_hzLifeOk(zt) ? "no:state" : not f_hzAgeOk(zt) ? "no:age" : not f_hzRetestOk(zt) ? "no:retest" : "no:not selected"), bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 5, row, str.tostring(zt.ageBars), bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 6, row, zt.ageExpired ? "yes" : "no", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 7, row, zt.firstRetestAvailable ? "yes" : "no", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 8, row, zt.firstRetestUsed ? "yes" : "no", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 9, row, zt.isPrimary ? "PRIMARY" : "", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 10, row, zt.candidate ? (zt.selected ? "SEL" : "hidden") : "-", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                    table.cell(hzTable, 11, row, zt.candidate ? str.tostring(zt.score, "0.00") : "-", bgcolor = rowBg, text_color = color.white, text_size = size.tiny)
-                row += 1
