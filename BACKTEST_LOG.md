@@ -23,6 +23,11 @@ Analysis of exports: the `Signal` column tag `L|5m|S63C|H13|M15|K15|D7|L10|T3|ht
 | S | Breakeven | 0 (off) |
 | S | Entry | Market at inversion close |
 
+## From-scratch checklist (if the inputs reset)
+Change from default: 1b filter mode Loose · 1c min score 0 · 2 HTF #1 (5m) off, #7 (D) on · 3 correlated symbol = the OTHER index (ES1! on an MNQ chart, NQ1! on an MES chart) · 5 HTF swing highs/lows off · 10 point value 2 (MNQ) or 5 (MES) · S quantity Fixed 1 contract, exit model TP2, entry Market at inversion close, breakeven 0.
+Confirm default: Require HTF FVG on; #2 15m, #4 1H, #6 4H on, #3/#5/#8 off; NDOG on; selection Auto Engine; pivot SMT on; feed swings on; PDH/PDL on, PWH/PWL off; key-level filter off; Require SMT on + confirmed on, max 10 bars SMT→IFVG; feeds 2m/3m/5m/15m on; section 9 filters OFF; stop Sweep High/Low + 2 ticks, TP1 2.0, TP2 3.0, time stop 200 bars on; reverse off.
+Debug check before export: "Last IFVG in" = 15m 1H 4H 1D NDOG, "SMT live" names the correlated symbol, STRATEGY row shows closed trades.
+
 ## Runs
 
 | Run | Change vs previous | n | Net | Verdict |
