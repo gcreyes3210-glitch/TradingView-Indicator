@@ -5,20 +5,21 @@ commission $1/contract, slippage 1 tick. Strategy file: `ICT_SMT_IFVG_strategy.p
 Analysis of exports: the `Signal` column tag `L|5m|S63C|H13|M15|K15|D7|L10|T3|htf:15m|P:15m|sess:London|smt:Swing+`
 = side, feed TF, score+grade, six components (HTF/SMT/Session/Displacement/Liquidity/Structure), HTF tags, primary zone, session, SMT source.
 
-## Current baseline = Run C2 (net +1,312 / year, 93 trades, win 39 %, PF 1.15, max drawdown −3,068)
+## Current baseline = Run I (net +3,105 / year, 95 trades, win 33 %, PF 1.32, max drawdown −1,912; Run G without the daily slot: +2,885, DD −3,055)
 
 | Section | Input | Value |
 |---|---|---|
 | 1b | IFVG filter mode | Loose |
 | 1c | Minimum IFVG Confluence Score | 0 (score is NOT used as a gate) |
 | 2 | Require HTF FVG | on |
-| 2 | HTF slots | #1 5m **off**, #2 15m on, #4 1H on, #6 4H on, #7 1D **off** (was on in Runs A/B, untested since), #3/#5/#8 off |
+| 2 | HTF slots | #1 5m **off**, #2 15m on, #4 1H on, #6 4H on, #7 1D on (Run I; unproven, 5 trades), #3/#5/#8 off |
 | 4 | Feed-TF swings | on |
 | 4 | HTF swing highs/lows (major) | **off** |
 | 4 | PDH/PDL | on; PWH/PWL off |
 | 7 | Require SMT / confirmed SMT | on / on |
 | 8 | Feeds | 2m, 3m, 5m, 15m on (only 15m runs on a 5m chart) |
-| S | Quantity / Exit model / Time stop | Fixed 1 / TP2 (3 R) / on (200 bars) — since Run G |
+| S | Quantity / Exit model / Time stop | Fixed 1 / TP2 / on (200 bars) — since Run G |
+| 10 | TP1 / TP2 risk:reward | 2.0 / 3.0 (4.0 tested in Run H, no gain) |
 | S | Breakeven | 0 (off) |
 | S | Entry | Market at inversion close |
 
@@ -36,6 +37,7 @@ Analysis of exports: the `Signal` column tag `L|5m|S63C|H13|M15|K15|D7|L10|T3|ht
 | F | C2 + Exit = Half at TP1, rest at TP2 (2 contracts) | 93 | +2,099 per contract | Same 93 trades as C2. PF 1.24 (C2 1.15), max DD −2,979 (−3,068), both halves positive (+1,408 / +691). 24 of the 31 TP1 winners ran on to TP2 (+1,583 extra), 4 reversed to stop after TP1 (−696), 3 time-exit (−102) → **new baseline**. Raw 2-contract net +4,198, DD −5,958 |
 | G | F mechanics but Exit = TP2 only (3 R), 1 contract | 93 | +2,885 | Matches the estimate from F legs exactly. PF 1.31, win 34%, max DD −3,055, both halves positive (+1,394 / +1,491), longest losing streak 10. 5 stop-outs had reached 2 R first (−537) → **new baseline** |
 | H | G but TP2 = 4 R | 93 | +2,820 | Flat vs G: PF 1.30, win 32%, DD −2,900. 17 of the 24 3 R winners reached 4 R (+1,668), 2 reversed to stop (−994), 5 ran out of time short of 4 R (−738). Net effect ≈ 0 → **stay at 3 R** |
+| I | G + HTF slot 7 (Daily) on | 95 | +3,105 | 5 new daily-zone trades: 1 win (+1,050), 4 stops (−501). 3 4H trades displaced (+330). Net +220, all from one trade. PF 1.32, DD −1,912 (the June win cushions the June–July streak). Too few trades to judge → **left on (design intent), unproven** |
 
 ## Findings that held in every run and both halves of the year
 * 5-minute HTF zones lose. 1H-swing-sweep SMTs lose. Breakeven at 1 R costs more winners than it saves.
@@ -45,10 +47,9 @@ Analysis of exports: the `Signal` column tag `L|5m|S63C|H13|M15|K15|D7|L10|T3|ht
   15m vs 1H+ zones (+1,234 vs +187, then −872 vs +762). Any of these would be curve fitting on 93 trades.
 
 ## Open experiments, in order
-1. Daily HTF slot back on (was off since Run C by accident; 5 trades in Run A).
+1. Second symbol (ES/MES with NQ correlated) for an independent sample of the Run G/I mechanics.
 2. Optional limit-entry variant: CE limit but keep the original TP levels (Run E recomputed TPs from the smaller risk, so the winners were capped smaller).
 3. Re-weight the confluence score from data only once ≥ 200 trades of the final mechanics exist; until then the gate stays at 0.
-4. Second symbol (ES/MES with NQ correlated) for an independent sample.
 
 ## Pine limits (do not regress)
 Script must stay under 550 local scopes and 80,000 compiled tokens; the file sits near ~470 scopes and just under the token cap.
