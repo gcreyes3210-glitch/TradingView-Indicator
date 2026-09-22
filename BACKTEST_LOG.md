@@ -87,4 +87,4 @@ Rule set: same overnight profile · RTH open must be outside value · after `acc
 | Run | Change | n | Net | Verdict |
 |---|---|---|---|---|
 | VP2 | v2 defaults, MNQ 5m, 2023-09-22 → 2026-09-22 | 58 | +1,088 | Win 52%, PF 1.42, max DD −475, longest losing streak 6. **All three years ≥ 0**: +416 (PF 1.53) / +31 (PF 1.03) / +641 (PF 2.04). Longs +662 / shorts +426, open-above +426 / open-below +662. Exits: 24 time / 19 stop / 15 target → the far edge is often not reached by 12:00. ~19 trades a year: small sample, first positive multi-year result of the project. Awaiting ES |
-| VP2-ES | same on MES | pending | | |
+| VP2-ES | same on MES | 53 | +22 | Win 49%, PF 1.02, DD −325. Years +152 (PF 1.47) / +136 (PF 1.55) / −268 (PF 0.45). Longs +255 (63% win), shorts −233 (35%). 26 of 53 exits were the 12:00 flatten. Flat overall, 2 of 3 years positive. **Across both symbols 5 of 6 symbol-years ≥ 0 → lead worth one structural test (full-session window), not a system** |
