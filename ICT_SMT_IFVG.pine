@@ -368,6 +368,7 @@ type SMTSetup
     bool   used = false
     string tip = ""
     string note = ""
+    bool   dirty = true
     label  lbl
     line   ln
     int    anchorId = -1
@@ -416,6 +417,28 @@ type PivTrack
     float pB
     int   bar
     int   t
+
+// the closed-candle data of one HTF slot (built every bar from the request.security tuples, see DATA)
+type HtfSlot
+    bool   isNew
+    bool   en
+    string name
+    int    slot
+    float  hC
+    float  lC
+    float  cC
+    float  hA
+    float  lA
+    int    tA
+    int    tM
+    int    tcC
+    float  o2
+    float  h2
+    float  l2
+    float  c2
+    float  atr2
+    float  v2
+    float  va2
 
 type SigMark
     int   markBar
@@ -1373,6 +1396,7 @@ newH5 = not na(tC5) and (na(tC5[1]) or tC5 != tC5[1])
 newH6 = not na(tC6) and (na(tC6[1]) or tC6 != tC6[1])
 newH7 = not na(tC7) and (na(tC7[1]) or tC7 != tC7[1])
 newH8 = not na(tC8) and (na(tC8[1]) or tC8 != tC8[1])
+array<HtfSlot> htfSlots = array.from(HtfSlot.new(isNew = newH1, en = useHtf1, name = nameH1, slot = 1, hC = hC1, lC = lC1, cC = cC1, hA = hA1, lA = lA1, tA = tA1, tM = tM1, tcC = tX1, o2 = o21, h2 = h21, l2 = l21, c2 = c21, atr2 = atr21, v2 = v21, va2 = va21), HtfSlot.new(isNew = newH2, en = useHtf2, name = nameH2, slot = 2, hC = hC2, lC = lC2, cC = cC2, hA = hA2, lA = lA2, tA = tA2, tM = tM2, tcC = tX2, o2 = o22, h2 = h22, l2 = l22, c2 = c22, atr2 = atr22, v2 = v22, va2 = va22), HtfSlot.new(isNew = newH3, en = useHtf3, name = nameH3, slot = 3, hC = hC3, lC = lC3, cC = cC3, hA = hA3, lA = lA3, tA = tA3, tM = tM3, tcC = tX3, o2 = o23, h2 = h23, l2 = l23, c2 = c23, atr2 = atr23, v2 = v23, va2 = va23), HtfSlot.new(isNew = newH4, en = useHtf4, name = nameH4, slot = 4, hC = hC4, lC = lC4, cC = cC4, hA = hA4, lA = lA4, tA = tA4, tM = tM4, tcC = tX4, o2 = o24, h2 = h24, l2 = l24, c2 = c24, atr2 = atr24, v2 = v24, va2 = va24), HtfSlot.new(isNew = newH5, en = useHtf5, name = nameH5, slot = 5, hC = hC5, lC = lC5, cC = cC5, hA = hA5, lA = lA5, tA = tA5, tM = tM5, tcC = tX5, o2 = o25, h2 = h25, l2 = l25, c2 = c25, atr2 = atr25, v2 = v25, va2 = va25), HtfSlot.new(isNew = newH6, en = useHtf6, name = nameH6, slot = 6, hC = hC6, lC = lC6, cC = cC6, hA = hA6, lA = lA6, tA = tA6, tM = tM6, tcC = tX6, o2 = o26, h2 = h26, l2 = l26, c2 = c26, atr2 = atr26, v2 = v26, va2 = va26), HtfSlot.new(isNew = newH7, en = useHtf7, name = nameH7, slot = 7, hC = hC7, lC = lC7, cC = cC7, hA = hA7, lA = lA7, tA = tA7, tM = tM7, tcC = tX7, o2 = o27, h2 = h27, l2 = l27, c2 = c27, atr2 = atr27, v2 = v27, va2 = va27), HtfSlot.new(isNew = newH8, en = useHtf8, name = nameH8, slot = 8, hC = hC8, lC = lC8, cC = cC8, hA = hA8, lA = lA8, tA = tA8, tM = tM8, tcC = tX8, o2 = o28, h2 = h28, l2 = l28, c2 = c28, atr2 = atr28, v2 = v28, va2 = va28))
 
 // ============================== FEEDS ==============================
 // chart feed = the current confirmed chart bar, every bar
@@ -1408,6 +1432,9 @@ var Engine e1 = f_newEngine(f_tfName(tfF1), enF1, f_isEntryTf(timeframe.in_secon
 var Engine e2 = f_newEngine(f_tfName(tfF2), enF2, f_isEntryTf(timeframe.in_seconds(tfF2)), timeframe.in_seconds(tfF2) >= minSmtSec, timeframe.in_seconds(tfF2), false)
 var Engine e3 = f_newEngine(f_tfName(tfF3), enF3, f_isEntryTf(timeframe.in_seconds(tfF3)), timeframe.in_seconds(tfF3) >= minSmtSec, timeframe.in_seconds(tfF3), false)
 var Engine e4 = f_newEngine(f_tfName(tfF4), enF4, f_isEntryTf(timeframe.in_seconds(tfF4)), timeframe.in_seconds(tfF4) >= minSmtSec, timeframe.in_seconds(tfF4), false)
+
+// engine run order: feeds first, chart engine last (see MAIN)
+var array<Engine> engines = array.from(e1, e2, e3, e4, eC)
 
 // escalation ladder for stacked-FVG resolution: enabled feed engines on 2m / 3m / 5m that are HIGHER than
 // the chart, in ascending order. Built once; never contains anything above 5m.
@@ -1520,11 +1547,7 @@ f_swingPair(array<LiqRef> refs, bool isHigh, int kind, bool anchorA, float piv, 
 // one pivot-SMT track: detect, draw, return whether a filter-passing SMT was created
 f_pivRun(Engine e, Feed f, PivTrack tr, bool isHigh, float vA, float vB, float postA, float postB, int pivIdx, int pivT, float tolA, float tolB) =>
     SMTSetup p = f_pivSmt(e, f, tr, isHigh, vA, vB, postA, postB, pivIdx, pivT, tolA, tolB)
-    bool out = false
-    if not na(p)
-        p.draw(e)
-        out := f_passes(p)
-    out
+    not na(p) and f_passes(p)
 
 // ============================== ENGINE (one call = one feed) ==============================
 // Runs the complete SMT + IFVG logic for ONE timeframe.  Fixed references (PDH/PDL, PWH/PWL, HTF
@@ -1635,7 +1658,6 @@ f_runEngine(Engine e, Feed f) =>
                                 devBullS := ns
                             else
                                 devBearS := ns
-                            ns.draw(e)
                             bullDet := bullDet or (sBull and f_passes(ns))
                             bearDet := bearDet or (not sBull and f_passes(ns))
                     else if r.state == 1
@@ -1675,7 +1697,6 @@ f_runEngine(Engine e, Feed f) =>
                                 if cs.confirmed and not confNow and e.idx - cs.legBar >= smtConfirmBars
                                     cs.active := false
                                     r.state := 3
-                                cs.draw(e)
 
                 // ---------- D2. pivot SMT state machine: invalidation, deeper extreme, confirmation ----------
                 // sweeper = the market that made the new swing; the SMT dies when the OTHER market takes its own
@@ -1711,7 +1732,12 @@ f_runEngine(Engine e, Feed f) =>
                                 bullConf := bullConf or (ps.isBull and f_passes(ps))
                                 bearConf := bearConf or (not ps.isBull and f_passes(ps))
                             ps.active := ps.active and not (ps.confirmed and not confNowP and e.idx - ps.legBar >= smtConfirmBars)
-                            ps.draw(e)
+
+                // ---------- one drawing pass: new setups and every active one (labels, connectors, markers) ----------
+                for qd in e.setups
+                    if qd.dirty or (qd.active and not qd.dead and not qd.expired)
+                        qd.draw(e)
+                        qd.dirty := false
                 // drop used-up swing references (fixed levels stay)
                 for i = array.size(e.refs) - 1 to 0
                     LiqRef q2 = array.get(e.refs, i)
@@ -2324,23 +2350,11 @@ string sellMsg = ""
 if barstate.isconfirmed
     // ---------- A. HTF FVG / NDOG zones: age out, invalidate using EACH slot's OWN closed bar, then add any new zone ----------
     f_expireHtfByDays()
-    f_invalidateHtf(1, newH1, hC1, lC1, cC1)
-    f_invalidateHtf(2, newH2, hC2, lC2, cC2)
-    f_invalidateHtf(3, newH3, hC3, lC3, cC3)
-    f_invalidateHtf(4, newH4, hC4, lC4, cC4)
-    f_invalidateHtf(5, newH5, hC5, lC5, cC5)
-    f_invalidateHtf(6, newH6, hC6, lC6, cC6)
-    f_invalidateHtf(7, newH7, hC7, lC7, cC7)
-    f_invalidateHtf(8, newH8, hC8, lC8, cC8)
+    for sd in htfSlots
+        f_invalidateHtf(sd.slot, sd.isNew, sd.hC, sd.lC, sd.cC)
     f_invalidateHtf(9, useNdog, high, low, close)
-    f_addHtf(newH1, useHtf1, nameH1, 1, hC1, lC1, hA1, lA1, tA1, tM1, tX1, o21, h21, l21, c21, atr21, v21, va21)
-    f_addHtf(newH2, useHtf2, nameH2, 2, hC2, lC2, hA2, lA2, tA2, tM2, tX2, o22, h22, l22, c22, atr22, v22, va22)
-    f_addHtf(newH3, useHtf3, nameH3, 3, hC3, lC3, hA3, lA3, tA3, tM3, tX3, o23, h23, l23, c23, atr23, v23, va23)
-    f_addHtf(newH4, useHtf4, nameH4, 4, hC4, lC4, hA4, lA4, tA4, tM4, tX4, o24, h24, l24, c24, atr24, v24, va24)
-    f_addHtf(newH5, useHtf5, nameH5, 5, hC5, lC5, hA5, lA5, tA5, tM5, tX5, o25, h25, l25, c25, atr25, v25, va25)
-    f_addHtf(newH6, useHtf6, nameH6, 6, hC6, lC6, hA6, lA6, tA6, tM6, tX6, o26, h26, l26, c26, atr26, v26, va26)
-    f_addHtf(newH7, useHtf7, nameH7, 7, hC7, lC7, hA7, lA7, tA7, tM7, tX7, o27, h27, l27, c27, atr27, v27, va27)
-    f_addHtf(newH8, useHtf8, nameH8, 8, hC8, lC8, hA8, lA8, tA8, tM8, tX8, o28, h28, l28, c28, atr28, v28, va28)
+    for sd in htfSlots
+        f_addHtf(sd.isNew, sd.en, sd.name, sd.slot, sd.hC, sd.lC, sd.hA, sd.lA, sd.tA, sd.tM, sd.tcC, sd.o2, sd.h2, sd.l2, sd.c2, sd.atr2, sd.v2, sd.va2)
     f_addNdog(newDay, close[1], open, atrValue)
     // ---------- selection engine: ONE winner per cluster of overlapping candidates, before the engines run ----------
     f_selectBestHTFFVG(close)
@@ -2351,17 +2365,19 @@ if barstate.isconfirmed
             if not na(hzExt.b)
                 box.set_right(hzExt.b, time + fvgExtend * chartMs)
 
-    // ---------- run every engine: chart feed + up to four higher-TF feeds ----------
-    // feeds run first so that their raw FVG pools (2m / 3m / 5m) are current when the chart engine resolves a stack
-    [sig1, bd1, be1, bc1, bcc1] = f_runEngine(e1, fF1)
-    [sig2, bd2, be2, bc2, bcc2] = f_runEngine(e2, fF2)
-    [sig3, bd3, be3, bc3, bcc3] = f_runEngine(e3, fF3)
-    [sig4, bd4, be4, bc4, bcc4] = f_runEngine(e4, fF4)
-    [sigC, bdC, beC, bcC, bccC] = f_runEngine(eC, fChart)
-    bullSmtDet  := bdC or bd1 or bd2 or bd3 or bd4
-    bearSmtDet  := beC or be1 or be2 or be3 or be4
-    bullSmtConf := bcC or bc1 or bc2 or bc3 or bc4
-    bearSmtConf := bccC or bcc1 or bcc2 or bcc3 or bcc4
+    // ---------- run every engine: up to four higher-TF feeds, then the chart feed ----------
+    // feeds run first so that their raw FVG pools (2m / 3m / 5m) are current when the chart engine resolves a stack.
+    // One loop over an engine array keeps the engine body compiled ONCE (Pine's compiled-token limit).
+    array<Feed> feeds = array.from(fF1, fF2, fF3, fF4, fChart)
+    array<SigInfo> sigs = array.new<SigInfo>()
+    for [k, ek] in engines
+        [sgK, bdK, beK, bcK, bccK] = f_runEngine(ek, array.get(feeds, k))
+        bullSmtDet := bullSmtDet or bdK
+        bearSmtDet := bearSmtDet or beK
+        bullSmtConf := bullSmtConf or bcK
+        bearSmtConf := bearSmtConf or bccK
+        if not na(sgK)
+            array.push(sigs, sgK)
 
     // ---------- HTF zone lifecycle / 50% CE eligibility on this confirmed chart bar ----------
     // Runs AFTER the engines so an IFVG that forms on the very bar that defends a zone still sees it as
@@ -2382,17 +2398,6 @@ if barstate.isconfirmed
             zp.isPrimary := i == primIdx
 
     // ---------- signals -> marks, stop / targets, contracts ----------
-    array<SigInfo> sigs = array.new<SigInfo>()
-    if not na(sigC)
-        array.push(sigs, sigC)
-    if not na(sig1)
-        array.push(sigs, sig1)
-    if not na(sig2)
-        array.push(sigs, sig2)
-    if not na(sig3)
-        array.push(sigs, sig3)
-    if not na(sig4)
-        array.push(sigs, sig4)
     if array.size(sigs) > 0
         for i = 0 to array.size(sigs) - 1
             SigInfo s = array.get(sigs, i)
