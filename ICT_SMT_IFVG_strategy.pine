@@ -945,9 +945,9 @@ f_invalidateHtf(int slot, bool isNew, float hC, float lC, float cC) =>
             HtfFVG hz = array.get(htfList, i)
             bool hzMit = htfInvalidate == "Close through" ? (hz.isBull ? cC < hz.bottom : cC > hz.top) : (hz.isBull ? lC < hz.bottom : hC > hz.top)
             if hz.slot == slot and hzMit
-                    f_hzSetState(hz, HZ_INVALID)
-                    f_retireHtfBox(hz.b, keepHistory and hz.used)
-                    array.remove(htfList, i)
+                f_hzSetState(hz, HZ_INVALID)
+                f_retireHtfBox(hz.b, keepHistory and hz.used)
+                array.remove(htfList, i)
     true
 
 // a new HTF bar just opened -> look at the three closed HTF bars before it
