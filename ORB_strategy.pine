@@ -55,6 +55,7 @@ s_flat    = input.bool(true, "Flatten at the end of the trade window", group = g
 grpF = "4 · Filters (all off = raw rule)"
 minOrTicks = input.int(4, "Min range width (ticks)", minval = 1, group = grpF, tooltip = "Skip days whose range is narrower than this (also protects against a zero-risk trade). 4 ticks = 1 NQ point.")
 maxOrPd    = input.float(0.0, "Max range width (% of previous day's range, 0 = off)", minval = 0.0, step = 5, group = grpF, tooltip = "Skip days whose opening range already used up more than this share of a normal day's travel. Tag field 'pd' shows the value per trade so the export decides the threshold.")
+onFilter   = input.string("Off", "Opening range vs overnight range", options = ["Off", "Range must break the overnight range", "Break direction only"], group = grpF, tooltip = "Uses the overnight session above. 'Range must break': trade only on days whose opening range already extends beyond the overnight high or low (the session is trending out of the overnight balance at the open). 'Break direction only': same, and longs only above an overnight-high break, shorts only below an overnight-low break. ORB3 on MNQ: inside days lost every year since 2024, break days won in all four years.")
 minBrkOr   = input.float(0.0, "Min close beyond the edge (x range width, 0 = off)", minval = 0.0, step = 0.05, group = grpF, tooltip = "Close-beyond mode only. The breakout bar must CLOSE at least this many range widths beyond the edge (a decisive breakout, not a poke). ORB1/ORB2 on MNQ: breakouts closing less than 0.15 x range beyond the edge lost money in every year.")
 maxRiskOr  = input.float(0.0, "Max risk (x range width, 0 = off)", minval = 0.0, step = 0.25, group = grpF, tooltip = "In close-beyond mode a big breakout bar can put the entry far from the stop. Skip the trade if the risk exceeds this many range widths.")
 
@@ -176,8 +177,12 @@ f_levels(bool isLong, float entryPx) =>
     float rr = na(tpPx) ? 0.0 : (isLong ? tpPx - entryPx : entryPx - tpPx) / risk
     [stopPx, tpPx, risk, rr]
 
-bool okDirL = direction != "Short only"
-bool okDirS = direction != "Long only"
+bool onBreakUp = openLoc == "topBreak" or openLoc == "above"
+bool onBreakDn = openLoc == "botBreak" or openLoc == "below"
+bool okOnL = onFilter == "Off" or (onFilter == "Range must break the overnight range" and (onBreakUp or onBreakDn)) or (onFilter == "Break direction only" and onBreakUp)
+bool okOnS = onFilter == "Off" or (onFilter == "Range must break the overnight range" and (onBreakUp or onBreakDn)) or (onFilter == "Break direction only" and onBreakDn)
+bool okDirL = direction != "Short only" and okOnL
+bool okDirS = direction != "Long only" and okOnS
 bool canTrade = orReady and inEntry and inTrade and inWindow and flat and tradesToday < maxTrades
 bool closeMode = entryMode == "Close beyond the range"
 int  nTr = strategy.closedtrades + strategy.opentrades
