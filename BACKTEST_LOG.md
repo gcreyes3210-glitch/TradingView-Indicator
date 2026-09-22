@@ -46,9 +46,9 @@ Analysis of exports: the `Signal` column tag `L|5m|S63C|H13|M15|K15|D7|L10|T3|ht
 
 ## Open experiments, in order
 1. Daily HTF slot back on (was off since Run C by accident; 5 trades in Run A).
-3. Optional limit-entry variant: CE limit but keep the original TP levels (Run E recomputed TPs from the smaller risk, so the winners were capped smaller).
-4. Re-weight the confluence score from data only once ≥ 200 trades of the final mechanics exist; until then the gate stays at 0.
-5. Second symbol (ES/MES with NQ correlated) for an independent sample.
+2. Optional limit-entry variant: CE limit but keep the original TP levels (Run E recomputed TPs from the smaller risk, so the winners were capped smaller).
+3. Re-weight the confluence score from data only once ≥ 200 trades of the final mechanics exist; until then the gate stays at 0.
+4. Second symbol (ES/MES with NQ correlated) for an independent sample.
 
 ## Pine limits (do not regress)
 Script must stay under 550 local scopes and 80,000 compiled tokens; the file sits near ~470 scopes and just under the token cap.
