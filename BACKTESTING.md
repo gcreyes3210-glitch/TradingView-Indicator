@@ -6,7 +6,7 @@ TradingView has no API for running Pine scripts, so the loop is: TradingView run
 
 * `ICT_SMT_IFVG.pine` – the indicator (single source of truth).
 * `ICT_SMT_IFVG_strategy.pine` – generated strategy twin. Regenerate after any indicator change: `python3 tools/make_strategy.py`.
-* Group `S · Strategy (backtest only)` – test window, quantity, exit model, time stop, reversal.
+* Group `S · Strategy (backtest only)` – test window, quantity, exit model, time stop, reversal, breakeven (`Move stop to breakeven after x R`, 0 = off; exits are re-issued with the stop at the entry price once a confirmed bar has moved x risk units in favour, exit comment `BE`).
 
 ## One round
 
