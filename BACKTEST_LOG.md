@@ -18,7 +18,7 @@ Analysis of exports: the `Signal` column tag `L|5m|S63C|H13|M15|K15|D7|L10|T3|ht
 | 4 | PDH/PDL | on; PWH/PWL off |
 | 7 | Require SMT / confirmed SMT | on / on |
 | 8 | Feeds | 2m, 3m, 5m, 15m on (only 15m runs on a 5m chart) |
-| S | Quantity / Exit model / Time stop | Fixed 2 contracts / Half at TP1, rest at TP2 / on (200 bars) — since Run F |
+| S | Quantity / Exit model / Time stop | Fixed 1 / TP2 (3 R) / on (200 bars) — since Run G |
 | S | Breakeven | 0 (off) |
 | S | Entry | Market at inversion close |
 
@@ -34,6 +34,7 @@ Analysis of exports: the `Signal` column tag `L|5m|S63C|H13|M15|K15|D7|L10|T3|ht
 | D | C2 − 15m zones (1H/4H/NDOG only) | 30 | −396 | higher zones alone lose and are too few → **15m slot stays on** |
 | E | C2 + Entry = Limit at IFVG 50 % (CE), 12-bar validity | 80 | +545 | PF 1.09 (C2 1.15), max DD −2,624 (C2 −3,068), avg win 191 vs 281, avg loss 123 vs 154. 18 C2 trades never filled and those were +2,410 in C2 (10 wins). Older half +992 / newer −447. Limit entry trims losses but misses the best runners → **market entry stays** |
 | F | C2 + Exit = Half at TP1, rest at TP2 (2 contracts) | 93 | +2,099 per contract | Same 93 trades as C2. PF 1.24 (C2 1.15), max DD −2,979 (−3,068), both halves positive (+1,408 / +691). 24 of the 31 TP1 winners ran on to TP2 (+1,583 extra), 4 reversed to stop after TP1 (−696), 3 time-exit (−102) → **new baseline**. Raw 2-contract net +4,198, DD −5,958 |
+| G | F mechanics but Exit = TP2 only (3 R), 1 contract | 93 | +2,885 | Matches the estimate from F legs exactly. PF 1.31, win 34%, max DD −3,055, both halves positive (+1,394 / +1,491), longest losing streak 10. 5 stop-outs had reached 2 R first (−537) → **new baseline** |
 
 ## Findings that held in every run and both halves of the year
 * 5-minute HTF zones lose. 1H-swing-sweep SMTs lose. Breakeven at 1 R costs more winners than it saves.
@@ -43,7 +44,7 @@ Analysis of exports: the `Signal` column tag `L|5m|S63C|H13|M15|K15|D7|L10|T3|ht
   15m vs 1H+ zones (+1,234 vs +187, then −872 vs +762). Any of these would be curve fitting on 93 trades.
 
 ## Open experiments, in order
-1. Exit = TP2 only, 1 contract (24 of 31 TP1 winners reached TP2 in Run F; tests whether the TP1 half is worth keeping).
+1. TP2 at 4 R (section 10, TP2 risk:reward = 4.0) to see whether the target can be pushed further.
 2. Daily HTF slot back on (was off since Run C by accident; 5 trades in Run A).
 3. Optional limit-entry variant: CE limit but keep the original TP levels (Run E recomputed TPs from the smaller risk, so the winners were capped smaller).
 4. Re-weight the confluence score from data only once ≥ 200 trades of the final mechanics exist; until then the gate stays at 0.
