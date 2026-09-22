@@ -614,20 +614,7 @@ f_qualityPass(float gapAtrIn, float bodyRatioIn, float rangeAtrIn) =>
 // "30s", "1m", "3m", "15m", "1H", "4H", "1D", "1W" from any timeframe string
 f_tfName(string tf) =>
     int sec = timeframe.in_seconds(tf)
-    string out = tf
-    if sec < 60
-        out := str.tostring(sec) + "s"
-    else if sec < 3600
-        out := str.tostring(sec / 60) + "m"
-    else if sec < 86400
-        out := str.tostring(sec / 3600) + "H"
-    else if sec < 604800
-        out := str.tostring(sec / 86400) + "D"
-    else if sec < 2419200
-        out := str.tostring(sec / 604800) + "W"
-    else
-        out := "M"
-    out
+    sec < 60 ? str.tostring(sec) + "s" : sec < 3600 ? str.tostring(sec / 60) + "m" : sec < 86400 ? str.tostring(sec / 3600) + "H" : sec < 604800 ? str.tostring(sec / 86400) + "D" : sec < 2419200 ? str.tostring(sec / 604800) + "W" : "M"
 
 // label size from the dropdown text
 f_size(string s) =>
@@ -649,14 +636,12 @@ fvgRangesOverlap(float aTop, float aBot, float bTop, float bBot) =>
 // same direction as dirWanted (0 = any), inside the relevance window, and (optionally) overlapping [uBot, uTop]
 getCandidateFVGs(array<RawFVG> pool, float c, float buf, int dirWanted, float uTop, float uBot, bool useUnion) =>
     array<int> out = array.new_int()
-    if array.size(pool) > 0
-        for i = 0 to array.size(pool) - 1
-            RawFVG rf = array.get(pool, i)
-            bool inv = rf.dir == -1 ? c > rf.top + buf : c < rf.bottom - buf
-            bool dOk = dirWanted == 0 or rf.dir == dirWanted
-            bool uOk = not useUnion or fvgRangesOverlap(rf.top, rf.bottom, uTop, uBot)
-            if inv and dOk and uOk and rf.age <= maxFvgToIfvgBars
-                array.push(out, i)
+    for [i, rf] in pool
+        bool inv = rf.dir == -1 ? c > rf.top + buf : c < rf.bottom - buf
+        bool dOk = dirWanted == 0 or rf.dir == dirWanted
+        bool uOk = not useUnion or fvgRangesOverlap(rf.top, rf.bottom, uTop, uBot)
+        if inv and dOk and uOk and rf.age <= maxFvgToIfvgBars
+            array.push(out, i)
     out
 
 // is at least one pair of the candidates stacked (overlapping ranges)?
@@ -668,34 +653,26 @@ f_anyStacked(array<RawFVG> pool, array<int> idx) =>
             RawFVG a = array.get(pool, array.get(idx, i))
             for j = i + 1 to n - 1
                 RawFVG b = array.get(pool, array.get(idx, j))
-                if fvgRangesOverlap(a.top, a.bottom, b.top, b.bottom)
-                    out := true
+                out := out or fvgRangesOverlap(a.top, a.bottom, b.top, b.bottom)
     out
 
 // deterministic pick among candidates: most recent formation, then the larger gap
 f_pickDeterministic(array<RawFVG> pool, array<int> idx) =>
     int best = -1
-    if array.size(idx) > 0
-        for i = 0 to array.size(idx) - 1
-            int k = array.get(idx, i)
-            if best < 0
-                best := k
-            else
-                RawFVG a = array.get(pool, k)
-                RawFVG b = array.get(pool, best)
-                if a.formT > b.formT or (a.formT == b.formT and (a.top - a.bottom) > (b.top - b.bottom))
-                    best := k
+    for k in idx
+        RawFVG a = array.get(pool, k)
+        RawFVG b = array.get(pool, best < 0 ? k : best)
+        best := best < 0 or a.formT > b.formT or (a.formT == b.formT and (a.top - a.bottom) > (b.top - b.bottom)) ? k : best
     best
 
 // union range of the candidates
 f_unionRange(array<RawFVG> pool, array<int> idx) =>
     float uTop = na
     float uBot = na
-    if array.size(idx) > 0
-        for i = 0 to array.size(idx) - 1
-            RawFVG a = array.get(pool, array.get(idx, i))
-            uTop := na(uTop) ? a.top : math.max(uTop, a.top)
-            uBot := na(uBot) ? a.bottom : math.min(uBot, a.bottom)
+    for k in idx
+        RawFVG a = array.get(pool, k)
+        uTop := na(uTop) ? a.top : math.max(uTop, a.top)
+        uBot := na(uBot) ? a.bottom : math.min(uBot, a.bottom)
     [uTop, uBot]
 
 nameSw = f_tfName(swTf)
@@ -706,16 +683,10 @@ f_slotSec(int slot) =>
 
 // tags are stored as |5m|15m| so that "5m" is never confused with "15m"
 f_tagAdd(string tag, string name) =>
-    string out = tag
-    if not str.contains(tag, "|" + name + "|")
-        out := tag == "" ? "|" + name + "|" : tag + name + "|"
-    out
+    str.contains(tag, "|" + name + "|") ? tag : tag == "" ? "|" + name + "|" : tag + name + "|"
 
 f_tagText(string tag) =>
-    string out = ""
-    if tag != ""
-        out := str.replace_all(str.substring(tag, 1, str.length(tag) - 1), "|", "+")
-    out
+    tag == "" ? "" : str.replace_all(str.substring(tag, 1, str.length(tag) - 1), "|", "+")
 
 // does this SMT pass the enabled validity filter (key level)?
 f_passes(SMTSetup s) =>
@@ -739,10 +710,7 @@ f_getIFVGGrade(int s) =>
     s >= 90 ? "A+" : s >= 80 ? "A" : s >= 70 ? "B" : s >= 60 ? "C" : "D"
 
 f_getIFVGColor(string g, color base) =>
-    color out = base
-    if i_colorByIFVGScore
-        out := g == "A+" or g == "A" ? color.new(color.lime, 75) : g == "B" ? color.new(color.blue, 75) : g == "C" ? color.new(color.orange, 75) : color.new(color.gray, 80)
-    out
+    not i_colorByIFVGScore ? base : g == "A+" or g == "A" ? color.new(color.lime, 75) : g == "B" ? color.new(color.blue, 75) : g == "C" ? color.new(color.orange, 75) : color.new(color.gray, 80)
 
 f_ifvgPassesThreshold(int s) =>
     s >= i_minProbScore
@@ -753,8 +721,7 @@ f_ifvgLogTag(IFVGZone z, string smtName, string tf) =>
 
 f_ifvgScoreText(IFVGZone z, bool breakdown) =>
     string out = z.grade + " " + str.tostring(z.confScore) + "/100"
-    if breakdown
-        out += "\nHTF " + str.tostring(z.sHtf) + "/25 · SMT " + str.tostring(z.sSmt) + "/20 · Session " + str.tostring(z.sSess) + "/15" + (z.sessName != "" ? " (" + z.sessName + ")" : "") + "\nDisplacement " + str.tostring(z.sDisp) + "/15 · Liquidity " + str.tostring(z.sLiq) + "/15 · Structure " + str.tostring(z.sStruct) + "/10"
+    out += not breakdown ? "" : "\nHTF " + str.tostring(z.sHtf) + "/25 · SMT " + str.tostring(z.sSmt) + "/20 · Session " + str.tostring(z.sSess) + "/15" + (z.sessName != "" ? " (" + z.sessName + ")" : "") + "\nDisplacement " + str.tostring(z.sDisp) + "/15 · Liquidity " + str.tostring(z.sLiq) + "/15 · Structure " + str.tostring(z.sStruct) + "/10"
     out
 
 // ---- HTF FVG / NDOG lifecycle ----
@@ -775,8 +742,7 @@ f_hzVisual(HtfFVG z) =>
 f_hzSetState(HtfFVG z, int st) =>
     if st != z.state
         z.state := st
-        if st >= HZ_DEFENDED
-            z.eligible := false
+        z.eligible := z.eligible and st < HZ_DEFENDED
         f_hzVisual(z)
     true
 
@@ -785,8 +751,7 @@ f_hzUpdate(HtfFVG z, float o, float h, float l, float c, float atrV) =>
     // deepest penetration of the ORIGINAL gap so far (0 = untouched, 1 = traded through), for the freshness score
     float gapH = math.max(z.top - z.bottom, syminfo.mintick)
     float pen = z.isBull ? (z.top - l) / gapH : (h - z.bottom) / gapH
-    if pen > z.deepest
-        z.deepest := math.min(1.0, pen)
+    z.deepest := math.max(z.deepest, math.min(1.0, pen))
     if z.state < HZ_FILLED
         bool touched = z.isBull ? l <= z.top : h >= z.bottom
         bool ceHit = z.isBull ? l <= z.ce : h >= z.ce
@@ -815,17 +780,8 @@ f_hzUpdate(HtfFVG z, float o, float h, float l, float c, float atrV) =>
                 float rng = math.max(h - l, syminfo.mintick)
                 float safeAtr = na(atrV) or atrV <= 0.0 ? syminfo.mintick : atrV
                 bool dispAway = body >= dispAtrMult * safeAtr and body / rng >= dispBodyRatio and (z.isBull ? c > o : c < o)
-                bool defended = false
-                if htfCeMethod == "Wick Rejection"
-                    defended := ceHit and defSide
-                else if htfCeMethod == "Close Back Across CE"
-                    defended := defSide
-                else if htfCeMethod == "Displacement Away From CE"
-                    defended := dispAway
-                else
-                    defended := dispAway and (defSide or z.ceCloseBack)
-                if defSide
-                    z.ceCloseBack := true
+                bool defended = htfCeMethod == "Wick Rejection" ? ceHit and defSide : htfCeMethod == "Close Back Across CE" ? defSide : htfCeMethod == "Displacement Away From CE" ? dispAway : dispAway and (defSide or z.ceCloseBack)
+                z.ceCloseBack := z.ceCloseBack or defSide
                 if defended
                     f_hzSetState(z, HZ_DEFENDED)
     // ---- Phase 2a: first retest = OUTSIDE -> INSIDE transition (never the creation bar) ----
@@ -839,12 +795,8 @@ f_hzUpdate(HtfFVG z, float o, float h, float l, float c, float atrV) =>
             z.firstRetestBar := bar_index
         else if z.firstRetestAvailable
             z.firstRetestUsed := true
-    if outside
-        if z.firstRetestAvailable and not z.firstRetestUsed and z.retestCount > 0
-            z.firstRetestUsed := true
-        z.wasOutside := true
-    else
-        z.wasOutside := false
+    z.firstRetestUsed := z.firstRetestUsed or (outside and z.firstRetestAvailable and z.retestCount > 0)
+    z.wasOutside := outside
     // ---- Phase 2b: age in the zone's OWN timeframe bars (timestamp based, never chart bars) ----
     if not na(z.createdTime) and not na(z.tfSec) and z.tfSec > 0
         z.ageBars := int(math.floor((time - z.createdTime) / (z.tfSec * 1000)))
@@ -890,48 +842,33 @@ f_hzApplySelection(HtfFVG z) =>
         bool hide = i_htfHideLosers and z.candidate and not z.selected
         if hide != z.hiddenBySel
             z.hiddenBySel := hide
-            if hide
-                box.set_bgcolor(z.b, color.new(clr, 100))
-                box.set_border_color(z.b, color.new(clr, 100))
-                box.set_text(z.b, "")
-            else
-                box.set_bgcolor(z.b, clr)
-                box.set_border_color(z.b, clr)
-                f_hzVisual(z)
-        if not hide
-            box.set_border_width(z.b, z.candidate and z.selected ? 2 : 1)
+            box.set_bgcolor(z.b, hide ? color.new(clr, 100) : clr)
+            box.set_border_color(z.b, hide ? color.new(clr, 100) : clr)
+            box.set_text(z.b, "")
+            f_hzVisual(z)
+        box.set_border_width(z.b, not hide and z.candidate and z.selected ? 2 : 1)
     true
 
 // ---- Phase 2c: PRIMARY zone among eligible zones overlapping [bot, top] at reference price 'px' ----
 // Deterministic hierarchy: (1) eligible, (2) higher timeframe, (3) more recent creation,
 // (4) smaller |px - CE|, (5) more recent first interaction.  Returns the list index or -1.
 f_hzBetter(HtfFVG a, HtfFVG b, float px) =>
-    bool out = false
-    if a.tfSec != b.tfSec
-        out := a.tfSec > b.tfSec
-    else if a.createdTime != b.createdTime
-        out := a.createdTime > b.createdTime
-    else
-        float da = math.abs(px - a.ce)
-        float db = math.abs(px - b.ce)
-        if da != db
-            out := da < db
-        else
-            out := nz(a.firstTouchTime, 0) > nz(b.firstTouchTime, 0)
-    out
+    float da = math.abs(px - a.ce)
+    float db = math.abs(px - b.ce)
+    a.tfSec != b.tfSec ? a.tfSec > b.tfSec : a.createdTime != b.createdTime ? a.createdTime > b.createdTime : da != db ? da < db : nz(a.firstTouchTime, 0) > nz(b.firstTouchTime, 0)
+
+// does an ELIGIBLE zone match the IFVG box [bot, top] under the direction / containment inputs?
+f_hzMatch(HtfFVG z, float top, float bot, bool isBull) =>
+    bool dirOk = not htfMatchDir or z.isBull == isBull
+    bool inside = bot >= z.bottom and top <= z.top
+    bool overlap = top >= z.bottom and bot <= z.top
+    dirOk and (htfContain == "Fully inside" ? inside : overlap) and f_hzEligible(z)
 
 f_htfPrimaryIdx(float top, float bot, bool isBull, float px) =>
     int best = -1
-    if array.size(htfList) > 0
-        for i = 0 to array.size(htfList) - 1
-            HtfFVG z = array.get(htfList, i)
-            bool dirOk = not htfMatchDir or z.isBull == isBull
-            bool inside = bot >= z.bottom and top <= z.top
-            bool overlap = top >= z.bottom and bot <= z.top
-            bool posOk = htfContain == "Fully inside" ? inside : overlap
-            if dirOk and posOk and f_hzEligible(z)
-                if best < 0 or f_hzBetter(z, array.get(htfList, best), px)
-                    best := i
+    for [i, z] in htfList
+        if f_hzMatch(z, top, bot, isBull) and (best < 0 or f_hzBetter(z, array.get(htfList, best), px))
+            best := i
     best
 
 // tag of the primary zone for an IFVG box (context only; the signal still accepts any eligible zone)
@@ -947,51 +884,32 @@ f_htfPrimaryBull(float top, float bot, bool isBull, float px) =>
 // tags of ELIGIBLE HTF zones whose area overlaps [lo, hi] (a "tap")
 f_htfOverlap(float lo, float hi, bool isBull) =>
     string tag = ""
-    if array.size(htfList) > 0
-        for i = 0 to array.size(htfList) - 1
-            HtfFVG z = array.get(htfList, i)
-            bool dirOk = not htfMatchDir or z.isBull == isBull
-            bool hit = hi >= z.bottom and lo <= z.top
-            if dirOk and hit and f_hzEligible(z)
-                tag := f_tagAdd(tag, z.tf)
+    for z in htfList
+        bool dirOk = not htfMatchDir or z.isBull == isBull
+        bool hit = hi >= z.bottom and lo <= z.top
+        tag := dirOk and hit and f_hzEligible(z) ? f_tagAdd(tag, z.tf) : tag
     tag
 
 // tags of ELIGIBLE HTF zones that contain the IFVG box (overlapping or fully inside)
 f_htfContain(float top, float bot, bool isBull) =>
     string tag = ""
-    if array.size(htfList) > 0
-        for i = 0 to array.size(htfList) - 1
-            HtfFVG z = array.get(htfList, i)
-            bool dirOk = not htfMatchDir or z.isBull == isBull
-            bool inside = bot >= z.bottom and top <= z.top
-            bool overlap = top >= z.bottom and bot <= z.top
-            bool posOk = htfContain == "Fully inside" ? inside : overlap
-            if dirOk and posOk and f_hzEligible(z)
-                tag := f_tagAdd(tag, z.tf)
+    for z in htfList
+        tag := f_hzMatch(z, top, bot, isBull) ? f_tagAdd(tag, z.tf) : tag
     tag
 
 // remember which HTF zones a signal used (so their boxes can stay on the chart)
 f_markHtfUsed(float top, float bot, bool isBull) =>
-    if array.size(htfList) > 0
-        for i = 0 to array.size(htfList) - 1
-            HtfFVG z = array.get(htfList, i)
-            bool dirOk = not htfMatchDir or z.isBull == isBull
-            bool inside = bot >= z.bottom and top <= z.top
-            bool overlap = top >= z.bottom and bot <= z.top
-            bool posOk = htfContain == "Fully inside" ? inside : overlap
-            if dirOk and posOk and f_hzEligible(z)
-                z.used := true
+    for z in htfList
+        z.used := z.used or f_hzMatch(z, top, bot, isBull)
     true
 
 // an HTF FVG box leaves the active list: freeze it at the current bar (keep) or delete it.
 // Boxes are time-anchored (xloc.bar_time), so the right edge is a TIME, never a bar_index.
 f_retireHtfBox(box b, bool keep) =>
-    if not na(b)
-        if keep
-            if htfExtendMode == "Extend with price"
-                box.set_right(b, time)
-        else
-            box.delete(b)
+    if not na(b) and keep and htfExtendMode == "Extend with price"
+        box.set_right(b, time)
+    if not keep
+        box.delete(b)
     true
 
 // keep only the newest htfMaxPerTf zones of one HTF slot
@@ -1025,13 +943,8 @@ f_invalidateHtf(int slot, bool isNew, float hC, float lC, float cC) =>
     if isNew and array.size(htfList) > 0
         for i = array.size(htfList) - 1 to 0
             HtfFVG hz = array.get(htfList, i)
-            if hz.slot == slot
-                bool hzMit = false
-                if htfInvalidate == "Close through"
-                    hzMit := hz.isBull ? cC < hz.bottom : cC > hz.top
-                else
-                    hzMit := hz.isBull ? lC < hz.bottom : hC > hz.top
-                if hzMit
+            bool hzMit = htfInvalidate == "Close through" ? (hz.isBull ? cC < hz.bottom : cC > hz.top) : (hz.isBull ? lC < hz.bottom : hC > hz.top)
+            if hz.slot == slot and hzMit
                     f_hzSetState(hz, HZ_INVALID)
                     f_retireHtfBox(hz.b, keepHistory and hz.used)
                     array.remove(htfList, i)
@@ -1051,15 +964,12 @@ f_addHtf(bool isNew, bool en, string name, int slot, float hC, float lC, float h
     float bodyR2 = na(rng2) or na(o2) or na(c2) ? na : math.abs(c2 - o2) / rng2
     float relV2 = na(v2) or na(va2) or va2 <= 0.0 ? na : v2 / va2
     float minGap = htfMinGapTicks * syminfo.mintick
-    bool bullGap = false
-    bool bearGap = false
+    bool bullGap = valid and lC > hA and (lC - hA) >= minGap
+    bool bearGap = valid and hC < lA and (lA - hC) >= minGap
     box hbBull = na
     box hbBear = na
     int leftT = htfAnchor == "Candle 1 (first of the 3)" ? tA : tM
     int rightT = htfExtendMode == "Extend with price" ? time + fvgExtend * chartMs : tcC
-    if valid
-        bullGap := lC > hA and (lC - hA) >= minGap
-        bearGap := hC < lA and (lA - hC) >= minGap
     if bullGap
         if showHTF
             hbBull := box.new(left = leftT, top = lC, right = rightT, bottom = hA, xloc = xloc.bar_time, border_color = htfBull, bgcolor = htfBull, text = name, text_size = size.small, text_color = color.new(color.white, 10), text_halign = text.align_left, text_valign = text.align_top)
@@ -1098,31 +1008,21 @@ withinLookback(int refBar) =>
 f_timingOk(SMTSetup s, int invBar) =>
     bool okAfter = invBar >= s.sweepBar and invBar - s.legBar <= confluenceBars
     bool okBefore = invBar < s.sweepBar and s.sweepBar - invBar <= confluenceBars
-    bool ok = okAfter
-    if not ifvgAfterSweep
-        ok := okAfter or okBefore
-    ok
+    ifvgAfterSweep ? okAfter : okAfter or okBefore
 
 // is there already an unswept reference at (about) this level pair?
 f_hasRef(array<LiqRef> refs, bool isHigh, int kind, float a, float b, float tA, float tB) =>
     bool found = false
-    if array.size(refs) > 0
-        for i = 0 to array.size(refs) - 1
-            LiqRef q = array.get(refs, i)
-            if q.kind == kind and q.isHigh == isHigh and q.state == 0
-                if math.abs(q.lvlA - a) <= tA and math.abs(q.lvlB - b) <= tB
-                    found := true
+    for q in refs
+        found := found or (q.kind == kind and q.isHigh == isHigh and q.state == 0 and math.abs(q.lvlA - a) <= tA and math.abs(q.lvlB - b) <= tB)
     found
 
 // add a swing reference (kind 1 = feed-TF swing, 2 = HTF swing) and trim the pool
 f_addSwingRef(array<LiqRef> refs, bool isHigh, int kind, float a, float b, int atBar, int atTime, float tA, float tB) =>
     bool dup = f_hasRef(refs, isHigh, kind, a, b, tA, tB)
-    string nm = "Swing"
-    int cap = swingMaxRefs
+    string nm = kind == 2 ? nameSw + " Swing" : "Swing"
+    int cap = kind == 2 ? htfSwingMaxRefs : swingMaxRefs
     int kept = 0
-    if kind == 2
-        nm := nameSw + " Swing"
-        cap := htfSwingMaxRefs
     if not dup
         array.push(refs, LiqRef.new(name = nm, isHigh = isHigh, kind = kind, lvlA = a, lvlB = b, lvlBar = atBar, lvlTime = atTime, state = 0))
         for i = array.size(refs) - 1 to 0
@@ -1139,24 +1039,17 @@ f_addSwingRef(array<LiqRef> refs, bool isHigh, int kind, float a, float b, int a
 f_swingTarget(array<LiqRef> refs, bool isBull, float entry, float fbH, float fbL) =>
     float major = na
     float minor = na
-    if array.size(refs) > 0
-        for i = 0 to array.size(refs) - 1
-            LiqRef q = array.get(refs, i)
-            bool sideOk = q.isHigh == isBull
-            bool beyond = isBull ? q.lvlA > entry : q.lvlA < entry
-            if sideOk and beyond and q.state == 0 and not na(q.lvlA)
-                if q.kind != 1
-                    major := na(major) ? q.lvlA : (isBull ? math.min(major, q.lvlA) : math.max(major, q.lvlA))
-                else
-                    minor := na(minor) ? q.lvlA : (isBull ? math.min(minor, q.lvlA) : math.max(minor, q.lvlA))
-    float out = major
-    if na(out)
-        out := minor
-    if na(out)
-        float fb = isBull ? fbH : fbL
-        if not na(fb) and (isBull ? fb > entry : fb < entry)
-            out := fb
-    out
+    for q in refs
+        bool sideOk = q.isHigh == isBull
+        bool beyond = isBull ? q.lvlA > entry : q.lvlA < entry
+        if sideOk and beyond and q.state == 0 and not na(q.lvlA)
+            float cur = q.kind != 1 ? major : minor
+            float nxt = na(cur) ? q.lvlA : (isBull ? math.min(cur, q.lvlA) : math.max(cur, q.lvlA))
+            major := q.kind != 1 ? nxt : major
+            minor := q.kind != 1 ? minor : nxt
+    float fb = isBull ? fbH : fbL
+    float fbOk = not na(fb) and (isBull ? fb > entry : fb < entry) ? fb : na
+    na(major) ? (na(minor) ? fbOk : minor) : major
 
 // why has this SMT not produced a signal (yet)?
 f_reason(Engine e, SMTSetup s) =>
@@ -1164,54 +1057,34 @@ f_reason(Engine e, SMTSetup s) =>
     int rej = s.isBull ? e.lastRejBullBar : e.lastRejBearBar
     bool rejHit = not na(rej) and rej >= s.sweepBar and rej - s.legBar <= confluenceBars
     bool keyOk = s.isKey or (keyHtfTap and s.htfTap)
-    if reqConfirmedSMT and not s.confirmed
-        out += "SMT not confirmed yet; "
-    if keyFilter and not keyOk
-        out += "not at key level; "
-    if reqDisp and not s.dispDone
-        out += "no displacement; "
-    if reqSetupFvg and not s.fvgDone
-        out += "no FVG after sweep; "
-    if reqMSS and not s.mssDone
-        out += "no MSS; "
-    if s.note != ""
-        out += s.note + "; "
-    else if not s.ifvgSeen
-        if rejHit
-            out += "IFVG failed quality filter; "
-        else
-            out += "no IFVG yet; "
-    if out == ""
-        out := "IFVG closed back through or expired; "
-    out
+    out += reqConfirmedSMT and not s.confirmed ? "SMT not confirmed yet; " : ""
+    out += keyFilter and not keyOk ? "not at key level; " : ""
+    out += reqDisp and not s.dispDone ? "no displacement; " : ""
+    out += reqSetupFvg and not s.fvgDone ? "no FVG after sweep; " : ""
+    out += reqMSS and not s.mssDone ? "no MSS; " : ""
+    out += s.note != "" ? s.note + "; " : not s.ifvgSeen ? (rejHit ? "IFVG failed quality filter; " : "no IFVG yet; ") : ""
+    out == "" ? "IFVG closed back through or expired; " : out
 
 // one-line status of an engine for the tables
 f_engSummary(Engine e) =>
-    string out = e.tfName + ": off"
-    if e.enabled
-        out := e.tfName + ": smt " + str.tostring(e.cntSmtConf) + "/" + str.tostring(e.cntSmtDev) + (e.entryTf ? " buy " + str.tostring(e.cntBuy) + " sell " + str.tostring(e.cntSell) : " (SMT only)")
-    out
+    not e.enabled ? e.tfName + ": off" : e.tfName + ": smt " + str.tostring(e.cntSmtConf) + "/" + str.tostring(e.cntSmtDev) + (e.entryTf ? " buy " + str.tostring(e.cntBuy) + " sell " + str.tostring(e.cntSell) : " (SMT only)")
 
 // ---- SMT label de-duplication by extreme edge ----
 // One label per (direction, extreme price).  A later SMT at the same edge (another reference, another
 // engine timeframe) is appended to that label instead of drawing an overlapping one.  Labels only.
 f_anchorGet(int id) =>
     SmtAnchor out = na
-    if id >= 0 and array.size(smtAnchors) > 0
-        for i = 0 to array.size(smtAnchors) - 1
-            SmtAnchor a = array.get(smtAnchors, i)
-            if a.id == id
-                out := a
+    for a in smtAnchors
+        if a.id == id and id >= 0
+            out := a
     out
 
 f_anchorFind(bool isBull, float price) =>
     int out = -1
     float tol = smtMergeTicks * syminfo.mintick + syminfo.mintick * 0.01
-    if array.size(smtAnchors) > 0
-        for i = 0 to array.size(smtAnchors) - 1
-            SmtAnchor a = array.get(smtAnchors, i)
-            if out < 0 and a.alive and a.isBull == isBull and not na(a.lbl) and math.abs(a.price - price) <= tol
-                out := a.id
+    for a in smtAnchors
+        if out < 0 and a.alive and a.isBull == isBull and not na(a.lbl) and math.abs(a.price - price) <= tol
+            out := a.id
     out
 
 f_anchorNew(bool isBull, float price, label lb) =>
@@ -1234,17 +1107,15 @@ f_anchorKill(int id) =>
     true
 
 // ---- methods that change objects ----
+// label.delete / line.delete / box.delete accept na, so no guards are needed
 method kill(SMTSetup this) =>
     this.dead := true
-    if not na(this.lbl)
-        label.delete(this.lbl)
-        this.lbl := na
-    if not na(this.ln)
-        line.delete(this.ln)
-        this.ln := na
-    if not na(this.mk)
-        label.delete(this.mk)
-        this.mk := na
+    label.delete(this.lbl)
+    this.lbl := na
+    line.delete(this.ln)
+    this.ln := na
+    label.delete(this.mk)
+    this.mk := na
     f_anchorKill(this.anchorId)
     true
 
@@ -1272,21 +1143,13 @@ method draw(SMTSetup this, Engine e) =>
     bool pass = f_passes(this)
     bool showOk = showSMT and e.smtOk and not this.dead and pass and (this.confirmed or showDeveloping)
     bool showRej = showSMT and e.smtOk and not this.dead and not pass and showRejected
-    color base = this.isBull ? smtBullClr : smtBearClr
-    if showRej
-        base := color.gray
-    color col = base
-    if not this.confirmed and not showRej
-        col := color.new(base, 60)
+    color base = showRej ? color.gray : this.isBull ? smtBullClr : smtBearClr
+    color col = not this.confirmed and not showRej ? color.new(base, 60) : base
     string rejTxt = keyFilter and not keyOk ? "KEY " : ""
-    string head = "SMT" + (this.confirmed ? "" : "?")
-    if showRej
-        head := "SMT✗ " + rejTxt
+    string head = showRej ? "SMT✗ " + rejTxt : "SMT" + (this.confirmed ? "" : "?")
     string txt = head + " [" + e.tfName + "] · " + this.refName + (this.htfTag != "" ? " · @" + f_tagText(this.htfTag) : "")
     string tt = "Timeframe: " + e.tfName + "\n" + this.tip + (showRej ? "\nHIDDEN BY FILTER: " + rejTxt : "")
-    string sty = label.style_none
-    if showSmtShapes
-        sty := this.isBull ? label.style_label_up : label.style_label_down
+    string sty = not showSmtShapes ? label.style_none : this.isBull ? label.style_label_up : label.style_label_down
     color txtCol = showSmtShapes ? color.white : col
     if showOk or showRej
         // de-duplication: a new label at an extreme that already carries a live SMT label joins that label
@@ -1339,9 +1202,8 @@ method draw(SMTSetup this, Engine e) =>
                 line.set_xy2(this.ln, this.legTime, this.legPrice)
                 line.set_color(this.ln, col)
         else
-            if not na(this.ln)
-                line.delete(this.ln)
-                this.ln := na
+            line.delete(this.ln)
+            this.ln := na
         // pivot SMT marker: the correlated market's side of the divergence, written at the previous swing
         if showOk and this.pivMode and pivShowMarker and not na(this.lvlTime)
             string mkTxt = "◆ " + corrName + " " + str.tostring(this.prevB, format.mintick) + " → " + str.tostring(this.curB, format.mintick) + " " + f_pivStruct(this.isBull, this.sweeper, false)
@@ -1353,19 +1215,15 @@ method draw(SMTSetup this, Engine e) =>
                 label.set_textcolor(this.mk, col)
                 label.set_tooltip(this.mk, tt)
         else
-            if not na(this.mk)
-                label.delete(this.mk)
-                this.mk := na
-    else
-        if not na(this.lbl)
-            label.delete(this.lbl)
-            this.lbl := na
-        if not na(this.ln)
-            line.delete(this.ln)
-            this.ln := na
-        if not na(this.mk)
             label.delete(this.mk)
             this.mk := na
+    else
+        label.delete(this.lbl)
+        this.lbl := na
+        line.delete(this.ln)
+        this.ln := na
+        label.delete(this.mk)
+        this.mk := na
         f_anchorKill(this.anchorId)
     true
 
@@ -1390,11 +1248,8 @@ f_pivSmt(Engine e, Feed f, PivTrack tr, bool isHigh, float vA, float vB, float p
             bool sBull = not isHigh
             // one pivot SMT per (direction, swing): the other market anchoring the same swing does not add another
             bool dup = false
-            if array.size(e.setups) > 0
-                for i = 0 to array.size(e.setups) - 1
-                    SMTSetup q = array.get(e.setups, i)
-                    if q.pivMode and q.isBull == sBull and not q.dead and not q.expired and math.abs(q.sweepBar - pivIdx) <= pivotRight
-                        dup := true
+            for q in e.setups
+                dup := dup or (q.pivMode and q.isBull == sBull and not q.dead and not q.expired and math.abs(q.sweepBar - pivIdx) <= pivotRight)
             if not dup
                 float ext = sw == 1 ? vA : vB
                 float fail = sw == 1 ? tr.pB : tr.pA
@@ -1409,13 +1264,12 @@ f_pivSmt(Engine e, Feed f, PivTrack tr, bool isHigh, float vA, float vB, float p
                 array.push(e.setups, out)
                 e.cntSmtDev := e.cntSmtDev + 1
                 e.cntPivSmt := e.cntPivSmt + 1
-                if sw == 1
-                    if isHigh
-                        e.lastSweepHiBar := pivIdx
-                        e.lastSweepHiExt := false
-                    else
-                        e.lastSweepLoBar := pivIdx
-                        e.lastSweepLoExt := false
+                bool recHi = sw == 1 and isHigh
+                bool recLo = sw == 1 and not isHigh
+                e.lastSweepHiBar := recHi ? pivIdx : e.lastSweepHiBar
+                e.lastSweepHiExt := recHi ? false : e.lastSweepHiExt
+                e.lastSweepLoBar := recLo ? pivIdx : e.lastSweepLoBar
+                e.lastSweepLoExt := recLo ? false : e.lastSweepLoExt
                 e.logSmt := (sBull ? "Bull" : "Bear") + " pivot SMT developing (" + nm + ": " + swName + " made the new " + (isHigh ? "high" : "low") + ")"
     if ok
         tr.pA := vA
@@ -1591,28 +1445,18 @@ if barstate.isfirst
 //    The 0..3 / 0..4 / 0..7 / 0..4 extra comes from the zone's selection-engine composite score (0..1).
 f_calculateIFVGHTFScore(float top, float bot, bool isBull, float px, float prox) =>
     int best = -1
-    if array.size(htfList) > 0
-        for i = 0 to array.size(htfList) - 1
-            HtfFVG z = array.get(htfList, i)
-            bool dirOk = not htfMatchDir or z.isBull == isBull
-            bool near = top >= z.bottom - prox and bot <= z.top + prox
-            if dirOk and near and f_hzEligible(z)
-                if best < 0 or f_hzBetter(z, array.get(htfList, best), px)
-                    best := i
+    for [i, z] in htfList
+        bool dirOk = not htfMatchDir or z.isBull == isBull
+        bool near = top >= z.bottom - prox and bot <= z.top + prox
+        if dirOk and near and f_hzEligible(z) and (best < 0 or f_hzBetter(z, array.get(htfList, best), px))
+            best := i
     int pts = 0
     if best >= 0
         HtfFVG zb = array.get(htfList, best)
         float h = math.max(top - bot, syminfo.mintick)
         float ov = math.max(0.0, math.min(top, zb.top) - math.max(bot, zb.bottom)) / h
         float q = math.max(0.0, math.min(1.0, nz(zb.score, 0.0)))
-        if ov >= 0.999
-            pts := 22 + int(math.round(3.0 * q))
-        else if ov >= 0.5
-            pts := 18 + int(math.round(4.0 * q))
-        else if ov > 0.0
-            pts := 10 + int(math.round(7.0 * q))
-        else
-            pts := 10 + int(math.round(4.0 * q))
+        pts := ov >= 0.999 ? 22 + int(math.round(3.0 * q)) : ov >= 0.5 ? 18 + int(math.round(4.0 * q)) : ov > 0.0 ? 10 + int(math.round(7.0 * q)) : 10 + int(math.round(4.0 * q))
     pts
 
 // B. SMT alignment (20): best same-direction live SMT that passes the filters and started at/before the IFVG.
@@ -1621,17 +1465,11 @@ f_calculateIFVGHTFScore(float top, float bot, bool isBull, float px, float prox)
 //    none / only opposite-direction SMTs = 0.
 f_calculateIFVGSMTScore(Engine e, bool isBull) =>
     int pts = 0
-    if array.size(e.setups) > 0
-        for i = 0 to array.size(e.setups) - 1
-            SMTSetup q = array.get(e.setups, i)
-            if not q.dead and not q.expired and not q.used and q.isBull == isBull and f_passes(q) and q.sweepBar <= e.idx
-                int age = e.idx - q.legBar
-                int cand = 0
-                if age <= confluenceBars
-                    cand := q.confirmed ? (age <= math.max(1, confluenceBars / 2) ? 20 : 15) : 10
-                else if age <= 2 * confluenceBars
-                    cand := 5
-                pts := math.max(pts, cand)
+    for q in e.setups
+        int age = e.idx - q.legBar
+        int cand = age <= confluenceBars ? (q.confirmed ? (age <= math.max(1, confluenceBars / 2) ? 20 : 15) : 10) : age <= 2 * confluenceBars ? 5 : 0
+        bool ok = not q.dead and not q.expired and not q.used and q.isBull == isBull and f_passes(q) and q.sweepBar <= e.idx
+        pts := ok ? math.max(pts, cand) : pts
     pts
 
 // C. session (15): points of the session the inversion candle falls in (global sessPtsNow, see DATA)
@@ -1645,15 +1483,7 @@ f_calculateIFVGDisplacementScore(Feed f, bool isBull, float atrF) =>
     float bodyAtr = body / atrF
     float ratio = body / rng
     bool dirOk = isBull ? f.c > f.o : f.c < f.o
-    int pts = 0
-    if dirOk
-        if bodyAtr >= 1.5 * dispAtrMult and ratio >= dispBodyRatio
-            pts := 15
-        else if bodyAtr >= dispAtrMult and ratio >= dispBodyRatio
-            pts := 12
-        else if bodyAtr >= 0.5 * dispAtrMult or ratio >= dispBodyRatio
-            pts := 7
-    pts
+    not dirOk ? 0 : bodyAtr >= 1.5 * dispAtrMult and ratio >= dispBodyRatio ? 15 : bodyAtr >= dispAtrMult and ratio >= dispBodyRatio ? 12 : bodyAtr >= 0.5 * dispAtrMult or ratio >= dispBodyRatio ? 7 : 0
 
 // E. preceding liquidity sweep (15): the chart market's last sweep on the IFVG's side (sell-side lows for a
 //    bullish IFVG, buy-side highs for a bearish one), recorded by the SMT reference engine and the pivot SMT.
@@ -1661,31 +1491,19 @@ f_calculateIFVGDisplacementScore(Feed f, bool isBull, float atrF) =>
 f_calculateIFVGLiquidityScore(Engine e, bool isBull) =>
     int swBar = isBull ? e.lastSweepLoBar : e.lastSweepHiBar
     bool ext = isBull ? e.lastSweepLoExt : e.lastSweepHiExt
-    int pts = 0
-    if not na(swBar) and swBar <= e.idx
-        int age = e.idx - swBar
-        if age <= i_liqLookbackBars
-            pts := ext ? 15 : 10
-        else if age <= 2 * i_liqLookbackBars
-            pts := 5
-    pts
+    int age = e.idx - swBar
+    na(swBar) or swBar > e.idx ? 0 : age <= i_liqLookbackBars ? (ext ? 15 : 10) : age <= 2 * i_liqLookbackBars ? 5 : 0
 
 // F. clean structure / HTF step-up (10): 5 - 1.5 per other not-yet-inverted feed FVG overlapping the IFVG
 //    - 2 per live opposite-direction IFVG overlapping it (clamped 0..5) + 3 when the inversion close also
 //    breaks the last feed swing (MSS) + 2 when the primary selected HTF zone has the IFVG's direction.
 f_calculateIFVGStructureScore(Engine e, Feed f, float top, float bot, bool isBull, bool htfAligned) =>
     int noise = 0
-    if array.size(e.rawList) > 0
-        for i = 0 to array.size(e.rawList) - 1
-            RawFVG rf = array.get(e.rawList, i)
-            if fvgRangesOverlap(rf.top, rf.bottom, top, bot)
-                noise += 1
+    for rf in e.rawList
+        noise += fvgRangesOverlap(rf.top, rf.bottom, top, bot) ? 1 : 0
     int conflict = 0
-    if array.size(e.ifvgList) > 0
-        for i = 0 to array.size(e.ifvgList) - 1
-            IFVGZone iz = array.get(e.ifvgList, i)
-            if iz.isBull != isBull and not iz.used and fvgRangesOverlap(iz.top, iz.bottom, top, bot)
-                conflict += 1
+    for iz in e.ifvgList
+        conflict += iz.isBull != isBull and not iz.used and fvgRangesOverlap(iz.top, iz.bottom, top, bot) ? 1 : 0
     float clean = math.max(0.0, math.min(5.0, 5.0 - 1.5 * noise - 2.0 * conflict))
     bool mss = isBull ? (not na(e.lastPHA) and f.c > e.lastPHA) : (not na(e.lastPLA) and f.c < e.lastPLA)
     int(math.round(clean)) + (mss ? 3 : 0) + (htfAligned ? 2 : 0)
@@ -1700,6 +1518,25 @@ f_calculateIFVGConfluenceScore(Engine e, Feed f, float top, float bot, bool isBu
     int sStruct = f_calculateIFVGStructureScore(e, f, top, bot, isBull, htfAligned)
     int total = math.max(0, math.min(100, sHtf + sSmt + sSess + sDisp + sLiq + sStruct))
     [total, sHtf, sSmt, sSess, sDisp, sLiq, sStruct]
+
+// ---- small helpers that keep f_runEngine under the local-scope limit (a helper's scopes count once) ----
+// swing reference pair: the anchoring market's pivot + the other market's window extreme, accepted only when
+// the other market's post-window extreme did not exceed that window (it also made a local extreme there)
+f_swingPair(array<LiqRef> refs, bool isHigh, int kind, bool anchorA, float piv, float win, float post, int atBar, int atTime, float tolA, float tolB) =>
+    float tolO = anchorA ? tolB : tolA
+    bool ok = not na(piv) and not na(win) and not na(post) and (isHigh ? post <= win + tolO : post >= win - tolO)
+    if ok
+        f_addSwingRef(refs, isHigh, kind, anchorA ? piv : win, anchorA ? win : piv, atBar, atTime, tolA, tolB)
+    true
+
+// one pivot-SMT track: detect, draw, return whether a filter-passing SMT was created
+f_pivRun(Engine e, Feed f, PivTrack tr, bool isHigh, float vA, float vB, float postA, float postB, int pivIdx, int pivT, float tolA, float tolB) =>
+    SMTSetup p = f_pivSmt(e, f, tr, isHigh, vA, vB, postA, postB, pivIdx, pivT, tolA, tolB)
+    bool out = false
+    if not na(p)
+        p.draw(e)
+        out := f_passes(p)
+    out
 
 // ============================== ENGINE (one call = one feed) ==============================
 // Runs the complete SMT + IFVG logic for ONE timeframe.  Fixed references (PDH/PDL, PWH/PWL, HTF
@@ -1730,278 +1567,163 @@ f_runEngine(Engine e, Feed f) =>
             rPWH.arm(pwhA, pwhB, e.idx, time)
             rPWL.arm(pwlA, pwlB, e.idx, time)
         if useHtfSwing and newSw
-            if not na(aPH) and not na(bWinH) and not na(bPostH)
-                if bPostH <= bWinH + tolB
-                    f_addSwingRef(e.refs, true, 2, aPH, bWinH, e.idx, aPT, tolA, tolB)
-            if not na(aPL) and not na(bWinL) and not na(bPostL)
-                if bPostL >= bWinL - tolB
-                    f_addSwingRef(e.refs, false, 2, aPL, bWinL, e.idx, aPT, tolA, tolB)
-            if not na(bPH) and not na(aWinH) and not na(aPostH)
-                if aPostH <= aWinH + tolA
-                    f_addSwingRef(e.refs, true, 2, aWinH, bPH, e.idx, aPT, tolA, tolB)
-            if not na(bPL) and not na(aWinL) and not na(aPostL)
-                if aPostL >= aWinL - tolA
-                    f_addSwingRef(e.refs, false, 2, aWinL, bPL, e.idx, aPT, tolA, tolB)
+            f_swingPair(e.refs, true, 2, true, aPH, bWinH, bPostH, e.idx, aPT, tolA, tolB)
+            f_swingPair(e.refs, false, 2, true, aPL, bWinL, bPostL, e.idx, aPT, tolA, tolB)
+            f_swingPair(e.refs, true, 2, false, bPH, aWinH, aPostH, e.idx, aPT, tolA, tolB)
+            f_swingPair(e.refs, false, 2, false, bPL, aWinL, aPostL, e.idx, aPT, tolA, tolB)
 
         if f.isNew
             e.idx := e.idx + 1
-            if not na(f.phA)
-                e.lastPHA := f.phA
-            if not na(f.plA)
-                e.lastPLA := f.plA
+            e.lastPHA := na(f.phA) ? e.lastPHA : f.phA
+            e.lastPLA := na(f.plA) ? e.lastPLA : f.plA
             int pivIdx = e.idx - pivotRight
 
-            // ---------- C2. feed-TF swings ----------
+            // ---------- C2. feed-TF swings (both markets can anchor the swing) ----------
             if corrOkF and useSwing
-                if not na(f.phA) and not na(f.winHiB) and not na(f.postHiB)
-                    if f.postHiB <= f.winHiB + tolB
-                        f_addSwingRef(e.refs, true, 1, f.phA, f.winHiB, pivIdx, f.pivT, tolA, tolB)
-                if not na(f.plA) and not na(f.winLoB) and not na(f.postLoB)
-                    if f.postLoB >= f.winLoB - tolB
-                        f_addSwingRef(e.refs, false, 1, f.plA, f.winLoB, pivIdx, f.pivT, tolA, tolB)
-                if not na(f.phB) and not na(f.winHiA) and not na(f.postHiA)
-                    if f.postHiA <= f.winHiA + tolA
-                        f_addSwingRef(e.refs, true, 1, f.winHiA, f.phB, pivIdx, f.pivT, tolA, tolB)
-                if not na(f.plB) and not na(f.winLoA) and not na(f.postLoA)
-                    if f.postLoA >= f.winLoA - tolA
-                        f_addSwingRef(e.refs, false, 1, f.winLoA, f.plB, pivIdx, f.pivT, tolA, tolB)
+                f_swingPair(e.refs, true, 1, true, f.phA, f.winHiB, f.postHiB, pivIdx, f.pivT, tolA, tolB)
+                f_swingPair(e.refs, false, 1, true, f.plA, f.winLoB, f.postLoB, pivIdx, f.pivT, tolA, tolB)
+                f_swingPair(e.refs, true, 1, false, f.phB, f.winHiA, f.postHiA, pivIdx, f.pivT, tolA, tolB)
+                f_swingPair(e.refs, false, 1, false, f.plB, f.winLoA, f.postLoA, pivIdx, f.pivT, tolA, tolB)
 
             // ---------- C3. universal pivot SMT: every confirmed swing of EITHER market vs the other market on the same candle ----------
             // Four tracks: highs / lows anchored on the chart market (its pivot + the correlated market's aligned
             // extreme) and highs / lows anchored on the correlated market (its pivot + the chart market's aligned extreme).
+            // A track whose pivot is na this bar is skipped inside f_pivSmt (no detection, no track update).
             if corrOkF and usePivSmt
-                if not na(f.phA)
-                    SMTSetup pvA1 = f_pivSmt(e, f, e.tHiA, true, f.phA, f.pvHiB, f.pvPostHiA, f.pvPostHiB, pivIdx, f.pivT, tolA, tolB)
-                    if not na(pvA1)
-                        pvA1.draw(e)
-                        if f_passes(pvA1)
-                            bearDet := true
-                if not na(f.plA)
-                    SMTSetup pvA2 = f_pivSmt(e, f, e.tLoA, false, f.plA, f.pvLoB, f.pvPostLoA, f.pvPostLoB, pivIdx, f.pivT, tolA, tolB)
-                    if not na(pvA2)
-                        pvA2.draw(e)
-                        if f_passes(pvA2)
-                            bullDet := true
-                if not na(f.phB)
-                    SMTSetup pvB1 = f_pivSmt(e, f, e.tHiB, true, f.pvHiA, f.phB, f.pvPostHiA, f.pvPostHiB, pivIdx, f.pivT, tolA, tolB)
-                    if not na(pvB1)
-                        pvB1.draw(e)
-                        if f_passes(pvB1)
-                            bearDet := true
-                if not na(f.plB)
-                    SMTSetup pvB2 = f_pivSmt(e, f, e.tLoB, false, f.pvLoA, f.plB, f.pvPostLoA, f.pvPostLoB, pivIdx, f.pivT, tolA, tolB)
-                    if not na(pvB2)
-                        pvB2.draw(e)
-                        if f_passes(pvB2)
-                            bullDet := true
+                bearDet := f_pivRun(e, f, e.tHiA, true, f.phA, f.pvHiB, f.pvPostHiA, f.pvPostHiB, pivIdx, f.pivT, tolA, tolB) or bearDet
+                bullDet := f_pivRun(e, f, e.tLoA, false, f.plA, f.pvLoB, f.pvPostLoA, f.pvPostLoB, pivIdx, f.pivT, tolA, tolB) or bullDet
+                bearDet := f_pivRun(e, f, e.tHiB, true, f.pvHiA, f.phB, f.pvPostHiA, f.pvPostHiB, pivIdx, f.pivT, tolA, tolB) or bearDet
+                bullDet := f_pivRun(e, f, e.tLoB, false, f.pvLoA, f.plB, f.pvPostLoA, f.pvPostLoB, pivIdx, f.pivT, tolA, tolB) or bullDet
 
             // ---------- D. SMT state machine over every reference ----------
             if corrOkF
                 SMTSetup devBullS = na
                 SMTSetup devBearS = na
-                if array.size(e.setups) > 0
-                    for i = 0 to array.size(e.setups) - 1
-                        SMTSetup q = array.get(e.setups, i)
-                        if q.active and not q.dead
-                            if q.isBull
-                                devBullS := q
-                            else
-                                devBearS := q
-                for i = 0 to array.size(e.refs) - 1
-                    LiqRef r = array.get(e.refs, i)
-                    bool tkA = false
-                    bool tkB = false
-                    bool otherTakes = false
-                    bool newExt = false
-                    bool sBull = false
-                    bool rKey = false
-                    int sw = 0
-                    float ext = 0.0
-                    float swExt = 0.0
-                    string swName = ""
-                    string flName = ""
-                    string tap = ""
-                    string tg = ""
-                    SMTSetup ex = na
-                    SMTSetup ns = na
-                    SMTSetup cs = na
-                    if r.state == 0
-                        if r.isHigh
-                            tkA := f.h > r.lvlA + tolA
-                            tkB := f.ch > r.lvlB + tolB
+                for q in e.setups
+                    if q.active and not q.dead
+                        if q.isBull
+                            devBullS := q
                         else
-                            tkA := f.l < r.lvlA - tolA
-                            tkB := f.cl < r.lvlB - tolB
-                        // the chart market took this level (alone or together with the other market): last sweep per side
-                        if tkA
-                            if r.isHigh
-                                e.lastSweepHiBar := e.idx
-                                e.lastSweepHiExt := r.kind != 1
-                            else
-                                e.lastSweepLoBar := e.idx
-                                e.lastSweepLoExt := r.kind != 1
-                        if tkA and tkB
+                            devBearS := q
+                for r in e.refs
+                    bool tkA = r.state == 0 and (r.isHigh ? f.h > r.lvlA + tolA : f.l < r.lvlA - tolA)
+                    bool tkB = r.state == 0 and (r.isHigh ? f.ch > r.lvlB + tolB : f.cl < r.lvlB - tolB)
+                    int sw = tkA ? 1 : 2
+                    bool sBull = not r.isHigh
+                    bool rKey = r.kind != 1
+                    // the chart market took this level (alone or together with the other market): last sweep per side
+                    e.lastSweepHiBar := tkA and r.isHigh ? e.idx : e.lastSweepHiBar
+                    e.lastSweepHiExt := tkA and r.isHigh ? rKey : e.lastSweepHiExt
+                    e.lastSweepLoBar := tkA and not r.isHigh ? e.idx : e.lastSweepLoBar
+                    e.lastSweepLoExt := tkA and not r.isHigh ? rKey : e.lastSweepLoExt
+                    SMTSetup ex = devBearS
+                    if sBull
+                        ex := devBullS
+                    SMTSetup cs = r.cur
+                    if tkA and tkB
+                        r.state := 3
+                    else if tkA or tkB
+                        if not na(ex)
+                            // a same-direction SMT is already developing: this sweep joins it (key level upgrades it)
+                            ex.tip := ex.tip + " | also swept " + r.name
+                            bool upg = ex.sweeper == sw and rKey and not ex.isKey
+                            ex.isKey := ex.isKey or upg
+                            ex.refName := not upg ? ex.refName : ex.pivMode ? r.name + " + " + ex.refName : r.name
+                            ex.lvlA := upg and not ex.pivMode ? r.lvlA : ex.lvlA
+                            ex.lvlTime := upg and not ex.pivMode ? r.lvlTime : ex.lvlTime
                             r.state := 3
-                        else if tkA or tkB
-                            sw := tkA ? 1 : 2
-                            sBull := not r.isHigh
-                            rKey := r.kind != 1
+                        else
+                            float ext = sw == 1 ? (r.isHigh ? f.h : f.l) : (r.isHigh ? f.ch : f.cl)
+                            string swName = sw == 1 ? syminfo.ticker : corrName
+                            string flName = sw == 1 ? corrName : syminfo.ticker
+                            string tap = f_htfOverlap(f.l, f.h, sBull)
+                            SMTSetup ns = SMTSetup.new(isBull = sBull, refName = r.name, isKey = rKey, sweeper = sw, sweepBar = e.idx, legBar = e.idx, legTime = f.t, legExt = ext, legPrice = r.isHigh ? f.h : f.l, sweepExt = r.isHigh ? f.h : f.l, lvlA = r.lvlA, lvlTime = r.lvlTime, detectTime = f.t, sweepTime = f.t, sweepPrice = ext, sweptLevel = r.lvlA, mssLevel = r.isHigh ? e.lastPLA : e.lastPHA, htfTap = tap != "", htfTag = tap, tip = (sBull ? "Bullish" : "Bearish") + " SMT [" + e.tfName + "] at " + r.name + ": " + swName + " took the level, " + flName + " did not")
+                            array.push(e.setups, ns)
+                            r.cur := ns
+                            r.state := 1
+                            e.cntSmtDev := e.cntSmtDev + 1
+                            e.logSmt := (sBull ? "Bull" : "Bear") + " SMT developing @" + r.name + " (" + swName + " swept)"
                             if sBull
-                                ex := devBullS
+                                devBullS := ns
                             else
-                                ex := devBearS
-                            if not na(ex)
-                                ex.tip := ex.tip + " | also swept " + r.name
-                                if ex.sweeper == sw and rKey and not ex.isKey
-                                    ex.isKey := true
-                                    if ex.pivMode
-                                        // a pivot SMT that also sweeps a key level keeps its divergence trendline, gains the key name
-                                        ex.refName := r.name + " + " + ex.refName
-                                    else
-                                        ex.refName := r.name
-                                        ex.lvlA := r.lvlA
-                                        ex.lvlTime := r.lvlTime
-                                r.state := 3
-                            else
-                                if sw == 1
-                                    ext := r.isHigh ? f.h : f.l
-                                    swName := syminfo.ticker
-                                    flName := corrName
-                                else
-                                    ext := r.isHigh ? f.ch : f.cl
-                                    swName := corrName
-                                    flName := syminfo.ticker
-                                tap := f_htfOverlap(f.l, f.h, sBull)
-                                ns := SMTSetup.new(isBull = sBull, refName = r.name, isKey = rKey, sweeper = sw, sweepBar = e.idx, legBar = e.idx, legTime = f.t, legExt = ext, legPrice = r.isHigh ? f.h : f.l, sweepExt = r.isHigh ? f.h : f.l, lvlA = r.lvlA, lvlTime = r.lvlTime, detectTime = f.t, sweepTime = f.t, sweepPrice = ext, sweptLevel = r.lvlA, mssLevel = r.isHigh ? e.lastPLA : e.lastPHA, htfTap = tap != "", htfTag = tap, tip = (sBull ? "Bullish" : "Bearish") + " SMT [" + e.tfName + "] at " + r.name + ": " + swName + " took the level, " + flName + " did not")
-                                array.push(e.setups, ns)
-                                r.cur := ns
-                                r.state := 1
-                                e.cntSmtDev := e.cntSmtDev + 1
-                                e.logSmt := (sBull ? "Bull" : "Bear") + " SMT developing @" + r.name + " (" + swName + " swept)"
-                                if sBull
-                                    devBullS := ns
-                                else
-                                    devBearS := ns
-                                ns.draw(e)
-                                if f_passes(ns)
-                                    if sBull
-                                        bullDet := true
-                                    else
-                                        bearDet := true
+                                devBearS := ns
+                            ns.draw(e)
+                            bullDet := bullDet or (sBull and f_passes(ns))
+                            bearDet := bearDet or (not sBull and f_passes(ns))
                     else if r.state == 1
-                        cs := r.cur
                         if na(cs)
                             r.state := 3
                         else if cs.dead or cs.expired
                             cs.active := false
                             r.state := 3
                         else
-                            if cs.sweeper == 1
-                                if r.isHigh
-                                    otherTakes := f.ch > r.lvlB + tolB
-                                else
-                                    otherTakes := f.cl < r.lvlB - tolB
-                            else
-                                if r.isHigh
-                                    otherTakes := f.h > r.lvlA + tolA
-                                else
-                                    otherTakes := f.l < r.lvlA - tolA
+                            bool otherTakes = cs.sweeper == 1 ? (r.isHigh ? f.ch > r.lvlB + tolB : f.cl < r.lvlB - tolB) : (r.isHigh ? f.h > r.lvlA + tolA : f.l < r.lvlA - tolA)
                             if otherTakes
                                 cs.active := false
                                 r.state := 3
                                 e.cntSmtInv := e.cntSmtInv + 1
-                                if not cs.confirmed
-                                    e.logSmt := (cs.isBull ? "Bull" : "Bear") + " SMT @" + r.name + " INVALIDATED: other market took its level"
-                                else
-                                    e.logSmt := (cs.isBull ? "Bull" : "Bear") + " SMT @" + r.name + " INVALIDATED after confirmation: other market took its level"
+                                e.logSmt := (cs.isBull ? "Bull" : "Bear") + " SMT @" + r.name + " INVALIDATED" + (cs.confirmed ? " after confirmation" : "") + ": other market took its level"
                                 if removeInvalidatedSMT
                                     cs.kill()
                             else
-                                if cs.sweeper == 1
-                                    swExt := r.isHigh ? f.h : f.l
-                                else
-                                    swExt := r.isHigh ? f.ch : f.cl
-                                if r.isHigh
-                                    newExt := swExt > cs.legExt
-                                else
-                                    newExt := swExt < cs.legExt
-                                if newExt
-                                    cs.legExt := swExt
-                                    cs.legBar := e.idx
-                                    cs.legTime := f.t
-                                    cs.legPrice := r.isHigh ? f.h : f.l
-                                if not cs.htfTap
-                                    tg := f_htfOverlap(f.l, f.h, cs.isBull)
-                                    if tg != ""
-                                        cs.htfTap := true
-                                        cs.htfTag := tg
-                                if not cs.confirmed
-                                    if e.idx - cs.sweepBar >= smtConfirmBars
-                                        cs.confirmed := true
-                                        cs.confirmBar := e.idx
-                                        cs.confirmTime := f.t
-                                        e.cntSmtConf := e.cntSmtConf + 1
-                                        e.logSmt := (cs.isBull ? "Bull" : "Bear") + " SMT confirmed @" + cs.refName
-                                        if f_passes(cs)
-                                            if cs.isBull
-                                                bullConf := true
-                                            else
-                                                bearConf := true
-                                else
-                                    if e.idx - cs.legBar >= smtConfirmBars
-                                        cs.active := false
-                                        r.state := 3
+                                float swExt = cs.sweeper == 1 ? (r.isHigh ? f.h : f.l) : (r.isHigh ? f.ch : f.cl)
+                                bool newExt = r.isHigh ? swExt > cs.legExt : swExt < cs.legExt
+                                cs.legExt := newExt ? swExt : cs.legExt
+                                cs.legBar := newExt ? e.idx : cs.legBar
+                                cs.legTime := newExt ? f.t : cs.legTime
+                                cs.legPrice := newExt ? (r.isHigh ? f.h : f.l) : cs.legPrice
+                                string tg = cs.htfTap ? "" : f_htfOverlap(f.l, f.h, cs.isBull)
+                                cs.htfTap := cs.htfTap or tg != ""
+                                cs.htfTag := tg != "" ? tg : cs.htfTag
+                                bool confNow = not cs.confirmed and e.idx - cs.sweepBar >= smtConfirmBars
+                                if confNow
+                                    cs.confirmed := true
+                                    cs.confirmBar := e.idx
+                                    cs.confirmTime := f.t
+                                    e.cntSmtConf := e.cntSmtConf + 1
+                                    e.logSmt := (cs.isBull ? "Bull" : "Bear") + " SMT confirmed @" + cs.refName
+                                    bullConf := bullConf or (cs.isBull and f_passes(cs))
+                                    bearConf := bearConf or (not cs.isBull and f_passes(cs))
+                                if cs.confirmed and not confNow and e.idx - cs.legBar >= smtConfirmBars
+                                    cs.active := false
+                                    r.state := 3
                                 cs.draw(e)
 
                 // ---------- D2. pivot SMT state machine: invalidation, deeper extreme, confirmation ----------
                 // sweeper = the market that made the new swing; the SMT dies when the OTHER market takes its own
                 // previous swing (failLvl) by more than its tolerance, exactly like a sweep SMT.
-                if array.size(e.setups) > 0
-                    for i = 0 to array.size(e.setups) - 1
-                        SMTSetup ps = array.get(e.setups, i)
-                        if ps.pivMode and ps.active and not ps.dead and not ps.expired
-                            bool isHi = not ps.isBull
-                            bool oTakes = false
-                            if ps.sweeper == 1
-                                oTakes := isHi ? f.ch > ps.failLvl + tolB : f.cl < ps.failLvl - tolB
-                            else
-                                oTakes := isHi ? f.h > ps.failLvl + tolA : f.l < ps.failLvl - tolA
-                            if oTakes
-                                ps.active := false
-                                e.cntSmtInv := e.cntSmtInv + 1
-                                e.logSmt := (ps.isBull ? "Bull" : "Bear") + " pivot SMT " + ps.refName + " INVALIDATED" + (ps.confirmed ? " after confirmation" : "") + ": " + (ps.sweeper == 1 ? corrName : syminfo.ticker) + " took its swing"
-                                if removeInvalidatedSMT
-                                    ps.kill()
-                            else
-                                float pExt = ps.sweeper == 1 ? (isHi ? f.h : f.l) : (isHi ? f.ch : f.cl)
-                                bool deeper = isHi ? pExt > ps.legExt : pExt < ps.legExt
-                                if deeper
-                                    ps.legExt := pExt
-                                    ps.legBar := e.idx
-                                    ps.legTime := f.t
-                                    ps.legPrice := isHi ? f.h : f.l
-                                    if ps.sweeper == 2
-                                        ps.curB := pExt
-                                if not ps.htfTap
-                                    string tgP = f_htfOverlap(f.l, f.h, ps.isBull)
-                                    if tgP != ""
-                                        ps.htfTap := true
-                                        ps.htfTag := tgP
-                                if not ps.confirmed
-                                    if e.idx - ps.sweepBar >= smtConfirmBars
-                                        ps.confirmed := true
-                                        ps.confirmBar := e.idx
-                                        ps.confirmTime := f.t
-                                        e.cntSmtConf := e.cntSmtConf + 1
-                                        e.logSmt := (ps.isBull ? "Bull" : "Bear") + " pivot SMT confirmed (" + ps.refName + ")"
-                                        if f_passes(ps)
-                                            if ps.isBull
-                                                bullConf := true
-                                            else
-                                                bearConf := true
-                                else if e.idx - ps.legBar >= smtConfirmBars
-                                    ps.active := false
-                                ps.draw(e)
+                for ps in e.setups
+                    if ps.pivMode and ps.active and not ps.dead and not ps.expired
+                        bool isHi = not ps.isBull
+                        bool oTakes = ps.sweeper == 1 ? (isHi ? f.ch > ps.failLvl + tolB : f.cl < ps.failLvl - tolB) : (isHi ? f.h > ps.failLvl + tolA : f.l < ps.failLvl - tolA)
+                        if oTakes
+                            ps.active := false
+                            e.cntSmtInv := e.cntSmtInv + 1
+                            e.logSmt := (ps.isBull ? "Bull" : "Bear") + " pivot SMT " + ps.refName + " INVALIDATED" + (ps.confirmed ? " after confirmation" : "") + ": " + (ps.sweeper == 1 ? corrName : syminfo.ticker) + " took its swing"
+                            if removeInvalidatedSMT
+                                ps.kill()
+                        else
+                            float pExt = ps.sweeper == 1 ? (isHi ? f.h : f.l) : (isHi ? f.ch : f.cl)
+                            bool deeper = isHi ? pExt > ps.legExt : pExt < ps.legExt
+                            ps.legExt := deeper ? pExt : ps.legExt
+                            ps.legBar := deeper ? e.idx : ps.legBar
+                            ps.legTime := deeper ? f.t : ps.legTime
+                            ps.legPrice := deeper ? (isHi ? f.h : f.l) : ps.legPrice
+                            ps.curB := deeper and ps.sweeper == 2 ? pExt : ps.curB
+                            string tgP = ps.htfTap ? "" : f_htfOverlap(f.l, f.h, ps.isBull)
+                            ps.htfTap := ps.htfTap or tgP != ""
+                            ps.htfTag := tgP != "" ? tgP : ps.htfTag
+                            bool confNowP = not ps.confirmed and e.idx - ps.sweepBar >= smtConfirmBars
+                            if confNowP
+                                ps.confirmed := true
+                                ps.confirmBar := e.idx
+                                ps.confirmTime := f.t
+                                e.cntSmtConf := e.cntSmtConf + 1
+                                e.logSmt := (ps.isBull ? "Bull" : "Bear") + " pivot SMT confirmed (" + ps.refName + ")"
+                                bullConf := bullConf or (ps.isBull and f_passes(ps))
+                                bearConf := bearConf or (not ps.isBull and f_passes(ps))
+                            ps.active := ps.active and not (ps.confirmed and not confNowP and e.idx - ps.legBar >= smtConfirmBars)
+                            ps.draw(e)
                 // drop used-up swing references (fixed levels stay)
                 for i = array.size(e.refs) - 1 to 0
                     LiqRef q2 = array.get(e.refs, i)
@@ -2023,12 +1745,12 @@ f_runEngine(Engine e, Feed f) =>
             e.bearRun := p3Bear ? e.bearRun + 1 : 0
             bool bullSwingOk = not dispReqSwing or (not na(e.lastPHA) and f.c > e.lastPHA)
             bool bearSwingOk = not dispReqSwing or (not na(e.lastPLA) and f.c < e.lastPLA)
-            if e.bullRun >= dispConsec and bullSwingOk
-                e.lastBullDispBar := e.idx
-                e.lastBullDispTime := f.t
-            if e.bearRun >= dispConsec and bearSwingOk
-                e.lastBearDispBar := e.idx
-                e.lastBearDispTime := f.t
+            bool bullDispEv = e.bullRun >= dispConsec and bullSwingOk
+            bool bearDispEv = e.bearRun >= dispConsec and bearSwingOk
+            e.lastBullDispBar := bullDispEv ? e.idx : e.lastBullDispBar
+            e.lastBullDispTime := bullDispEv ? f.t : e.lastBullDispTime
+            e.lastBearDispBar := bearDispEv ? e.idx : e.lastBearDispBar
+            e.lastBearDispTime := bearDispEv ? f.t : e.lastBearDispTime
 
             // ---------- B. IFVG engine (hidden FVG memory -> inversion) ----------
             SMTSetup newestLive = na
@@ -2219,16 +1941,13 @@ f_runEngine(Engine e, Feed f) =>
                 e.lastIfvgTag := ifTag
                 e.lastIfvgBar := e.idx
                 e.lastIfvgTime := f.t
-                if newBullIFVG
-                    e.cntIfvgBull := e.cntIfvgBull + 1
-                else
-                    e.cntIfvgBear := e.cntIfvgBear + 1
+                e.cntIfvgBull := e.cntIfvgBull + (newBullIFVG ? 1 : 0)
+                e.cntIfvgBear := e.cntIfvgBear + (newBullIFVG ? 0 : 1)
                 // ---- confluence score (section 1c): once, on this inversion candle, from what is known now ----
                 [scTot, scHtf, scSmt, scSess, scDisp, scLiq, scStruct] = f_calculateIFVGConfluenceScore(e, f, newTop, newBot, newBullIFVG, safeAtrF, ifPrimary != "" and ifPrimBull == newBullIFVG)
                 string scGrade = f_getIFVGGrade(scTot)
                 bool scPass = f_ifvgPassesThreshold(scTot)
-                if not scPass
-                    e.cntIfvgScoreRej := e.cntIfvgScoreRej + 1
+                e.cntIfvgScoreRej := e.cntIfvgScoreRej + (scPass ? 0 : 1)
                 e.logIfvg := ifDir + " IFVG formed, in HTF: " + (ifTag != "" ? f_tagText(ifTag) : "none") + " · score " + scGrade + " " + str.tostring(scTot) + "/100" + (scPass ? "" : " (< min " + str.tostring(i_minProbScore) + ": no signal)")
                 IFVGZone newZone = IFVGZone.new(isBull = newBullIFVG, top = newTop, bottom = newBot, invBar = e.idx, htfTag = ifTag, primaryTag = ifPrimary, resTf = newResTf, fvgId = newFvgId, primaryBull = ifPrimBull, dispBar = ifDispBar, dispTime = ifDispTime, dispOk = ifDispOk, confScore = scTot, sHtf = scHtf, sSmt = scSmt, sSess = scSess, sDisp = scDisp, sLiq = scLiq, sStruct = scStruct, grade = scGrade, sessName = sessNameNow)
                 if showIFVG
@@ -2239,32 +1958,14 @@ f_runEngine(Engine e, Feed f) =>
                     newZone.b := zoneBox
                 array.push(e.ifvgList, newZone)
                 // pairing diagnostics against every live SMT of the same direction
-                if array.size(e.setups) > 0
-                    for i = 0 to array.size(e.setups) - 1
-                        SMTSetup qn = array.get(e.setups, i)
-                        bool liveQ = not qn.dead and not qn.used and not qn.expired
-                        bool tOk = false
-                        if liveQ and qn.isBull == newBullIFVG
-                            tOk := f_timingOk(qn, e.idx)
-                            if not tOk
-                                if e.idx < qn.sweepBar
-                                    qn.note := "IFVG formed BEFORE the SMT (rule: at/after)"
-                                else
-                                    qn.note := "IFVG too far from SMT: " + str.tostring(e.idx - qn.legBar) + " bars (max " + str.tostring(confluenceBars) + ")"
-                            else if requireHTF and ifTag == ""
-                                qn.note := "IFVG not in an HTF FVG (" + htfContain + ")"
-                            else if not scPass
-                                qn.note := "IFVG confluence score " + str.tostring(scTot) + " < min " + str.tostring(i_minProbScore)
-                            else
-                                qn.note := ""
-                                qn.ifvgSeen := true
+                for qn in e.setups
+                    bool liveQ = not qn.dead and not qn.used and not qn.expired
+                    if liveQ and qn.isBull == newBullIFVG
+                        bool tOk = f_timingOk(qn, e.idx)
+                        qn.note := not tOk ? (e.idx < qn.sweepBar ? "IFVG formed BEFORE the SMT (rule: at/after)" : "IFVG too far from SMT: " + str.tostring(e.idx - qn.legBar) + " bars (max " + str.tostring(confluenceBars) + ")") : requireHTF and ifTag == "" ? "IFVG not in an HTF FVG (" + htfContain + ")" : not scPass ? "IFVG confluence score " + str.tostring(scTot) + " < min " + str.tostring(i_minProbScore) : ""
+                        qn.ifvgSeen := qn.ifvgSeen or (tOk and qn.note == "")
                 if not na(newestLive)
-                    if newestLive.isBull != newBullIFVG
-                        pairMsg := "IFVG " + ifDir + " but live SMT is " + (newestLive.isBull ? "Bull" : "Bear") + ": DIRECTION MISMATCH"
-                    else if newestLive.note != ""
-                        pairMsg := newestLive.note
-                    else
-                        pairMsg := "IFVG pairs with live SMT (timing + HTF ok)"
+                    pairMsg := newestLive.isBull != newBullIFVG ? "IFVG " + ifDir + " but live SMT is " + (newestLive.isBull ? "Bull" : "Bear") + ": DIRECTION MISMATCH" : newestLive.note != "" ? newestLive.note : "IFVG pairs with live SMT (timing + HTF ok)"
                     e.logPair := pairMsg
                     showNote := showDebug and (newestLive.note != "" or newestLive.isBull != newBullIFVG)
                     if showNote
@@ -2294,46 +1995,27 @@ f_runEngine(Engine e, Feed f) =>
             if array.size(e.setups) > 0
                 for i = array.size(e.setups) - 1 to 0
                     SMTSetup se = array.get(e.setups, i)
-                    bool removeIt = false
-                    if se.dead
-                        removeIt := true
-                    else
-                        if not se.expired
-                            if not se.used
-                                // chart-market extreme of the sweep leg = the "Sweep High/Low" stop
-                                se.sweepExt := se.isBull ? math.min(se.sweepExt, f.l) : math.max(se.sweepExt, f.h)
-                            if e.idx > se.sweepBar
-                                if se.isBull
-                                    if not se.dispDone and bullDispF
-                                        se.dispDone := true
-                                    if not se.fvgDone and bullFvgF and e.idx - 2 >= se.sweepBar
-                                        se.fvgDone := true
-                                    if not se.mssDone and not na(se.mssLevel) and f.c > se.mssLevel
-                                        se.mssDone := true
-                                else
-                                    if not se.dispDone and bearDispF
-                                        se.dispDone := true
-                                    if not se.fvgDone and bearFvgF and e.idx - 2 >= se.sweepBar
-                                        se.fvgDone := true
-                                    if not se.mssDone and not na(se.mssLevel) and f.c < se.mssLevel
-                                        se.mssDone := true
-                            // age in DAYS from the fixed detection timestamp (works on any chart timeframe)
-                            bool ageOut = smtMaxDays > 0 and (time - se.detectTime) / 86400000.0 > smtMaxDays
-                            if ageOut
-                                se.ageExpired := true
-                            if e.idx - se.legBar > smtLifeBars or ageOut
-                                se.expired := true
-                                if not se.used
-                                    e.cntSmtExp := e.cntSmtExp + 1
-                                    e.logSmt := (se.isBull ? "Bull" : "Bear") + " SMT @" + se.refName + " expired: " + f_reason(e, se)
-                                    if not na(se.lbl)
-                                        label.set_tooltip(se.lbl, "Timeframe: " + e.tfName + "\n" + se.tip + "\nNO SIGNAL: " + f_reason(e, se))
-                        // expired (lifetime OR age) setups leave the active list on EVERY feed bar
-                        if se.expired
-                            removeIt := true
-                            if not keepHistory
-                                se.kill()
-                    if removeIt
+                    if not se.dead and not se.expired
+                        // chart-market extreme of the sweep leg = the "Sweep High/Low" stop
+                        se.sweepExt := se.used ? se.sweepExt : se.isBull ? math.min(se.sweepExt, f.l) : math.max(se.sweepExt, f.h)
+                        bool after = e.idx > se.sweepBar
+                        se.dispDone := se.dispDone or (after and (se.isBull ? bullDispF : bearDispF))
+                        se.fvgDone := se.fvgDone or (e.idx - 2 >= se.sweepBar and (se.isBull ? bullFvgF : bearFvgF))
+                        se.mssDone := se.mssDone or (after and not na(se.mssLevel) and (se.isBull ? f.c > se.mssLevel : f.c < se.mssLevel))
+                        // age in DAYS from the fixed detection timestamp (works on any chart timeframe)
+                        bool ageOut = smtMaxDays > 0 and (time - se.detectTime) / 86400000.0 > smtMaxDays
+                        se.ageExpired := se.ageExpired or ageOut
+                        bool expNow = e.idx - se.legBar > smtLifeBars or ageOut
+                        se.expired := se.expired or expNow
+                        if expNow and not se.used
+                            e.cntSmtExp := e.cntSmtExp + 1
+                            e.logSmt := (se.isBull ? "Bull" : "Bear") + " SMT @" + se.refName + " expired: " + f_reason(e, se)
+                            if not na(se.lbl)
+                                label.set_tooltip(se.lbl, "Timeframe: " + e.tfName + "\n" + se.tip + "\nNO SIGNAL: " + f_reason(e, se))
+                    // expired (lifetime OR age) setups leave the active list on EVERY feed bar
+                    if se.expired and not keepHistory
+                        se.kill()
+                    if se.dead or se.expired
                         array.remove(e.setups, i)
 
             // ---------- F. Buy / Sell: valid SMT + IFVG that sits in an HTF FVG ----------
@@ -2353,18 +2035,12 @@ f_runEngine(Engine e, Feed f) =>
                             // ---- Phase 3 gates (every one is true with its filter OFF) ----
                             bool dirOkP3 = htfDirFilter != "REQUIRE SAME DIRECTION" or zf.primaryTag == "" or zf.primaryBull == sf.isBull
                             bool dispOkP3 = dispFilter != "REQUIRED" or zf.dispOk
-                            bool seqOkP3 = true
-                            if seqFilter
-                                bool sweepToSmt = seqMaxSweepSmt == 0 or sf.sweepBar - sf.sweepBar <= seqMaxSweepSmt
-                                bool confOk = sf.confirmed and not na(sf.confirmBar) and sf.confirmBar >= sf.sweepBar
-                                bool orderOk = confOk and zf.invBar >= sf.confirmBar
-                                bool winOk = true
-                                if dispFilter == "REQUIRED"
-                                    orderOk := orderOk and not na(zf.dispBar) and zf.dispBar >= sf.confirmBar and zf.invBar >= zf.dispBar
-                                    winOk := seqMaxSmtDisp == 0 or (not na(zf.dispBar) and zf.dispBar - sf.confirmBar <= seqMaxSmtDisp)
-                                else
-                                    winOk := seqMaxSmtDisp == 0 or zf.invBar - sf.confirmBar <= seqMaxSmtDisp
-                                seqOkP3 := sweepToSmt and orderOk and winOk
+                            bool dispReq = dispFilter == "REQUIRED"
+                            bool sweepToSmt = seqMaxSweepSmt == 0 or sf.sweepBar - sf.sweepBar <= seqMaxSweepSmt
+                            bool confOk = sf.confirmed and not na(sf.confirmBar) and sf.confirmBar >= sf.sweepBar
+                            bool orderOk = confOk and zf.invBar >= sf.confirmBar and (not dispReq or (not na(zf.dispBar) and zf.dispBar >= sf.confirmBar and zf.invBar >= zf.dispBar))
+                            bool winOk = seqMaxSmtDisp == 0 or (dispReq ? (not na(zf.dispBar) and zf.dispBar - sf.confirmBar <= seqMaxSmtDisp) : zf.invBar - sf.confirmBar <= seqMaxSmtDisp)
+                            bool seqOkP3 = not seqFilter or (sweepToSmt and orderOk and winOk)
                             int score = f_score(zf.htfTag != "", true, sf.confirmed, zf.dispOk, zf.primaryTag != "" and zf.primaryBull == sf.isBull)
                             bool scoreOk = score >= minScore
                             // section 1c gate: the IFVG's frozen confluence score must reach the minimum
@@ -2381,14 +2057,11 @@ f_runEngine(Engine e, Feed f) =>
                                     label.set_tooltip(sf.lbl, "Timeframe: " + e.tfName + "\n" + sf.tip + "\nSIGNAL: " + info)
                                 // everything the risk module needs: entry = feed close, both stop candidates, swing target
                                 sig := SigInfo.new(isBull = sf.isBull, tfName = e.tfName, entry = f.c, slSweep = sf.sweepExt, slIfvg = sf.isBull ? zf.bottom : zf.top, tpSwing = f_swingTarget(e.refs, sf.isBull, f.c, aPH, aPL), info = info, tag = f_ifvgLogTag(zf, sf.refName + (sf.confirmed ? "+" : "~"), e.tfName))
-                                if sf.isBull
-                                    e.lastBuyBar := e.idx
-                                    e.cntBuy := e.cntBuy + 1
-                                    e.logPair := "BUY fired: " + info
-                                else
-                                    e.lastSellBar := e.idx
-                                    e.cntSell := e.cntSell + 1
-                                    e.logPair := "SELL fired: " + info
+                                e.lastBuyBar := sf.isBull ? e.idx : e.lastBuyBar
+                                e.lastSellBar := sf.isBull ? e.lastSellBar : e.idx
+                                e.cntBuy := e.cntBuy + (sf.isBull ? 1 : 0)
+                                e.cntSell := e.cntSell + (sf.isBull ? 0 : 1)
+                                e.logPair := (sf.isBull ? "BUY" : "SELL") + " fired: " + info
                                 break
                     if not na(sig)
                         break
@@ -2405,39 +2078,36 @@ f_runEngine(Engine e, Feed f) =>
                     bool confOkN = f_ifvgPassesThreshold(zn.confScore)
                     SMTSetup bestS = na
                     bool bestConf = false
-                    if array.size(e.setups) > 0
-                        for i = array.size(e.setups) - 1 to 0
-                            SMTSetup sc = array.get(e.setups, i)
-                            bool liveC = not sc.dead and not sc.expired and not sc.used and sc.isBull == zn.isBull and f_passes(sc) and f_timingOk(sc, zn.invBar)
-                            if liveC and (na(bestS) or (sc.confirmed and not bestConf))
-                                bestS := sc
-                                bestConf := sc.confirmed
+                    for sc in e.setups
+                        bool liveC = not sc.dead and not sc.expired and not sc.used and sc.isBull == zn.isBull and f_passes(sc) and f_timingOk(sc, zn.invBar)
+                        if liveC and (na(bestS) or (sc.confirmed and not bestConf))
+                            bestS := sc
+                            bestConf := sc.confirmed
                     bool hasS = not na(bestS)
                     int scoreN = f_score(zn.htfTag != "", hasS, bestConf, zn.dispOk, zn.primaryTag != "" and zn.primaryBull == zn.isBull)
                     if htfOkN and dirOkN and dispOkN and scoreN >= minScore and confOkN
                         zn.used := true
                         f_markHtfUsed(zn.top, zn.bottom, zn.isBull)
                         string smtTxtN = "no SMT (optional)"
-                        if hasS
-                            smtTxtN := "SMT " + bestS.refName + (bestConf ? " ✔" : " …") + " (optional)"
-                        string infoN = smtTxtN + " · IFVG in " + (zn.htfTag != "" ? f_tagText(zn.htfTag) : "n/a") + (zn.primaryTag != "" ? " (primary " + zn.primaryTag + (zn.primaryBull ? " ▲" : " ▼") + ")" : "") + (dispFilter != "OFF" ? " · disp " + (zn.dispOk ? "yes @" + str.tostring(zn.dispBar) : "no") : "") + " · score " + str.tostring(scoreN) + "/5 · IFVG " + f_ifvgScoreText(zn, i_showIFVGScoreDebug)
+                        string slName = ""
                         float slSw = na
                         if hasS
-                            bestS.used := true
+                            smtTxtN := "SMT " + bestS.refName + (bestConf ? " ✔" : " …") + " (optional)"
+                            slName := bestS.refName + (bestConf ? "+" : "~")
                             slSw := bestS.sweepExt
+                            bestS.used := true
+                        string infoN = smtTxtN + " · IFVG in " + (zn.htfTag != "" ? f_tagText(zn.htfTag) : "n/a") + (zn.primaryTag != "" ? " (primary " + zn.primaryTag + (zn.primaryBull ? " ▲" : " ▼") + ")" : "") + (dispFilter != "OFF" ? " · disp " + (zn.dispOk ? "yes @" + str.tostring(zn.dispBar) : "no") : "") + " · score " + str.tostring(scoreN) + "/5 · IFVG " + f_ifvgScoreText(zn, i_showIFVGScoreDebug)
+                        if hasS
                             if not na(bestS.lbl)
                                 label.set_tooltip(bestS.lbl, "Timeframe: " + e.tfName + "\n" + bestS.tip + "\nSIGNAL: " + infoN)
                         e.ifvgDbg := e.ifvgDbg + " | SIGNAL bar " + str.tostring(e.idx) + " (SMT optional)"
                         e.lastSeq := (hasS ? "SMT(" + str.tostring(bestS.sweepBar) + ") → " : "") + "IFVG(" + str.tostring(zn.invBar) + ") → SIGNAL(" + str.tostring(e.idx) + ")"
-                        sig := SigInfo.new(isBull = zn.isBull, tfName = e.tfName, entry = f.c, slSweep = slSw, slIfvg = zn.isBull ? zn.bottom : zn.top, tpSwing = f_swingTarget(e.refs, zn.isBull, f.c, aPH, aPL), info = infoN, tag = f_ifvgLogTag(zn, hasS ? bestS.refName + (bestConf ? "+" : "~") : "none", e.tfName))
-                        if zn.isBull
-                            e.lastBuyBar := e.idx
-                            e.cntBuy := e.cntBuy + 1
-                            e.logPair := "BUY fired (SMT optional): " + infoN
-                        else
-                            e.lastSellBar := e.idx
-                            e.cntSell := e.cntSell + 1
-                            e.logPair := "SELL fired (SMT optional): " + infoN
+                        sig := SigInfo.new(isBull = zn.isBull, tfName = e.tfName, entry = f.c, slSweep = slSw, slIfvg = zn.isBull ? zn.bottom : zn.top, tpSwing = f_swingTarget(e.refs, zn.isBull, f.c, aPH, aPL), info = infoN, tag = f_ifvgLogTag(zn, hasS ? slName : "none", e.tfName))
+                        e.lastBuyBar := zn.isBull ? e.idx : e.lastBuyBar
+                        e.lastSellBar := zn.isBull ? e.lastSellBar : e.idx
+                        e.cntBuy := e.cntBuy + (zn.isBull ? 1 : 0)
+                        e.cntSell := e.cntSell + (zn.isBull ? 0 : 1)
+                        e.logPair := (zn.isBull ? "BUY" : "SELL") + " fired (SMT optional): " + infoN
 
         // IFVG boxes follow price on every chart bar (also between feed candles)
         if array.size(e.ifvgList) > 0
@@ -2533,24 +2203,11 @@ htfSecMin = 0
 htfSecMax = 0
 if barstate.isfirst
     array<int> secs = array.new_int()
-    if useHtf1
-        array.push(secs, timeframe.in_seconds(htfTf1))
-    if useHtf2
-        array.push(secs, timeframe.in_seconds(htfTf2))
-    if useHtf3
-        array.push(secs, timeframe.in_seconds(htfTf3))
-    if useHtf4
-        array.push(secs, timeframe.in_seconds(htfTf4))
-    if useHtf5
-        array.push(secs, timeframe.in_seconds(htfTf5))
-    if useHtf6
-        array.push(secs, timeframe.in_seconds(htfTf6))
-    if useHtf7
-        array.push(secs, timeframe.in_seconds(htfTf7))
-    if useHtf8
-        array.push(secs, timeframe.in_seconds(htfTf8))
-    if useNdog
-        array.push(secs, 86400)
+    array<bool> slotOn = array.from(useHtf1, useHtf2, useHtf3, useHtf4, useHtf5, useHtf6, useHtf7, useHtf8, useNdog)
+    array<int> slotSec = array.from(timeframe.in_seconds(htfTf1), timeframe.in_seconds(htfTf2), timeframe.in_seconds(htfTf3), timeframe.in_seconds(htfTf4), timeframe.in_seconds(htfTf5), timeframe.in_seconds(htfTf6), timeframe.in_seconds(htfTf7), timeframe.in_seconds(htfTf8), 86400)
+    for [k, on] in slotOn
+        if on
+            array.push(secs, array.get(slotSec, k))
     if array.size(secs) > 0
         htfSecMin := int(array.min(secs))
         htfSecMax := int(array.max(secs))
@@ -2574,50 +2231,27 @@ f_levelHit(float lvl, float top, float bot, float prox) =>
 // longer exist in this script; current-day extremes are not computed, so neither is used.)
 f_calculateConfluenceScore(HtfFVG z, float prox) =>
     float pts = 0.0
-    if f_levelHit(pdhA, z.top, z.bottom, prox)
-        pts += 1.0
-    if f_levelHit(pdlA, z.top, z.bottom, prox)
-        pts += 1.0
-    if f_levelHit(pwhA, z.top, z.bottom, prox)
-        pts += 1.0
-    if f_levelHit(pwlA, z.top, z.bottom, prox)
-        pts += 1.0
-    if not na(pdhA) and not na(pdlA) and f_levelHit((pdhA + pdlA) / 2, z.top, z.bottom, prox)
-        pts += 0.5
-    if not na(pwhA) and not na(pwlA) and f_levelHit((pwhA + pwlA) / 2, z.top, z.bottom, prox)
-        pts += 0.5
-    if array.size(eC.refs) > 0
-        for i = 0 to array.size(eC.refs) - 1
-            LiqRef q = array.get(eC.refs, i)
-            if q.kind == 2 and q.state == 0 and f_levelHit(q.lvlA, z.top, z.bottom, prox)
-                pts += 0.75
+    pts += f_levelHit(pdhA, z.top, z.bottom, prox) ? 1.0 : 0.0
+    pts += f_levelHit(pdlA, z.top, z.bottom, prox) ? 1.0 : 0.0
+    pts += f_levelHit(pwhA, z.top, z.bottom, prox) ? 1.0 : 0.0
+    pts += f_levelHit(pwlA, z.top, z.bottom, prox) ? 1.0 : 0.0
+    pts += f_levelHit((pdhA + pdlA) / 2, z.top, z.bottom, prox) ? 0.5 : 0.0
+    pts += f_levelHit((pwhA + pwlA) / 2, z.top, z.bottom, prox) ? 0.5 : 0.0
+    for q in eC.refs
+        pts += q.kind == 2 and q.state == 0 and f_levelHit(q.lvlA, z.top, z.bottom, prox) ? 0.75 : 0.0
     math.min(1.0, pts / i_confSat)
 
 // C. displacement / gap quality from the frozen creation metrics (own-TF ATR normalised): average of the
 // available sub-scores, so a symbol's raw price scale never dominates and an NDOG (gap only) still scores.
 f_calculateDisplacementScore(HtfFVG z) =>
-    float sum = 0.0
-    int n = 0
-    if not na(z.gapAtr)
-        sum += f_clamp01(z.gapAtr / 0.75)
-        n += 1
-    if not na(z.rangeAtr)
-        sum += f_clamp01(z.rangeAtr / 2.0)
-        n += 1
-    if not na(z.bodyRatio)
-        sum += f_clamp01(z.bodyRatio)
-        n += 1
-    if i_useRelVol and not na(z.relVol)
-        sum += f_clamp01((z.relVol - 0.5) / 1.5)
-        n += 1
+    bool useV = i_useRelVol and not na(z.relVol)
+    float sum = nz(f_clamp01(z.gapAtr / 0.75)) + nz(f_clamp01(z.rangeAtr / 2.0)) + nz(f_clamp01(z.bodyRatio)) + (useV ? f_clamp01((z.relVol - 0.5) / 1.5) : 0.0)
+    int n = (na(z.gapAtr) ? 0 : 1) + (na(z.rangeAtr) ? 0 : 1) + (na(z.bodyRatio) ? 0 : 1) + (useV ? 1 : 0)
     n > 0 ? sum / n : 0.0
 
 // D. timeframe hierarchy: 0 for the smallest enabled HTF, 1 for the largest, log-scaled in between
 f_calculateTimeframeScore(int sec) =>
-    float out = 1.0
-    if htfSecMaxV > htfSecMinV and htfSecMinV > 0 and sec > 0
-        out := f_clamp01(math.log(sec * 1.0 / htfSecMinV) / math.log(htfSecMaxV * 1.0 / htfSecMinV))
-    out
+    htfSecMaxV > htfSecMinV and htfSecMinV > 0 and sec > 0 ? f_clamp01(math.log(sec * 1.0 / htfSecMinV) / math.log(htfSecMaxV * 1.0 / htfSecMinV)) : 1.0
 
 // composite = weighted average of the four components (weights normalised -> 0..1); stored on the zone
 f_calculateFVGProbability(HtfFVG z, float prox) =>
@@ -2632,40 +2266,19 @@ f_calculateFVGProbability(HtfFVG z, float prox) =>
 // deterministic tie-breaker chain: fresher, higher timeframe, larger displacement, most recently created.
 // Returns +1 when a beats b, -1 when b beats a, 0 when identical (the caller then keeps the earlier list index).
 f_selChain(HtfFVG a, HtfFVG b) =>
-    int out = 0
-    if a.freshS != b.freshS
-        out := a.freshS > b.freshS ? 1 : -1
-    else if a.tfSec != b.tfSec
-        out := a.tfSec > b.tfSec ? 1 : -1
-    else if a.dispS != b.dispS
-        out := a.dispS > b.dispS ? 1 : -1
-    else if a.createdTime != b.createdTime
-        out := a.createdTime > b.createdTime ? 1 : -1
-    out
+    a.freshS != b.freshS ? (a.freshS > b.freshS ? 1 : -1) : a.tfSec != b.tfSec ? (a.tfSec > b.tfSec ? 1 : -1) : a.dispS != b.dispS ? (a.dispS > b.dispS ? 1 : -1) : a.createdTime != b.createdTime ? (a.createdTime > b.createdTime ? 1 : -1) : 0
 
 // composite score comparison (only when scoring is enabled), then the chain
 f_selByScore(HtfFVG a, HtfFVG b) =>
-    int out = 0
-    if i_htfScoring and a.score != b.score
-        out := a.score > b.score ? 1 : -1
-    else
-        out := f_selChain(a, b)
-    out
+    i_htfScoring and a.score != b.score ? (a.score > b.score ? 1 : -1) : f_selChain(a, b)
 
 // does zone a beat zone b under the selected mode?  px = current confirmed close (CE mode)
 f_selBetter(HtfFVG a, HtfFVG b, float px) =>
-    int cmp = 0
-    if i_htfSelectionMode == "Strictly Highest Timeframe"
-        cmp := a.tfSec != b.tfSec ? (a.tfSec > b.tfSec ? 1 : -1) : f_selByScore(a, b)
-    else if i_htfSelectionMode == "Strictly Lowest HTF (Refinement)"
-        cmp := a.tfSec != b.tfSec ? (a.tfSec < b.tfSec ? 1 : -1) : f_selByScore(a, b)
-    else if i_htfSelectionMode == "Deepest Consequent Encroachment (CE)"
-        float da = math.abs(px - f_getConsequentEncroachment(a))
-        float db = math.abs(px - f_getConsequentEncroachment(b))
-        float tol = i_ceTieTicks * syminfo.mintick
-        cmp := math.abs(da - db) > tol ? (da < db ? 1 : -1) : f_selByScore(a, b)
-    else
-        cmp := f_selByScore(a, b)
+    float da = math.abs(px - f_getConsequentEncroachment(a))
+    float db = math.abs(px - f_getConsequentEncroachment(b))
+    float tol = i_ceTieTicks * syminfo.mintick
+    int byScore = f_selByScore(a, b)
+    int cmp = i_htfSelectionMode == "Strictly Highest Timeframe" ? (a.tfSec != b.tfSec ? (a.tfSec > b.tfSec ? 1 : -1) : byScore) : i_htfSelectionMode == "Strictly Lowest HTF (Refinement)" ? (a.tfSec != b.tfSec ? (a.tfSec < b.tfSec ? 1 : -1) : byScore) : i_htfSelectionMode == "Deepest Consequent Encroachment (CE)" ? (math.abs(da - db) > tol ? (da < db ? 1 : -1) : byScore) : byScore
     cmp > 0
 
 // the selection pass: score every candidate, cluster the overlapping ones, pick ONE winner per cluster,
@@ -2676,19 +2289,15 @@ f_selectBestHTFFVG(float px) =>
     if n > 0
         float prox = i_confProxAtr * nz(atrValue, 0.0)
         bool allOne = i_htfSelectScope == "All candidate zones (one winner)"
-        for i = 0 to n - 1
-            HtfFVG z = array.get(htfList, i)
+        for z in htfList
             z.candidate := f_hzCandidate(z)
             z.cluster := -1
-            if z.candidate
-                f_calculateFVGProbability(z, prox)
-            else
-                z.selected := true
+            z.selected := z.candidate ? z.selected : true
+            f_calculateFVGProbability(z, prox)
         // clusters = connected components of the overlap graph (scope 'all' = one component)
         int nComp = 0
         array<int> stack = array.new_int()
-        for i = 0 to n - 1
-            HtfFVG zi = array.get(htfList, i)
+        for [i, zi] in htfList
             if zi.candidate and zi.cluster < 0
                 zi.cluster := nComp
                 array.clear(stack)
@@ -2696,8 +2305,7 @@ f_selectBestHTFFVG(float px) =>
                 while array.size(stack) > 0
                     int j = array.pop(stack)
                     HtfFVG zj = array.get(htfList, j)
-                    for k = 0 to n - 1
-                        HtfFVG zk = array.get(htfList, k)
+                    for [k, zk] in htfList
                         if zk.candidate and zk.cluster < 0 and (allOne or f_isOverlapping(zj, zk))
                             zk.cluster := nComp
                             array.push(stack, k)
@@ -2706,17 +2314,13 @@ f_selectBestHTFFVG(float px) =>
         if nComp > 0
             for c = 0 to nComp - 1
                 int best = -1
-                for i = 0 to n - 1
-                    HtfFVG zc = array.get(htfList, i)
-                    if zc.cluster == c
-                        if best < 0 or f_selBetter(zc, array.get(htfList, best), px)
-                            best := i
-                for i = 0 to n - 1
-                    HtfFVG zs = array.get(htfList, i)
-                    if zs.cluster == c
-                        zs.selected := i == best
-        for i = 0 to n - 1
-            f_hzApplySelection(array.get(htfList, i))
+                for [i, zc] in htfList
+                    if zc.cluster == c and (best < 0 or f_selBetter(zc, array.get(htfList, best), px))
+                        best := i
+                for [i, zs] in htfList
+                    zs.selected := zs.cluster == c ? i == best : zs.selected
+        for z in htfList
+            f_hzApplySelection(z)
     true
 
 // ============================== MAIN (closed bars only) ==============================
@@ -2854,12 +2458,9 @@ if barstate.isconfirmed
                     p.open := false
                     p.status := (p.tp1Hit or p.tp2Hit or p.swHit) ? "STOPPED (after a target)" : "STOPPED"
                 else
-                    if not na(p.tp1) and not p.tp1Hit and (p.isBull ? high >= p.tp1 : low <= p.tp1)
-                        p.tp1Hit := true
-                    if not na(p.tp2) and not p.tp2Hit and (p.isBull ? high >= p.tp2 : low <= p.tp2)
-                        p.tp2Hit := true
-                    if not na(p.tpSw) and not p.swHit and (p.isBull ? high >= p.tpSw : low <= p.tpSw)
-                        p.swHit := true
+                    p.tp1Hit := p.tp1Hit or (not na(p.tp1) and (p.isBull ? high >= p.tp1 : low <= p.tp1))
+                    p.tp2Hit := p.tp2Hit or (not na(p.tp2) and (p.isBull ? high >= p.tp2 : low <= p.tp2))
+                    p.swHit := p.swHit or (not na(p.tpSw) and (p.isBull ? high >= p.tpSw : low <= p.tpSw))
                     string hitTxt = (p.tp1Hit ? "TP1 ✓ " : "") + (p.tp2Hit ? "TP2 ✓ " : "") + (p.swHit ? "Swing ✓ " : "")
                     bool allDone = hasTarget and (na(p.tp1) or p.tp1Hit) and (na(p.tp2) or p.tp2Hit) and (na(p.tpSw) or p.swHit)
                     if allDone
@@ -2887,12 +2488,9 @@ if barstate.isconfirmed
         TradePlan old = array.shift(plans)
         line.delete(old.lnE)
         line.delete(old.lnS)
-        if not na(old.lnT1)
-            line.delete(old.lnT1)
-        if not na(old.lnT2)
-            line.delete(old.lnT2)
-        if not na(old.lnSw)
-            line.delete(old.lnSw)
+        line.delete(old.lnT1)
+        line.delete(old.lnT2)
+        line.delete(old.lnSw)
         label.delete(old.lbl)
 
     // ---------- strategy twin: time stop ----------
