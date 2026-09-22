@@ -1407,7 +1407,10 @@ f_swingPair(array<LiqRef> refs, bool isHigh, int kind, bool anchorA, float piv, 
 // one pivot-SMT track: detect, draw, return whether a filter-passing SMT was created
 f_pivRun(Engine e, Feed f, PivTrack tr, bool isHigh, float vA, float vB, float postA, float postB, int pivIdx, int pivT, float tolA, float tolB) =>
     SMTSetup p = f_pivSmt(e, f, tr, isHigh, vA, vB, postA, postB, pivIdx, pivT, tolA, tolB)
-    not na(p) and f_passes(p)
+    bool out = false
+    if not na(p)
+        out := f_passes(p)
+    out
 
 // ============================== ENGINE (one call = one feed) ==============================
 // Runs the complete SMT + IFVG logic for ONE timeframe.  Fixed references (PDH/PDL, PWH/PWL, HTF
@@ -2325,9 +2328,18 @@ if barstate.islast
     string feedTxt = eC.tfName + " (chart)" + (enF1 ? ", " + e1.tfName : "") + (enF2 ? ", " + e2.tfName : "") + (enF3 ? ", " + e3.tfName : "") + (enF4 ? ", " + e4.tfName : "")
 
     // ---- confluence checklist (chart engine, current state) ----
+    // (every field of newestS / tl is read inside an if: Pine evaluates both sides of and / or / ?: and an na object's field is a runtime error)
     bool cSmt = not na(newestS)
     bool cSweep = cSmt
-    bool cSmtConf = cSmt and newestS.confirmed
+    bool cSmtConf = false
+    string cSmtTxt = "SMT"
+    bool smtBullC = false
+    int smtConfBarC = na
+    if cSmt
+        cSmtConf := newestS.confirmed
+        cSmtTxt += " · " + newestS.refName
+        smtBullC := newestS.isBull
+        smtConfBarC := newestS.confirmBar
     // a live pivot divergence (section 3b) on the chart engine
     bool cPiv = false
     string cPivName = ""
@@ -2338,18 +2350,23 @@ if barstate.islast
                 cPiv := true
                 cPivName := tp.refName + (tp.confirmed ? " ✔" : " …")
     bool cIfvg = not na(tl)
-    bool cHtf = cIfvg and tl.htfTag != ""
+    bool cHtf = false
+    bool cAlign = false
+    bool cSeq = false
+    string cHtfTxt = "Delivering from HTF Gap"
+    string cIfvgTxt = "IFVG"
+    if cIfvg
+        cHtf := tl.htfTag != ""
+        cAlign := tl.primaryTag != "" and tl.primaryBull == tl.isBull
+        cSeq := cSmtConf and tl.isBull == smtBullC and tl.invBar >= smtConfBarC
+        cHtfTxt += cHtf ? " (" + f_tagText(tl.htfTag) + ")" : ""
+        cIfvgTxt += " · " + tl.resTf + (tl.isBull ? " ▲" : " ▼") + " · " + tl.grade + " " + str.tostring(tl.confScore) + "/100" + (f_ifvgPassesThreshold(tl.confScore) ? "" : " ✗")
     bool cDisp = false
     if cSmt
-        int dB = newestS.isBull ? eC.lastBullDispBar : eC.lastBearDispBar
+        int dB = smtBullC ? eC.lastBullDispBar : eC.lastBearDispBar
         cDisp := not na(dB) and (dispMaxToIfvg == 0 or eC.idx - dB <= dispMaxToIfvg)
-    bool cAlign = cIfvg and tl.primaryTag != "" and tl.primaryBull == tl.isBull
-    bool cSeq = cSmtConf and cIfvg and tl.isBull == newestS.isBull and tl.invBar >= newestS.confirmBar
     int cN = (cHtf ? 1 : 0) + (cSweep ? 1 : 0) + (cSmt ? 1 : 0) + (cSmtConf ? 1 : 0) + (cPiv ? 1 : 0) + (cDisp ? 1 : 0) + (cIfvg ? 1 : 0) + (cAlign ? 1 : 0)
     string cPivTxt = "Pivot SMT divergence" + (cPiv ? " · " + cPivName : "")
-    string cHtfTxt = "Delivering from HTF Gap" + (cHtf ? " (" + f_tagText(tl.htfTag) + ")" : "")
-    string cSmtTxt = "SMT" + (cSmt ? " · " + newestS.refName : "")
-    string cIfvgTxt = "IFVG" + (cIfvg ? " · " + tl.resTf + (tl.isBull ? " ▲" : " ▼") + " · " + tl.grade + " " + str.tostring(tl.confScore) + "/100" + (f_ifvgPassesThreshold(tl.confScore) ? "" : " ✗") : "")
     f_ckRow(infoTable, 0, cHtf, cHtfTxt)
     f_ckRow(infoTable, 1, cSweep, "Liquidity Sweep / Swing" + (cSmt and not i_requireSMT ? " (SMT optional)" : ""))
     f_ckRow(infoTable, 2, cSmt, cSmtTxt)
