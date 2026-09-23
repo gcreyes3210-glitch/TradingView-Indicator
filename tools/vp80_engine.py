@@ -22,7 +22,7 @@ slippage = 0 (the TradingView VP records carry no slippage).
 import argparse
 import numpy as np
 import pandas as pd
-from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, _path
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, _path, exit_bar
 from ivc_engine import profile
 
 TZ = "America/New_York"
@@ -68,7 +68,7 @@ def run(b5, one, **over):
         iend = i0
         while iend + 1 < len(ts) and dates[iend + 1] == d and tod[iend + 1] < 960:
             iend += 1
-        iend = min(iend + 1, len(ts) - 1)             # the 16:00 bar (first bar after the trade window)
+        iend = exit_bar(ts, iend)                       # the 16:00 bar, or the last bar of an early-close session
         acc, sig = 0, None
         for i in range(i0, iend):
             acc = acc + 1 if val <= C[i] <= vah else 0

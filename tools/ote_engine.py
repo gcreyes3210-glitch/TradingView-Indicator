@@ -27,7 +27,7 @@ Costs: 1 tick slippage on every fill, $1 commission per side, $2/point, 1 contra
 import argparse
 import numpy as np
 import pandas as pd
-from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, exit_bar
 from amd_engine import resample, in_win, _m
 from ob_engine import _tick, fractal_high, fractal_low, bull_fvg, bear_fvg
 
@@ -72,7 +72,7 @@ def run(one, orb=None, **over):
         iend = i0
         while iend + 1 < len(ts) and dates[iend + 1] == d and tod[iend + 1] < flat:
             iend += 1
-        iend = min(iend + 1, len(ts) - 1)
+        iend = exit_bar(ts, iend)                       # early close: the session's last bar
         day = [i for i in range(i0, iend) if dates[i] == d]
         cnt["days"] += 1
 

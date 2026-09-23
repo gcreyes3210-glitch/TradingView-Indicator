@@ -20,7 +20,7 @@ $1 commission per side, $2/point, 1 contract.
 """
 import argparse
 import pandas as pd
-from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, in_sess, report
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, in_sess, report, halted_after
 
 P = dict(
     on_sess=("18:00", "09:30"), or_sess=("09:30", "09:45"), entry_sess=("09:45", "12:00"), trade_sess=("09:30", "16:00"),
@@ -126,6 +126,8 @@ def run(bars, **over):
                 pos = dict(side=side, entry=C[i] + sgn * slip, stop=_tick(stop), tp=None if tp is None else _tick(tp),
                            i=i, risk=risk, rr=rr, on_w=W, poke=ext - ONH if side == "S" else ONL - ext)
 
+        if pos is not None and inTrade and halted_after(ts, i):   # early close: flatten on the session's last bar
+            close_pos(i, C[i], "time")
         if tradeEnd and pos is not None:
             close_pos(i, C[i], "time")
 

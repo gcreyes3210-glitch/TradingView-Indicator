@@ -34,7 +34,7 @@ Costs: 1 tick slippage on every fill (target fills included), $1 commission per 
 import argparse
 import numpy as np
 import pandas as pd
-from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, _path
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, _path, exit_bar
 
 TZ = "America/New_York"
 ACC = dict(overnight=("18:00", "09:30"), asia=("20:00", "00:00"), london=("02:00", "05:00"), premarket=("08:00", "09:30"))
@@ -87,7 +87,7 @@ def run(one, orb=None, **over):
         iend = i0
         while iend + 1 < len(ts) and dates[iend + 1] == d and tod[iend + 1] < flat:
             iend += 1
-        iend = min(iend + 1, len(ts) - 1)
+        iend = exit_bar(ts, iend)                       # early close: the session's last bar
 
         # manipulation: first sweep bar
         s = side = None

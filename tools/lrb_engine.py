@@ -21,7 +21,7 @@ close of the 16:00 bar. Costs: 1 tick slippage on every fill, $1 commission per 
 """
 import argparse
 import pandas as pd
-from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, in_sess, report
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, in_sess, report, halted_after
 
 P = dict(
     on_sess=("18:00", "09:30"), or_sess=("09:30", "09:45"), lunch_sess=("12:00", "13:30"), entry_sess=("13:30", "15:00"),
@@ -110,6 +110,8 @@ def run(bars, **over):
                     pos = dict(side=side, entry=C[i] + sgn * slip, stop=stop, i=i, risk=sgn * (C[i] - stop),
                                w=w, day=dayType, lunch=lunchLoc)
 
+        if pos is not None and inTrade and halted_after(ts, i):   # early close: flatten on the session's last bar
+            close_pos(i, C[i], "time")
         if tradeEnd and pos is not None:
             close_pos(i, C[i], "time")
 

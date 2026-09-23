@@ -18,7 +18,7 @@ slip limit orders) + $1 commission per side, MNQ $2/point, 1 contract.
 """
 import argparse, math
 import pandas as pd
-from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, in_sess, report
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, in_sess, report, halted_after
 
 P = dict(
     on_sess=("18:00", "09:30"), or_sess=("09:30", "09:45"), entry_sess=("10:00", "15:00"), trade_sess=("09:30", "16:00"),
@@ -149,6 +149,8 @@ def run(bars, **over):
                 # the filters use the raw levels (as the script does); the orders rest on the nearest tick
                 pos = dict(side=side, entry=C[i] + sgn * slip, stop=round(stop / TICK) * TICK, tp=round(tp / TICK) * TICK, i=i, risk=risk, rr=rr, sig=sig, ext=ext)
 
+        if pos is not None and inTrade and halted_after(ts, i):   # early close: flatten on the session's last bar
+            close_pos(i, C[i], "time")
         if tradeEnd and pos is not None:
             close_pos(i, C[i], "time")
 

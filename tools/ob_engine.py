@@ -27,7 +27,7 @@ Rule (New York time, on the TF bars):
 import argparse
 import numpy as np
 import pandas as pd
-from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, exit_bar
 from amd_engine import resample, in_win, _m
 
 TZ = "America/New_York"
@@ -121,7 +121,7 @@ def blocks(one, p):
         iend = i0
         while iend + 1 < len(ts) and dates[iend + 1] == d and tod[iend + 1] < flat:
             iend += 1
-        iend = min(iend + 1, len(ts) - 1)
+        iend = exit_bar(ts, iend)                       # early close: the session's last bar
 
         # scan for the day's candidate, in BOS order
         cand = None

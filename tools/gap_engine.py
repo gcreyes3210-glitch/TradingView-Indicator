@@ -15,7 +15,7 @@ both); 1 tick slippage on every fill, $1 commission per side, $2/point, 1 contra
 """
 import argparse
 import pandas as pd
-from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, in_sess, report
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, in_sess, report, halted_after
 
 P = dict(rth_sess=("09:30", "16:00"), trade_sess=("09:30", "12:00"), min_gap=0.5, stop_gap=0.25,
          start=pd.Timestamp("2019-06-01", tz="America/New_York"))
@@ -82,6 +82,8 @@ def run(bars, **over):
         if rthEnd:
             pdH, pdL, pdC = rthH, rthL, rthC
 
+        if pos is not None and inTrade and halted_after(ts, i):   # early close: flatten on the session's last bar
+            close_pos(i, C[i], "time")
         if tradeEnd and pos is not None:
             close_pos(i, C[i], "time")
 

@@ -15,7 +15,8 @@ Fill model (the calibration rules):
     entry at the signal bar's close; stop filled at the stop price when a later bar trades through it;
     nothing trades after a close entry within its own bar, so the entry bar's low/high never stops it
     (TradingView agrees: 2026-04-13, entry bar touched the stop before closing out); time exit at the close
-    of the bar that opens at 16:00; stop beats the time exit on the same bar.
+    of the bar that opens at 16:00 (on an early-close day: the close of the session's last bar, not the 18:00 reopen);
+    stop beats the time exit on the same bar.
     Costs: 1 tick slippage against every fill + $1 commission per side, 1 contract; MNQ $2/point (MES: --point-value 5).
 Stop-order entry (--entry-mode stop): while flat inside the entry window, buy stop at ORH + 2 ticks and sell stop at
     ORL - 2 ticks rest from each bar's close to the next bar. They fill at the stop price when a bar trades through it,
@@ -27,6 +28,7 @@ import argparse
 import pandas as pd
 
 TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS = 0.25, 2.0, 1.0, 1
+HALT = pd.Timedelta(minutes=30)     # a longer gap after a bar = the session stopped (early close, holiday session)
 
 P = dict(
     or_sess=("09:30", "09:45"), entry_sess=("09:45", "11:30"), trade_sess=("09:30", "16:00"),
@@ -43,6 +45,17 @@ def _mins(s):
 def in_sess(tod, sess):
     a, b = _mins(sess[0]), _mins(sess[1])
     return (a <= tod < b) if a < b else (tod >= a or tod < b)
+
+
+def halted_after(ts, i):
+    """True if bar i is the last bar before a halt: early-close days end at 13:00-13:15 and reopen at 18:00."""
+    return i + 1 >= len(ts) or ts[i + 1] - ts[i] > HALT
+
+
+def exit_bar(ts, j):
+    """Time-exit bar for a day whose last bar before the flat time is j: the next bar (the one that opens at the flat
+    time) if the session runs on, else j itself (early close: flatten on the last bar of the shortened session)."""
+    return j if halted_after(ts, j) else j + 1
 
 
 def _path(o, h, l, c):
@@ -192,6 +205,8 @@ def run(bars, p=P, entry_bar_stop=False, **over):
                     if entry_bar_stop and ((side == "L" and L[i] <= stop) or (side == "S" and H[i] >= stop)):
                         close_pos(i, stop, "SL")
 
+        if pos is not None and inTrade and halted_after(ts, i):   # early close: flatten on the session's last bar
+            close_pos(i, C[i], "time")
         if tradeEnd and pos is not None:
             close_pos(i, C[i], "time")
 

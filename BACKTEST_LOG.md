@@ -112,6 +112,7 @@ ICT order block (displacement + BOS + FVG, pullback limit into the block, openin
 Order block + IFVG confirmation after the tap (OBI1, 1–5 minutes): rejected. The confirmation removes most failing pullbacks (OB1-1m −0.100 R → OBI1-1m +0.076 R) but the late entry gives the edge back; 3 of 8 positive years at the selected 1m, no run above 5 of 8. Order-block line closed.
 ICT optimal trade entry (sweep → MSS with displacement → 62–79 % limit, OTE1, 1–5 minutes): rejected; 117 fills in seven years at the selected 1m, −0.085 R, no run above 5 of 8 positive years. Every pullback depth tested (0 %, 62–79 %, 100 % of the leg) has failed on NQ.
 VP2y (overnight value area 80 % rule), the earlier candidate: fails out of sample on the calibrated local engine (VP5: 2019-06 → 2023-09, 81 trades, −1,034, PF 0.81; full seven years +348) and makes ORB worse when added (COMBO1: return-to-drawdown in R 4.32 vs 7.32). Dropped. ORB8 (v1.3 + the three context filters) is logged as an in-sample demonstration only; v1.3 stays unchanged.
+Events: one pre-registered skip filter qualifies — ORB does not trade well on retail-sales release days (39 trades, −2,409, negative 8 of 8 years, p = 0.011); skipping them gives +23,652, PF 1.32, +0.147 R. Pending as v1.4 of the Pine script. FOMC afternoons have helped open positions. Engines now flatten on the last bar of an early-close session (ORB: 17 trades, +243).
 ORB context check (pre-registered, no rule change): four of five splits pass the 6-of-8-years rule, but label shuffles pass it 26–50 % of the time and the best split is p ≈ 0.14, so v1.3 stays as it is. Watch in the forward test, don't trade on: days after the previous day's range is in its widest third, and days whose overnight range is wider than the previous day's; ORB has made ≈ 0 R on both.
 Sizing (see "Sizing"): one MNQ ≈ 1.1% of a $25k account at the median stop; a repeat of the worst drawdown ≈ −17% at that size. The edge is in the top 5% of trades, so every qualifying trade is taken.
 Forward test: v1.3 on the TradingView MNQ 5m chart with one "Any alert() function call" alert; each week export the strategy's list of trades and run `python3 tools/calibrate_orb.py <export.csv>` to confirm the live signals match the engine.
@@ -378,3 +379,47 @@ Runs, pre-registered: OTE1-TF for TF = 1, 2, 3, 5. On the TF selected as in OBI 
 **Acceptance (pre-registered):** ≥ 6 of 8 positive years AND ≥ +0.05 R per trade AND the sign holding on the neighbouring TFs. **No run passes.** The selected OTE1-1m is 4 of 8 at −0.085 R; the best variant, OTE1e (previous-day liquidity), is 5 of 8 at +0.178 R on 57 trades. Neighbour check not needed.
 **Shuffle check** (`tools/split_check.py` on OTE1-1m): side 3 of 8, ORB day 4 of 8, balance vs break day 4 of 8 — none counts, and 91–98 % of label shuffles do at least as well.
 **Verdict: rejected.** The sweep → MSS with displacement → 62–79 % limit sequence is rare on MNQ in the AM session (117 fills in seven years at 1m, 2 at 5m): most sweeps happen on the opening bar before any structure exists, and two thirds of the displacement legs never retrace to the OTE zone before 11:30. The ones that do retrace lose. Moving the limit shallower (0.62) or deeper (0.79), changing the target, the liquidity or dropping the sweep does not produce a rule that is positive across years. With OB1 (≈ 100 % of the leg) and ORB6b / IVC1e (≈ 0 %), every pullback depth tested has now failed.
+
+## Events
+**1 · Early-close fix (2026-09-23).** On an early-close day (NYSE half days, and exchange holidays on which CME runs a Globex-only session to 13:00) the engines used to take the time exit on the first bar after the trade window, which is the **18:00 reopen** — or the next trading day's, when the halt ran into a holiday or weekend (2019-12-24 was held to 2019-12-25 18:00, 2020-11-27 to 2020-11-29 18:00). Every engine now flattens on the last bar before a halt of more than 30 minutes (`orb_engine.halted_after` / `exit_bar`; ORB, VWR, ONR, LRB, GAP, IVC, AMD, OB, OBI, OTE, VP80). **ORB v1.3 re-run: 17 of 875 trades change, net +243** (+21,000 → +21,242; PF 1.27, DD −3,864). Two of them had been stopped out after the reopen and are now small time exits. Most of the 17 are on exchange holidays (MLK, Presidents', Memorial, Juneteenth, July 4, Labor Day, Thanksgiving) — ORB trades those Globex-only mornings, and so does the TradingView script. `ORB_strategy.pine` still holds through the halt, so the calibration now matches 781 exit prices instead of 797 (818 same day and side, unchanged); the other logged results were not re-run (the 12:00-flat engines are unaffected, the 16:00 ones change only on these days).
+
+**2 · `data/events.csv`** (date, type, time_ny, note; 2019-06-01 → 2026-09-22; built by `python3 tools/build_events.py <raw dir>` from saved copies of the pages below):
+| Type | n | Source |
+|---|---|---|
+| FOMC | 60 | federalreserve.gov FOMC calendars (2021–2026) and historical pages 2019, 2020. Decision day = last day of each scheduled meeting, 14:00. Notation vote 2025-08-22 excluded. 2020-03-03 unscheduled (statement 10:00) and 2020-03-15 (Sunday, 17:00) included and marked |
+| CPI, NFP, PPI | 86 / 87 / 86 | BLS release-history pages (bls.gov/bls/news-release/{cpi,empsit,ppi}.htm), dates from the archived release file names. bls.gov refuses scripted requests, so the pages were read from the Internet Archive's copies. October 2025 CPI, NFP and PPI were not published (appropriations lapse); the delayed releases (e.g. September 2025 NFP on 2025-11-20) are on their actual dates. The September 2026 CPI (2026-09-11) comes from the BLS CPI release schedule. **Gap: the September 2026 PPI release (August data) could not be retrieved** — the archived list ends at 2026-08-13 and the PPI schedule page was not reachable |
+| GDP_advance | 28 | bea.gov news archive (titles 'Advance Estimate', published dates) plus the BEA 2026 schedule. Q3 2025 had no advance estimate (initial estimate in December after the shutdown). BEA's NIPA data-archive folder dates were not used: they are posting dates, often a day or more after the release |
+| PCE | 86 | bea.gov news archive, 'Personal Income and Outlays' (the December 2025 'Data Update' excluded), plus the 2026 schedule for 2026-08-26. 08:30 except 2026-01-22 (10:00 per the schedule); times of other post-shutdown releases were not verified |
+| retail_sales | 88 | Census MARTS release-date table (census.gov/retail/marts/www/MARTSreleasedates.xls, by release month; matches the Census release schedule for 2026) |
+| opex | 88 | Standard rule, not fetched: third Friday of the month, moved to Thursday when that Friday is an exchange holiday (Good Friday 2022-04-15 and 2025-04-18, Juneteenth 2026-06-19). Mar / Jun / Sep / Dec noted as quad witching. time_ny 09:30 = AM settlement |
+| early_close | 64 | From the MNQ bars: an RTH day whose session halts before 16:00. 13:15 = NYSE half day (day after Thanksgiving, Dec 24, Jul 3), 13:00 = exchange holiday with a Globex-only session (July 3 2020 and 2026 were full holidays, observed) |
+
+**3 · ORB v1.3 by event** (early-close-fixed run, 875 trades, `python3 tools/orb_events.py <orb.csv>`). Rule fixed before the run: an event type becomes a skip filter only if it is negative in ≥ 6 of 8 calendar years AND the shuffle test is below 5 % (event labels permuted among the trades within each year 2,000 times; p = share of shuffles with a mean R at or below the observed). Reference: days with no event of any type, 620 trades, +0.108 R, average risk 114.5 pts, average RTH range 256.9 pts.
+
+| Event (trade day) | n | Net | R / trade | Negative years | p | Risk (pts) | Range (pts) | Net by year 2019 … 2026 |
+|---|---|---|---|---|---|---|---|---|
+| **retail_sales** | 39 | **−2,409** | **−0.250** | **8 of 8** | **0.011** | 102.6 | 220.0 | −90 / −88 / −52 / −180 / −330 / −235 / −520 / −914 |
+| CPI | 37 | +2,421 | +0.324 | 3 | 0.83 | 123.0 | 274.5 | +26 / +632 / −425 / +1,596 / −94 / +642 / +372 / −326 |
+| FOMC | 19 | +552 | +0.015 | 2 | 0.33 | 99.7 | 274.5 | 0 / −66 / −44 / +32 / +20 / +323 / +76 / +211 |
+| GDP_advance | 13 | +1,446 | +0.539 | 2 | 0.87 | 162.8 | 365.9 | 0 / 0 / −190 / −1,062 / +858 / +443 / +700 / +696 |
+| NFP | 33 | +2,216 | +0.247 | 4 | 0.76 | 125.2 | 279.7 | +164 / +150 / −59 / −222 / −69 / −207 / +238 / +2,221 |
+| PCE | 42 | +3,018 | +0.169 | 2 | 0.61 | 143.5 | 310.4 | −82 / +274 / +56 / +118 / +648 / −198 / +1,762 / +440 |
+| PPI | 48 | +1,014 | +0.232 | 4 | 0.75 | 102.3 | 252.4 | −44 / −856 / +490 / +626 / −414 / +1,307 / −548 / +454 |
+| opex | 29 | +2,724 | +0.563 | 1 | 0.96 | 126.9 | 274.4 | 0 / −84 / +821 / +139 / +203 / +409 / +1,054 / +182 |
+| early_close | 18 | +502 | +0.117 | 1 | 0.46 | 54.3 | 102.2 | −42 / +26 / 0 / 0 / +50 / +402 / +11 / +55 |
+
+| Event (previous trading day) | n | Net | R / trade | Negative years | p |
+|---|---|---|---|---|---|
+| CPI | 44 | +2,438 | +0.292 | 2 | 0.81 |
+| FOMC | 27 | +1,964 | +0.162 | 2 | 0.57 |
+| GDP_advance | 16 | +1,142 | +0.196 | 2 | 0.63 |
+| NFP | 38 | +1,332 | +0.161 | 2 | 0.58 |
+| PCE | 33 | −714 | −0.119 | 5 | 0.094 |
+| PPI | 37 | +1,134 | +0.153 | 4 | 0.56 |
+| early_close | 29 | +594 | +0.188 | 3 | 0.60 |
+| opex | 44 | +845 | −0.014 | 4 | 0.22 |
+| retail_sales | 35 | +1,382 | +0.040 | 3 | 0.33 |
+
+**FOMC afternoon (14:00–16:00):** of 19 FOMC-day trades, 5 were stopped before the statement (−708) and 14 were still open at 14:00. Those 14 were −191 up to 14:00 and **+1,479 from 14:00 to the exit** (+0.46 R per trade; the after-14:00 segment positive in 11 of 14 and in every year 2020–2026; 12 time exits, 2 stops). The statement has not hurt open ORB positions; no rule change.
+
+**Verdict.** One type meets the pre-registered rule: **retail-sales release days** (the 08:30 Census advance report) — 39 trades, −2,409, −0.25 R, negative in all 8 years, shuffle p = 0.011. The loss sits on days with no other release (25 trades, −2,270, −0.49 R; the 14 shared with PPI / opex / FOMC / NFP are −138), on both sides (longs −1,398, shorts −1,012), and comes from stop-outs (21 stops −4,290 vs 18 time exits +1,881) with a smaller-than-usual day range (220 vs 257 pts on no-event days). By the rule, **skip retail-sales days** — ORB v1.3 with that skip: 836 trades, +23,652, PF 1.32, DD −3,676 $ / −13.1 R, +0.147 R per trade; better in every calendar year (−320 / −1,228 / +2,560 / +4,901 / +2,874 / +3,580 / +6,114 / +5,170). Caveat stated with it: 18 type × day/previous-day tests were run, and with a Bonferroni correction (0.05 / 18 ≈ 0.003) p = 0.011 would not pass; the 8-of-8 years is what makes it credible. Everything else is an observation only (previous-day PCE, 5 of 8 years negative, p = 0.094, is the nearest miss). Not yet in `ORB_strategy.pine` (that would be v1.4, a change to the forward-test script).

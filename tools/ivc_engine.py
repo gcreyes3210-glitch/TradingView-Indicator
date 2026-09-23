@@ -27,7 +27,7 @@ side, $2/point, 1 contract.
 import argparse
 import numpy as np
 import pandas as pd
-from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, _path
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, _path, exit_bar
 
 ROW, VA_PCT = 1.0, 0.70
 TZ = "America/New_York"
@@ -114,7 +114,7 @@ def run(b5, one, orb_days=frozenset(), **over):
         j = i0
         while j + 1 < len(ts) and (day_of[j + 1] == d and tod[j + 1] < 960):
             j += 1
-        iend = j + 1 if j + 1 < len(ts) else j
+        iend = exit_bar(ts, j)                          # early close: the session's last bar
         ib = [i for i in range(i0, iend) if ib0 <= tod[i] < ib1]
         if not ib:
             continue
