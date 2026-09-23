@@ -229,3 +229,20 @@ Added after the pre-registration, for information: 2,000 shuffles of the bucket 
 | Overnight vs previous day range | narrower 694 · +19,255 · +0.159 / wider 180 · +1,580 · −0.005 | narrower +0.08 +0.01 +0.18 +0.14 +0.15 +0.31 +0.14 +0.19 · wider −0.46 −0.15 −0.01 +0.60 −0.25 −0.06 +0.16 +0.10 | narrower > wider in 6 of 8 | 26 % | **Counts, not significant.** Narrower-overnight days are positive in all 8 years; wider-overnight days (21 % of trades) are ≈ 0 R. Plausible (a wide overnight has already spent the move) but not established. Not a filter; watch in the forward test |
 
 **Overall verdict:** by the pre-registered rule four splits count and one does not; by the shuffle test none is strong enough to change the rule (best p ≈ 0.14). ORB v1.3 stays unchanged. The two splits worth watching, not trading, are "previous day in its widest third" and "overnight range wider than the previous day", both of which have left ORB at ≈ 0 R; they can be confirmed or dropped on forward-test trades, which none of this data has seen.
+
+## Initiative continuation from prior value (IVC) — spec, awaiting first run
+Source: the AMT / Market Profile notes the user supplied (scenario templates C "open above value + acceptance above VAH → initiative buying / price discovery" and D, sections 5, 7, 14.2). Rationale: every rule that paid on NQ was continuation out of an opening structure (ORB); every fade failed (VWR, ONR, VP fades). This encodes the notes' initiative scenario with objective definitions: prior-day value as the reference, the first hour as the initial balance, acceptance = the first hour never re-entered value, entry = range extension beyond the initial balance in the direction away from value.
+Rule (v1, New York time):
+- Reference = previous cash session (09:30–16:00) volume profile from 1-minute bars, 1-point rows, POC, 70 % value area expanded two rows at a time on the heavier side (as in `VP_80Rule_strategy.pine`). Also PDH / PDL / PDC.
+- Open location at 09:30: above (open > VAH), below (open < VAL), inside (no trade).
+- Initial balance (IB) = high / low of 09:30–10:30.
+- Acceptance outside value: above-VA day requires IB low > VAH; below-VA day requires IB high < VAL. Otherwise no trade (the day re-entered value; that is the 80 % rule's territory, tested as VP4 and rejected).
+- Entry, 10:30–12:00: above-VA day → long on the first 5m close > IB high + 2 ticks + 0.15 × IB width; below-VA day → short mirror. Direction away from value only. One trade per day. Skip if IB width < 4 ticks.
+- Stop = other side of the IB ∓ 2 ticks. No target, flat at the 16:00 close. Costs as ORB ($1/side, 1 tick slippage).
+- Tags: open location, IB width (pts, % of prior-day range), IB low/high vs VAH/VAL/POC, opening range vs overnight range (ORB's tag), gap, whether ORB v1.3 also traded that day.
+Planned single-change variants: (a) acceptance loosened to IB low > POC (below: IB high < POC); (b) reference = prior day's range (open > PDH, IB low > PDH) instead of the value area; (c) IB 09:30–10:00, entries 10:00–12:00; (d) acceptance requirement off (open outside value is enough); (e) retest entry: after the close beyond IB high, a limit at IB high filled on a later bar within 6 bars, else no trade; (f) overnight value area (18:00–09:30 profile) as the reference instead of the prior cash session.
+Additivity check: IVC net on days ORB v1.3 did not trade, and combined ORB + IVC equity when both fire (one contract each), because a second rule is only worth having if it adds trades or diversifies days rather than repeating ORB.
+
+| Run | Change | n | Net | Verdict |
+|---|---|---|---|---|
+| IVC1 | v1 spec above, MNQ 5m, full local data | | | awaiting run |
