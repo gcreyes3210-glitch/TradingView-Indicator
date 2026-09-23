@@ -37,9 +37,9 @@ vwSig2   = input.float(2.0, "Band 2 (sigma)", step = 0.5, group = g3)
 
 g4 = "4 · Expected-move bands (realised vol)"
 showEm   = input.bool(true, "Draw expected-move bands", group = g4)
-emAnch   = input.string("Full session (18:00)", "Anchor (centre = this session's open)", options = ["Full session (18:00)", "Cash open (09:30)"], group = g4)
+emAnchors = input.string("1800,2000,0300,0930", "Anchor times (HHMM in the timezone, comma-separated)", group = g4, tooltip = "The bands re-centre on the open of the first bar at or after each of these times. Aceflw re-anchors its sigma bands during the day (observed: 18:00 and again in the evening), so list every anchor you see it use. 1800 = CME open, 2000 = Tokyo open, 0300 = London, 0930 = New York.")
 emSrc    = input.string("Realised volatility", "Sigma source", options = ["Realised volatility", "Manual (points)"], group = g4, tooltip = "Manual: type the 1-sigma values Aceflw shows for the day (short and long) and the bands are drawn from the same centre with those widths.")
-emMan1   = input.float(16.0, "  Manual 1σ short (points)", minval = 0.1, step = 0.1, group = g4)
+emMan1   = input.float(27.0, "  Manual 1σ short (points)", minval = 0.1, step = 0.1, group = g4)
 emMan2   = input.float(38.0, "  Manual 1σ long (points)", minval = 0.1, step = 0.1, group = g4)
 emLook   = input.int(10, "Volatility lookback (days)", minval = 2, maxval = 60, group = g4, tooltip = "Standard deviation of bar-to-bar log returns over this many days of bars, scaled to the horizon.")
 emH1     = input.int(60, "Short horizon (minutes)", minval = 5, group = g4)
@@ -204,7 +204,21 @@ plot(vwOn ? vwap + vwSig2 * vwSd : na, "VWAP +2σ", color.new(color.purple, 60),
 plot(vwOn ? vwap - vwSig2 * vwSd : na, "VWAP -2σ", color.new(color.purple, 60), 1, plot.style_circles)
 
 // ================================ 4 · EXPECTED-MOVE BANDS ================================
-bool emReset = emAnch == "Full session (18:00)" ? fullStart : rthStart
+// re-anchor on the first bar at or after any listed time (the clock, since sessions may have no bar gap)
+var array<int> anchMins = array.new_int()
+if barstate.isfirst
+    string[] parts = str.split(emAnchors, ",")
+    for prt in parts
+        string q = str.trim(prt)
+        if str.length(q) == 4
+            array.push(anchMins, int(str.tonumber(str.substring(q, 0, 2))) * 60 + int(str.tonumber(str.substring(q, 2, 4))))
+f_crossed(int m0, int m1, int a) =>
+    // did the clock pass anchor a between the previous bar (m0) and this bar (m1)? handles the midnight wrap
+    m1 >= a and (na(m0) or m0 < a or m0 > m1) or (m0 > m1 and a <= m1)
+bool emReset = false
+for a in anchMins
+    if f_crossed(mod[1], mod, a)
+        emReset := true
 int lookBars = math.max(20, int(emLook * 1380 / barMin))   // ~1380 traded minutes per CME day
 float r = math.log(close / close[1])
 float sdBar = ta.stdev(r, math.min(lookBars, 5000))         // per-bar return sigma
