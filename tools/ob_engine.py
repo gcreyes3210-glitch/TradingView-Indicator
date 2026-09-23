@@ -40,6 +40,23 @@ def _tick(x):
     return round(x / TICK) * TICK
 
 
+# shared ICT helpers (3-bar fractals centred at m, FVGs completed at bar i)
+def fractal_high(H, m):
+    return H[m] > H[m - 1] and H[m] > H[m + 1]
+
+
+def fractal_low(L, m):
+    return L[m] < L[m - 1] and L[m] < L[m + 1]
+
+
+def bull_fvg(H, L, i):
+    return H[i - 2] < L[i]
+
+
+def bear_fvg(H, L, i):
+    return L[i - 2] > H[i]
+
+
 def bias_15m(one):
     """Per date: direction of the last 15m fractal break on 15m bars that closed by 09:45 ('L' / 'S')."""
     b = resample(one, 15)
