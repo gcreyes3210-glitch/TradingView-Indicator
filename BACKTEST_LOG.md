@@ -343,3 +343,19 @@ Runs, pre-registered: OBI1-TF for TF = 1, 2, 3, 5. On the best TF by R per trade
 **Acceptance (pre-registered):** ≥ 6 of 8 positive years AND ≥ +0.05 R per trade AND the sign holding on the neighbouring TFs. **No run passes:** the best is 5 of 8 years (OBI1-3m, 44 trades, +0.031 R); the selected OBI1-1m has 3 of 8 at +0.076 R; the variants reach at most 4 of 8. Neighbour check not needed.
 **Shuffle check** (`tools/split_check.py` on OBI1-1m): side (longs > shorts), ORB day, and trade on ORB's side vs against each count 6 of 8 years, but 26–30 % of label shuffles do as well — noise. How far above the block the confirmation close is (terciles of `given_up`) does not count (4 of 8).
 **Verdict: rejected.** Requiring an IFVG after the tap filters out most of the failing pullbacks (216 of 453 taps are invalidated before confirming), which is what the test was for, and it turns OB1-1m's −0.100 R into +0.076 R. But the confirmed entries come late and above the block, so the survivors give back most of their edge, and the result is not consistent across years or timeframes. With OB1 it closes the order-block line.
+
+## ICT optimal trade entry (OTE) — spec, awaiting first run
+Requested 2026-09-23. The canonical high-probability OTE: liquidity sweep → market structure shift with displacement (FVG in the leg) → limit entry in the 62–79 % retracement of that leg → stop beyond the swept extreme → first target the leg's high. Sits between the pullback depths already tested (order block ≈ 100 % of the leg, range-edge retest ≈ 0 %).
+Definitions (New York time, TF ∈ {1, 2, 3, 5}, bars from the 1m data):
+- **Liquidity**: the overnight range (18:00–09:30) high / low (default). Variant: previous cash day's high / low.
+- **Sweep** (bullish setup): between 09:30 and 11:00, a bar with low < overnight low; sweep low = the lowest low while price is below. Bearish mirror.
+- **MSS with displacement**: after the sweep, a close above the most recent 3-bar fractal high formed since 09:30 before the sweep bar, and the leg from the sweep low to that close contains a bullish FVG (bar[i-2].high < bar[i].low). Must occur by 11:15. Bearish mirror.
+- **Leg**: 0 % = sweep low; 100 % = the running highest high from the sweep low onward. The OTE level is recomputed from the running high until a fill: level = high − f × (high − low), f = 0.705 (default).
+- **Entry**: a resting limit at the OTE level, working from the MSS bar for 30 bars (until 11:30 at the latest); filled at the limit when a bar's low ≤ level. If that bar's low also ≤ stop, the trade is stopped. Skip if the leg is < 8 ticks at the MSS.
+- **Stop** = sweep low − 2 ticks (bearish: sweep high + 2 ticks). **Target** = the leg high at the time of the fill (bearish: leg low). With f = 0.705 this is ≈ 2.4 R before ticks. Stop beats target on the same bar. Flat at 12:00 if open. One trade per day. Costs as ORB.
+- Tags: TF, leg size (pts), deepest retracement reached (fraction), bars MSS→fill, RR at fill, opening range vs overnight range and ORB overlap.
+Runs, pre-registered: OTE1-TF for TF = 1, 2, 3, 5. On the TF selected as in OBI (best R per trade with ≥ 150 trades, else most trades), one change each: (a) f = 0.62; (b) f = 0.79; (c) target = the opposite overnight extreme, skip if reward:risk < 1.5; (d) hold to 12:00, no target; (e) liquidity = previous cash day's high / low; (f) continuation OTE: no sweep required, the leg is any MSS + FVG displacement in the direction the opening range broke the overnight range, 09:45–11:00; (g) target = 2R. Acceptance: ≥ 6 of 8 positive years AND ≥ +0.05 R AND the sign holds on the neighbouring TFs; shuffle check on the best split before any verdict.
+
+| Run | Change | n | Net | Verdict |
+|---|---|---|---|---|
+| OTE1-1m … OTE1-5m | spec defaults, MNQ, full local data | | | awaiting run |
