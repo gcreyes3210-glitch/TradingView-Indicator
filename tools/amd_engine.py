@@ -24,6 +24,9 @@ Rule (New York time, on the TF bars):
         open if the bar opens through it), else no trade.
     stop = sweep extreme (highest high / lowest low from the sweep bar through the entry bar) +/- 2 ticks
     target = the other side of A (--target 2r: entry -/+ 2 x risk); skip if reward:risk < 1.0 at entry
+    --dir-filter (AMD2): opening range 09:30-09:45 broke the overnight high -> bullish setups only, the low -> bearish
+    only, both -> either, inside -> no trade; the day's setup is taken only if its side is allowed and its entry is at
+    or after 09:45 (when the filter is known).
     one trade a day, first setup only (a skipped setup uses the day up); flat at the close of the first bar at or after
     12:00 (--flat 16:00). Stop beats target on the same bar; nothing trades after a close entry inside its own bar.
 Costs: 1 tick slippage on every fill (target fills included), $1 commission per side, $2/point, 1 contract.
@@ -36,6 +39,7 @@ from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, _path
 TZ = "America/New_York"
 ACC = dict(overnight=("18:00", "09:30"), asia=("20:00", "00:00"), london=("02:00", "05:00"), premarket=("08:00", "09:30"))
 P = dict(tf=5, acc="overnight", man_end="10:30", entry_end="11:00", flat="12:00", target="range", trigger="any",
+         dir_filter=False,
          buf_ticks=2, min_rr=1.0, retest_bars=6, start=pd.Timestamp("2019-06-01", tz=TZ))
 
 
@@ -156,6 +160,17 @@ def run(one, orb=None, **over):
             if fill_i is None:
                 skipped["no_retest"] += 1
                 continue
+        orb_i = np.arange(i0, i0 + 16)[tod[i0:i0 + 16] < 585]
+        orH, orL = H[orb_i].max(), L[orb_i].min()
+        on_idx = np.arange(span0, i0)[in_win(tod[span0:i0], "18:00", "09:30")]
+        onH, onL = H[on_idx].max(), L[on_idx].min()
+        if p["dir_filter"]:
+            # AMD2: known at 09:45 - opening range broke the overnight high -> bullish setups only, low -> bearish only,
+            # both -> either, inside -> none; the entry must come at/after 09:45 (the filter is not known before)
+            allowed = {(True, False): "L", (False, True): "S", (True, True): "LS", (False, False): ""}[(orH > onH, orL < onL)]
+            if side not in allowed or tod[fill_i] < 585:
+                skipped["dir_filter"] = skipped.get("dir_filter", 0) + 1
+                continue
         risk = sgn * (fill_px - stop)
         tp = fill_px + sgn * 2 * risk if p["target"] == "2r" else (AL if side == "S" else AH)
         rr = sgn * (tp - fill_px) / risk if risk > 0 else 0
@@ -182,15 +197,12 @@ def run(one, orb=None, **over):
         xi, xpx, reason = out
         fill = xpx - sgn * slip
         pnl = sgn * (fill - entry) * PT_VALUE - 2 * COMM_SIDE
-        orb_i = np.arange(i0, i0 + 16)[tod[i0:i0 + 16] < 585]
-        orH, orL = H[orb_i].max(), L[orb_i].min()
-        on_idx = np.arange(span0, i0)[in_win(tod[span0:i0], "18:00", "09:30")]
-        onH, onL = H[on_idx].max(), L[on_idx].min()
         trades.append(dict(side=side, entry_time=ts[fill_i], entry=entry, exit_time=ts[xi], exit=fill, reason=reason,
                            pnl=pnl, risk=risk, R=pnl / (risk * PT_VALUE), rr=rr, trigger=kind, tf=p["tf"],
                            acc_w=AH - AL, depth=(ext - AH if side == "S" else AL - ext) / (AH - AL),
                            bars=fill_i - s, day="balance" if orH <= onH and orL >= onL else "break",
-                           orb=orb.get(d, "-")))
+                           orb=orb.get(d, "-"), or_break=("both" if orH > onH and orL < onL else "high" if orH > onH
+                                                          else "low" if orL < onL else "inside")))
     return pd.DataFrame(trades), skipped
 
 
@@ -205,6 +217,7 @@ if __name__ == "__main__":
     ap.add_argument("--trigger", choices=["any", "mss", "ifvg-retest"], default=P["trigger"])
     ap.add_argument("--man-end", default=P["man_end"])
     ap.add_argument("--entry-end", default=P["entry_end"])
+    ap.add_argument("--dir-filter", action="store_true", help="AMD2: direction from the opening range vs overnight range")
     ap.add_argument("--orb-trades")
     ap.add_argument("--out")
     a = ap.parse_args()
@@ -213,7 +226,8 @@ if __name__ == "__main__":
         o = pd.read_csv(a.orb_trades)
         orb = dict(zip(pd.to_datetime(o.entry_time, utc=True).dt.tz_convert(TZ).dt.date, o.side))
     tr, sk = run(pd.read_parquet(a.bars1m), orb, tf=a.tf, start=pd.Timestamp(a.start, tz=TZ), acc=a.acc,
-                 target=a.target, flat=a.flat, trigger=a.trigger, man_end=a.man_end, entry_end=a.entry_end)
+                 target=a.target, flat=a.flat, trigger=a.trigger, man_end=a.man_end, entry_end=a.entry_end,
+                 dir_filter=a.dir_filter)
     print(f"tf {a.tf}m acc {a.acc} target {a.target} flat {a.flat} trigger {a.trigger} man<{a.man_end} "
           f"entry<{a.entry_end}: {len(tr)} trades, skipped {sk}")
     if len(tr):
