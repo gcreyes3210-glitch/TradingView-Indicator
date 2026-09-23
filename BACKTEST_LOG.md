@@ -122,6 +122,29 @@ Planned variants, one change each, in this order: stop-order entry (ent:stop) ·
 | ORB2 | ORB1 with Target = None (hold to close), MNQ, four years | 1008 | +8,988 | PF 1.09, DD −9,364, years +4,713 (1.24) / +3,886 (1.19) / +3,892 (1.16) / −3,503; in R +18 / +26 / +6 / −5. Same as ORB1 within noise: the 2R target neither helps nor hurts, the exit is not where the edge is. Two splits hold across both runs and, for the first, every year: **breakout bars that close ≥ 0.15 × range beyond the edge +13,311 (493, avg +0.12 R, years +3,969 / +3,074 / +6,356 / −87) vs tentative breakouts −4,323 (515, negative in years 3 and 4)**; days with a gap ≥ 0.5 × range +14,758 vs small-gap days −5,770 (positive 3 of 4 years, year 4 −2,837). Shorts +1,884 vs longs +7,104. → v1.1 adds 'Min close beyond the edge (x range width)'; next run ORB3 = ORB2 + 0.15 |
 | ORB1 | v1 defaults, MNQ 5m, **2022-09-22 → 2026-09-22 (four years)** | 1008 | +9,582 | Win 45%, PF 1.10, DD −9,935, avg +0.05 R per trade. Years (Sep→Sep): +4,032 (PF 1.21) / +3,338 (1.17) / +6,346 (1.26) / **−4,300 (0.88)**; in R units +14 / +18 / +16 / −3, so year 4 is flat in R and the dollar loss is the 2× larger ranges (avg risk 85 → 162 pts). Exits 428 stop / 421 time / 159 target: the 2R target is hit 16% of the time, the hold-to-close exits contribute +40,684 of gross profit. Breakouts on the 09:45–09:55 bars +10,748 (630), later ones −1,166 (378). Big breakout bars (risk > 1.15 × range) +11,304 vs small ones −1,722. Longs +6,480 / shorts +3,102. Wednesday +2,282, Thursday −3,048, Friday +7,159 (n≈200 each, noise-level). 'open' tag was always 'inside' by construction (fixed: tag now records where the range sits vs the overnight range). Verdict: **small positive edge, too thin to trade at 1 tick slippage; the value is in early, strong breakouts held to the close** → next single change: no target |
 
+## Sizing
+ORB v1.3 defaults, MNQ, full local data 2019-06-03 → 2026-09-21 (the ORB6 reference run, 875 trades, 1 contract). R = net PnL ÷ (risk in points at entry × $2), risk = signal price to stop before costs. Reproduce: `python3 tools/orb_engine.py --start 2019-06-01 --out t.csv && python3 tools/sizing_report.py t.csv`.
+
+**Per-trade R:** mean +0.127 R, median −0.02 R, total +110.9 R. Percentiles p5 −1.03 / p10 −1.02 / p25 −1.01 / p50 −0.02 / p75 +0.87 / p90 +1.56 / p95 +2.00; worst −1.10 R, best +8.19 R. Stops (310) average −1.02 R (costs and slippage push a stop just past −1 R; none worse than −1.10 R). Time exits (565) average +0.76 R. 35 % of trades lose ≥ 1 R; 5.3 % make ≥ 2 R, and 44 trades above +2 R carry the edge. Distribution: ≤ −1 R 310 · −1 to −0.5 R 34 · −0.5 to 0 R 97 · 0 to 0.5 R 119 · 0.5 to 1 R 126 · 1 to 2 R 145 · 2 to 3 R 24 · 3 to 5 R 15 · > 5 R 5.
+**Risk of ruin inputs:** longest losing streak 8 trades · worst drawdown **−15.2 R** (−3,804 $ at 1 contract) · worst calendar month 2021-02, −7.3 R (−1,700 $) · worst 20-trade window −9.5 R (ending 2019-09-26); in dollars −1,994 $ (ending 2025-12-30). R by calendar year: −1.9 / −2.3 / +19.2 / +27.8 / +9.5 / +28.9 / +16.9 / +12.9 (2019 Jun–Dec … 2026 to Sep).
+**Risk per contract has quadrupled:** median risk 44 pts (2019) → 84 (2020–21) → 127 (2022) → 89–96 (2023–24) → 127 (2025) → 192 (2026). The dollar drawdown of the 1-contract record understates what the same rule would lose today, so size from R, not from past dollars. Last two years (240 trades since 2024-09-21): median risk **138.4 pts = $277 per MNQ**, p75 201.5 pts ($403), p90 269.6 pts ($539).
+
+Contracts = floor(account × risk % ÷ $277). The % columns scale the R figures above by the risk actually taken (actual % = contracts × $277 ÷ account); the losing-streak column assumes 8 losses of 1 R.
+
+| Account | Risk / trade | MNQ contracts | $ at median risk | Actual risk | Worst DD (−15.2 R) | Worst month (−7.3 R) | Worst 20 trades (−9.5 R) | 8-loss streak |
+|---|---|---|---|---|---|---|---|---|
+| 10,000 | 1 % / 2 % | 0 / 0 | – | – | – | – | – | – |
+| 25,000 | 1 % | 0 | – | – | – | – | – | – |
+| 25,000 | 2 % | 1 | 277 | 1.11 % | −16.8 % | −8.1 % | −10.5 % | −8.9 % |
+| 50,000 | 1 % | 1 | 277 | 0.55 % | −8.4 % | −4.0 % | −5.3 % | −4.4 % |
+| 50,000 | 2 % | 3 | 830 | 1.66 % | −25.2 % | −12.1 % | −15.8 % | −13.3 % |
+| 100,000 | 1 % | 3 | 830 | 0.83 % | −12.6 % | −6.1 % | −7.9 % | −6.6 % |
+| 100,000 | 2 % | 7 | 1,937 | 1.94 % | −29.4 % | −14.2 % | −18.4 % | −15.5 % |
+| 250,000 | 1 % | 9 | 2,491 | 1.00 % | −15.1 % | −7.3 % | −9.5 % | −8.0 % |
+| 250,000 | 2 % | 18 | 4,982 | 1.99 % | −30.2 % | −14.6 % | −19.0 % | −15.9 % |
+
+Reading it: at 2 % a repeat of the worst drawdown costs ~30 % of the account; at 1 % ~15 %. Below ~$28k one MNQ at the median risk is already more than 1 % of the account, and a p90 day ($539) is 2 % of $27k. Fixed contracts from the median also mean the real risk per trade swings about ±50 % with the day's range (p75 $403, p90 $539 per contract); sizing each trade on its own risk would hold the % constant but is a different rule from the one tested.
+
 ## Local engine calibration
 Why: variants can be run in seconds and without TradingView's Deep Backtesting limits once a local engine reproduces the TradingView record trade by trade. Calibrated against ORB v1.3 defaults (`ORB_strategy.pine` as committed, min close beyond the edge 0.15) and the reference export `data/tradingview/ORB4_MNQ_2020-2026.csv`.
 Data: Databento GLBX.MDP3 `ohlcv-1m`, `MNQ.v.0` (continuous front contract by volume, no back-adjustment), 2019-06-02 → 2026-09-21 (end date exclusive, so 2026-09-22 is not in the data), 2,576,601 1m bars, $9.41. Stored under `data/bars/` (git-ignored) as `MNQ_1m.parquet` / `MNQ_5m.parquet`, America/New_York, 5m bars stamped with their open time (the 09:30 bar = 09:30:00–09:34:59). Rebuild: `python3 tools/build_bars.py <file.dbn.zst> MNQ`.
