@@ -1,0 +1,223 @@
+#!/usr/bin/env python3
+"""ICT AMD (accumulation -> manipulation -> distribution), spec in BACKTEST_LOG.md. Same fill model and costs as
+orb_engine.py; bars resampled from the 1-minute Parquet to --tf 1/2/3/5 minutes, stamped by open time.
+
+    python3 tools/amd_engine.py --tf 5 [--acc overnight|asia|london|premarket] [--target range|2r] [--flat 16:00]
+                                [--trigger any|mss|ifvg-retest] [--man-end 11:00 --entry-end 11:30]
+                                [--orb-trades t.csv] [--out trades.csv]
+
+Rule (New York time, on the TF bars):
+    A = high/low of the accumulation window (default overnight 18:00-09:30; asia 20:00-00:00, london 02:00-05:00,
+        premarket 08:00-09:30), the most recent one before the 09:30 open.
+    M = the first bar from 09:30 (inclusive) and before 10:30 whose high > A high (bearish setup -> short) or low < A low
+        (bullish -> long); a bar that takes both sides is ambiguous and the day is skipped. Sweep-leg start = the last
+        3-bar fractal low (bearish; high for bullish) whose three bars are all at/after 09:30 and which is confirmed
+        before the sweep bar; if none, the session low (high) from 09:30 through the sweep bar. Confirmation = the first
+        close back inside (close < A high; > A low) from the sweep bar on, before 10:30; otherwise no trade.
+    D, from the confirmation bar on and before 11:00, whichever comes first (tag 'both' when on the same bar):
+        MSS  = close below the leg-start low (above the leg-start high)
+        IFVG = close below the low of a bullish FVG (above the high of a bearish FVG) formed inside the sweep leg
+               (3-bar gap bar[i-2].high < bar[i].low with leg start <= i-2 and i <= confirmation bar, formed before
+               the entry bar)
+        entry at that close. --trigger mss: MSS only. --trigger ifvg-retest: IFVG only, then a limit at the edge of the
+        inverted FVG nearest to price (FVG low for a short, high for a long) filled on one of the next 6 bars (at the
+        open if the bar opens through it), else no trade.
+    stop = sweep extreme (highest high / lowest low from the sweep bar through the entry bar) +/- 2 ticks
+    target = the other side of A (--target 2r: entry -/+ 2 x risk); skip if reward:risk < 1.0 at entry
+    one trade a day, first setup only (a skipped setup uses the day up); flat at the close of the first bar at or after
+    12:00 (--flat 16:00). Stop beats target on the same bar; nothing trades after a close entry inside its own bar.
+Costs: 1 tick slippage on every fill (target fills included), $1 commission per side, $2/point, 1 contract.
+"""
+import argparse
+import numpy as np
+import pandas as pd
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, _path
+
+TZ = "America/New_York"
+ACC = dict(overnight=("18:00", "09:30"), asia=("20:00", "00:00"), london=("02:00", "05:00"), premarket=("08:00", "09:30"))
+P = dict(tf=5, acc="overnight", man_end="10:30", entry_end="11:00", flat="12:00", target="range", trigger="any",
+         buf_ticks=2, min_rr=1.0, retest_bars=6, start=pd.Timestamp("2019-06-01", tz=TZ))
+
+
+def _m(s):
+    h, m = s.split(":"); return int(h) * 60 + int(m)
+
+
+def resample(one, tf):
+    if tf == 1:
+        return one[["open", "high", "low", "close", "volume"]]
+    return one.resample(f"{tf}min", label="left", closed="left").agg(
+        {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}).dropna(subset=["open"])
+
+
+def in_win(tod, a, b):
+    a, b = _m(a), _m(b) if b != "00:00" else 1440
+    return (tod >= a) & (tod < b) if a < b else (tod >= a) | (tod < b)
+
+
+def run(one, orb=None, **over):
+    p = {**P, **over}
+    buf, slip = p["buf_ticks"] * TICK, SLIP_TICKS * TICK
+    bars = resample(one, p["tf"])
+    ts = bars.index
+    tod = np.asarray(ts.hour * 60 + ts.minute)
+    O, H, L, C = (bars[k].to_numpy() for k in ("open", "high", "low", "close"))
+    dates = np.array(ts.date)
+    rth = np.flatnonzero((tod >= 570) & (tod < 960))
+    opens = pd.Series(rth, index=dates[rth]).groupby(level=0).min()
+    accmask = in_win(tod, *ACC[p["acc"]])
+    man_end, entry_end, flat = _m(p["man_end"]), _m(p["entry_end"]), _m(p["flat"])
+    orb = orb or {}
+
+    trades, skipped = [], dict(ambiguous=0, rr=0, no_retest=0)
+    prev_open = None
+    for d, i0 in opens.items():
+        span0, prev_open = (prev_open + 1 if prev_open is not None else 0), i0
+        if ts[i0] < p["start"] or span0 == 0:
+            continue
+        acc_idx = np.arange(span0, i0)[accmask[span0:i0]]
+        if len(acc_idx) == 0:
+            continue
+        AH, AL = H[acc_idx].max(), L[acc_idx].min()
+        # last index of the day for the flat exit: first bar at/after `flat` (or the next bar after the session)
+        iend = i0
+        while iend + 1 < len(ts) and dates[iend + 1] == d and tod[iend + 1] < flat:
+            iend += 1
+        iend = min(iend + 1, len(ts) - 1)
+
+        # manipulation: first sweep bar
+        s = side = None
+        k = i0
+        while k < iend and dates[k] == d and tod[k] < man_end:
+            up, dn = H[k] > AH, L[k] < AL
+            if up and dn:
+                skipped["ambiguous"] += 1
+                break
+            if up or dn:
+                s, side = k, ("S" if up else "L")
+                break
+            k += 1
+        if s is None:
+            continue
+        sgn = 1 if side == "L" else -1
+        # sweep-leg start
+        leg = None
+        for j in range(s - 2, i0, -1):              # fractal at j needs j-1 >= i0 and j+1 <= s-1
+            if side == "S" and L[j] < L[j - 1] and L[j] < L[j + 1]:
+                leg = j; break
+            if side == "L" and H[j] > H[j - 1] and H[j] > H[j + 1]:
+                leg = j; break
+        if leg is None:
+            seg = np.arange(i0, s + 1)
+            leg = seg[np.argmin(L[seg])] if side == "S" else seg[np.argmax(H[seg])]
+        legPx = L[leg] if side == "S" else H[leg]
+        # confirmation: first close back inside
+        c = next((k for k in range(s, iend) if tod[k] < man_end and dates[k] == d and
+                  (C[k] < AH if side == "S" else C[k] > AL)), None)
+        if c is None or tod[c] >= man_end:
+            continue
+        # FVGs inside the leg that point the setup's way (bullish FVG for a short setup)
+        fvgs = []
+        for i in range(leg + 2, c + 1):
+            if side == "S" and H[i - 2] < L[i]:
+                fvgs.append((i, H[i - 2]))           # (formed at, edge to close through = FVG low)
+            if side == "L" and L[i - 2] > H[i]:
+                fvgs.append((i, L[i - 2]))           # FVG high
+        # distribution trigger
+        trig = None
+        for k in range(c, iend):
+            if tod[k] >= entry_end or dates[k] != d:
+                break
+            mss = sgn * (C[k] - legPx) > 0
+            inv = [e for i, e in fvgs if i < k and sgn * (C[k] - e) > 0]
+            if p["trigger"] == "mss":
+                inv = []
+            if p["trigger"] == "ifvg-retest":
+                mss = False
+            if mss or inv:
+                trig = (k, "both" if mss and inv else "MSS" if mss else "IFVG", inv)
+                break
+        if trig is None:
+            continue
+        k, kind, inv = trig
+        ext = H[s:k + 1].max() if side == "S" else L[s:k + 1].min()
+        stop = ext + buf if side == "S" else ext - buf
+        fill_i, fill_px, rest = k, C[k], None
+        if p["trigger"] == "ifvg-retest":
+            edge = min(inv) if side == "S" else max(inv)   # nearest inverted FVG edge
+            fill_i = None
+            for i in range(k + 1, min(k + 1 + p["retest_bars"], iend)):
+                if -sgn * (O[i] - edge) >= 0:           # opens at/through the sell (buy) limit
+                    fill_i, fill_px, rest = i, O[i], _path(O[i], H[i], L[i], C[i]); break
+                if (H[i] >= edge) if side == "S" else (L[i] <= edge):
+                    pts = _path(O[i], H[i], L[i], C[i])
+                    q = next(q for q in range(1, 4) if -sgn * (pts[q] - edge) >= 0)
+                    fill_i, fill_px, rest = i, edge, [edge] + pts[q:]; break
+            if fill_i is None:
+                skipped["no_retest"] += 1
+                continue
+        risk = sgn * (fill_px - stop)
+        tp = fill_px + sgn * 2 * risk if p["target"] == "2r" else (AL if side == "S" else AH)
+        rr = sgn * (tp - fill_px) / risk if risk > 0 else 0
+        if risk <= 0 or rr < p["min_rr"]:
+            skipped["rr"] += 1
+            continue
+        tp = round(tp / TICK) * TICK
+        entry = fill_px + sgn * slip
+        out = None
+        if rest is not None:                      # retest fill: rest of the fill bar
+            if (max(rest) >= stop) if side == "S" else (min(rest) <= stop):
+                out = (fill_i, stop, "SL")
+            elif (min(rest) <= tp) if side == "S" else (max(rest) >= tp):
+                out = (fill_i, tp, "TP")
+        i = fill_i + 1
+        while out is None:
+            if (H[i] >= stop) if side == "S" else (L[i] <= stop):
+                out = (i, stop, "SL")
+            elif (L[i] <= tp) if side == "S" else (H[i] >= tp):
+                out = (i, tp, "TP")
+            elif i >= iend:
+                out = (i, C[i], "time")
+            i += 1
+        xi, xpx, reason = out
+        fill = xpx - sgn * slip
+        pnl = sgn * (fill - entry) * PT_VALUE - 2 * COMM_SIDE
+        orb_i = np.arange(i0, i0 + 16)[tod[i0:i0 + 16] < 585]
+        orH, orL = H[orb_i].max(), L[orb_i].min()
+        on_idx = np.arange(span0, i0)[in_win(tod[span0:i0], "18:00", "09:30")]
+        onH, onL = H[on_idx].max(), L[on_idx].min()
+        trades.append(dict(side=side, entry_time=ts[fill_i], entry=entry, exit_time=ts[xi], exit=fill, reason=reason,
+                           pnl=pnl, risk=risk, R=pnl / (risk * PT_VALUE), rr=rr, trigger=kind, tf=p["tf"],
+                           acc_w=AH - AL, depth=(ext - AH if side == "S" else AL - ext) / (AH - AL),
+                           bars=fill_i - s, day="balance" if orH <= onH and orL >= onL else "break",
+                           orb=orb.get(d, "-")))
+    return pd.DataFrame(trades), skipped
+
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--bars1m", default="data/bars/MNQ_1m.parquet")
+    ap.add_argument("--tf", type=int, choices=[1, 2, 3, 5], default=P["tf"])
+    ap.add_argument("--start", default="2019-06-01")
+    ap.add_argument("--acc", choices=list(ACC), default=P["acc"])
+    ap.add_argument("--target", choices=["range", "2r"], default=P["target"])
+    ap.add_argument("--flat", default=P["flat"])
+    ap.add_argument("--trigger", choices=["any", "mss", "ifvg-retest"], default=P["trigger"])
+    ap.add_argument("--man-end", default=P["man_end"])
+    ap.add_argument("--entry-end", default=P["entry_end"])
+    ap.add_argument("--orb-trades")
+    ap.add_argument("--out")
+    a = ap.parse_args()
+    orb = {}
+    if a.orb_trades:
+        o = pd.read_csv(a.orb_trades)
+        orb = dict(zip(pd.to_datetime(o.entry_time, utc=True).dt.tz_convert(TZ).dt.date, o.side))
+    tr, sk = run(pd.read_parquet(a.bars1m), orb, tf=a.tf, start=pd.Timestamp(a.start, tz=TZ), acc=a.acc,
+                 target=a.target, flat=a.flat, trigger=a.trigger, man_end=a.man_end, entry_end=a.entry_end)
+    print(f"tf {a.tf}m acc {a.acc} target {a.target} flat {a.flat} trigger {a.trigger} man<{a.man_end} "
+          f"entry<{a.entry_end}: {len(tr)} trades, skipped {sk}")
+    if len(tr):
+        tr["orb_day"] = tr.orb != "-"
+        report(tr, groups=("trigger", "side", "reason", "orb_day"))
+    if a.out:
+        tr.to_csv(a.out, index=False)
