@@ -1,6 +1,8 @@
 //@version=5
 // =====================================================================================================
-//  Opening Range Breakout  ·  v1.3  (strategy + chart drawings in one file)
+//  Opening Range Breakout  ·  v1.4  (strategy + chart drawings in one file)
+//  v1.4: flattens before the halt on early-close days (half days 13:15 ET, US holiday futures sessions 13:00 ET)
+//        instead of holding into the 18:00 reopen. Rule otherwise identical to v1.3.
 //  Defaults = the forward-test candidate after ORB1-ORB5 (see BACKTEST_LOG.md): no target, hold to the close,
 //  breakout bar must close 0.15 x range beyond the edge, trade only on days whose opening range breaks the
 //  overnight range. (ORB4/ORB5 were run with 0.15; v1.3 briefly shipped 0 by mistake.)
@@ -23,7 +25,7 @@
 //  Costs: $1 commission per contract per side and 1 tick of slippage per order are built in, because at
 //  ~200 trades a year the fills decide whether the rule is real.
 // =====================================================================================================
-strategy("Opening Range Breakout [v1.3]", "ORB v1.3", overlay = true, pyramiding = 0,
+strategy("Opening Range Breakout [v1.4]", "ORB v1.4", overlay = true, pyramiding = 0,
      default_qty_type = strategy.fixed, default_qty_value = 1, initial_capital = 25000,
      commission_type = strategy.commission.cash_per_contract, commission_value = 1.0, slippage = 1,
      calc_on_every_tick = false, process_orders_on_close = true, margin_long = 0, margin_short = 0,
@@ -79,7 +81,29 @@ bool inRth   = not na(time(timeframe.period, rthSess, tz))
 bool orStart    = inOR and not inOR[1]
 bool orEnd      = (not inOR) and inOR[1]
 bool tradeStart = inTrade and not inTrade[1]
-bool tradeEnd   = (not inTrade) and inTrade[1]
+bool tradeEnd0  = (not inTrade) and inTrade[1]
+
+// ---- early-close days: the cash market halts at 13:15 ET on half days (day after Thanksgiving, 24 Dec, 3 Jul when
+//      the 4th is a weekday) and equity futures halt at 13:00 ET on US stock-market holidays that still have a morning
+//      session. Holding to "16:00" on those days means holding into the 18:00 reopen. Flatten 10 minutes before the halt.
+f_dow(int y, int m, int d) => dayofweek(timestamp(tz, y, m, d, 12, 0), tz)          // 1 = Sunday … 7 = Saturday
+f_nth(int y, int m, int n, int dow) =>                                              // day of the n-th <dow> of month m
+    int d1 = f_dow(y, m, 1)
+    1 + ((dow - d1 + 7) % 7) + 7 * (n - 1)
+f_lastMon(int y, int m, int lastDay) =>
+    int dl = f_dow(y, m, lastDay)
+    lastDay - ((dl - 2 + 7) % 7)
+int yy = year(time, tz)
+int mm = month(time, tz)
+int dd = dayofmonth(time, tz)
+int wd = dayofweek(time, tz)
+bool thanksgiving = mm == 11 and dd == f_nth(yy, 11, 4, 5)
+bool halfDay = (mm == 11 and dd == f_nth(yy, 11, 4, 5) + 1) or (mm == 12 and dd == 24 and wd >= 2 and wd <= 6) or (mm == 7 and dd == 3 and wd >= 2 and wd <= 5)
+bool holiday = (mm == 1 and dd == f_nth(yy, 1, 3, 2)) or (mm == 2 and dd == f_nth(yy, 2, 3, 2)) or (mm == 5 and dd == f_lastMon(yy, 5, 31)) or (mm == 6 and dd == 19 and wd >= 2 and wd <= 6) or (mm == 7 and dd == 4 and wd >= 2 and wd <= 6) or (mm == 9 and dd == f_nth(yy, 9, 1, 2)) or thanksgiving
+int earlyMin = halfDay ? 795 : holiday ? 780 : -1          // minutes after midnight of the halt (13:15 / 13:00)
+int nowMin = hour(time, tz) * 60 + minute(time, tz)
+bool earlyEnd = earlyMin > 0 and inTrade and nowMin >= earlyMin - 10 and nz(nowMin[1]) < earlyMin - 10
+bool tradeEnd   = tradeEnd0 or earlyEnd
 bool entryEnd   = (not inEntry) and inEntry[1]
 bool onEnd      = (not inON) and inON[1]
 bool rthEnd     = (not inRth) and inRth[1]
@@ -274,9 +298,9 @@ if not closeMode
 if s_flat and tradeEnd
     strategy.cancel_all()
     if strategy.position_size != 0
-        strategy.close_all(comment = "time")
+        strategy.close_all(comment = earlyEnd ? "early" : "time")
         if s_alerts
-            alert("ORB " + syminfo.ticker + " end of trade window: flatten at market", alert.freq_once_per_bar)
+            alert("ORB " + syminfo.ticker + (earlyEnd ? " EARLY CLOSE today: flatten at market now, the market halts at " + str.tostring(earlyMin / 60) + ":" + (earlyMin % 60 == 0 ? "00" : str.tostring(earlyMin % 60)) + " ET" : " end of trade window: flatten at market"), alert.freq_once_per_bar)
 
 // ================================ VISUALS ================================
 var line lnH = na
