@@ -205,7 +205,8 @@ def stats(df):
     return dict(n=len(df), net=round(pnl.sum()), win=round(100 * (pnl > 0).mean(), 1),
                 pf=round(gw / gl, 2) if gl else None, dd=round(min((eq - eq.cummax()).min(), 0)),
                 avg_win=round(pnl[pnl > 0].mean()) if (pnl > 0).any() else None,
-                avg_loss=round(pnl[pnl < 0].mean()) if (pnl < 0).any() else None)
+                avg_loss=round(pnl[pnl < 0].mean()) if (pnl < 0).any() else None,
+                **({"R": round(df.R.mean(), 3)} if "R" in df else {}))
 
 
 def report(tr, groups=("side", "reason")):
