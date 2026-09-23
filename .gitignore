@@ -1,2 +1,4 @@
 data/bars/
 __pycache__/
+data/raw/
+data/flow/
