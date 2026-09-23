@@ -6,9 +6,10 @@
 //    1. Overnight volume profile (18:00 -> 09:30 NY): VAH / POC / VAL, built from 1-minute intrabars.
 //    2. Overnight high / low.
 //    3. Session VWAP with +/-1 and +/-2 sigma bands (volume-weighted standard deviation from the anchor).
-//    4. Expected-move bands anchored at the session open: open +/- 1 and 2 sigma for two horizons.
-//       Pine has no implied-volatility feed, so sigma is REALISED: the standard deviation of bar returns over a
-//       lookback, scaled by the square root of the horizon. Same shape as Aceflw's bands, different input.
+//    4. Expected-move bands, Aceflw style: "block-locked, static per CME block". Centred on the price at the start
+//       of each block (default two-hour blocks from 18:00) and frozen. Aceflw draws an IV band (implied vol) and an
+//       HV band (realised vol). Pine has no options feed, so both are realised here (or typed in manually); the
+//       orange HV band is the one that can be reproduced faithfully.
 //    5. Cumulative session delta (up-volume minus down-volume, classified from 1-minute bars) in the corner table.
 //  Not possible in Pine: bid/ask footprint cells, options levels (Vol Trigger, Call Wall, gamma).
 // =====================================================================================================
@@ -37,13 +38,13 @@ vwSig2   = input.float(2.0, "Band 2 (sigma)", step = 0.5, group = g3)
 
 g4 = "4 · Expected-move bands (realised vol)"
 showEm   = input.bool(true, "Draw expected-move bands", group = g4)
-emAnchors = input.string("1800,2000,0300,0930", "Anchor times (HHMM in the timezone, comma-separated)", group = g4, tooltip = "The bands re-centre on the open of the first bar at or after each of these times. Aceflw re-anchors its sigma bands during the day (observed: 18:00 and again in the evening), so list every anchor you see it use. 1800 = CME open, 2000 = Tokyo open, 0300 = London, 0930 = New York.")
+emAnchors = input.string("1800,2000,2200,0000,0200,0400,0600,0800,1000,1200,1400", "Block start times (HHMM in the timezone, comma-separated)", group = g4, tooltip = "Aceflw's sigma bands are 'block-locked expected-move bands, static per CME block': centred on the price at the start of each block and frozen. Default = two-hour blocks from the 18:00 CME open. If Aceflw's blocks start at other times, list them here.")
 emSrc    = input.string("Realised volatility", "Sigma source", options = ["Realised volatility", "Manual (points)"], group = g4, tooltip = "Manual: type the 1-sigma values Aceflw shows for the day (short and long) and the bands are drawn from the same centre with those widths.")
 emMan1   = input.float(27.0, "  Manual 1σ short (points)", minval = 0.1, step = 0.1, group = g4)
 emMan2   = input.float(38.0, "  Manual 1σ long (points)", minval = 0.1, step = 0.1, group = g4)
 emLook   = input.int(10, "Volatility lookback (days)", minval = 2, maxval = 60, group = g4, tooltip = "Standard deviation of bar-to-bar log returns over this many days of bars, scaled to the horizon.")
-emH1     = input.int(60, "Short horizon (minutes)", minval = 5, group = g4)
-emH2     = input.int(930, "Long horizon (minutes)", minval = 5, group = g4, tooltip = "930 = the whole overnight session 18:00 -> 09:30. 390 = the cash session.")
+emH1     = input.int(120, "Short horizon (minutes) = block length", minval = 5, group = g4, tooltip = "Cyan band. Aceflw's cyan band is IMPLIED vol for the block, which Pine cannot get; this realised-vol version is a stand-in. Use the manual sigma source to type Aceflw's value.")
+emH2     = input.int(120, "Long horizon (minutes) = block length", minval = 5, group = g4, tooltip = "Orange band = Aceflw's HV (historical / realised vol) band for the block. Same block length; the two bands differ only by the volatility source.")
 emShow2  = input.bool(true, "Also draw the 2-sigma lines", group = g4)
 
 g5 = "5 · Table"
