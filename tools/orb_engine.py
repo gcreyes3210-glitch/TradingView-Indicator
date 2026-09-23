@@ -3,7 +3,7 @@
 
     python3 tools/orb_engine.py [--bars data/bars/MNQ_5m.parquet] [--start 2020-01-01] [--or 09:30-10:00]
                                 [--entry-window 10:00-11:30] [--entry-mode close|stop] [--max-trades 2]
-                                [--min-brk 0] [--out trades.csv]
+                                [--min-brk 0] [--point-value 5] [--out trades.csv]
 
 Mirrors the Pine script's per-bar state machine on 5m bars stamped with their open time (New York):
     opening range 09:30-09:45 · entries 09:45-11:30 · trade window 09:30-16:00 · overnight 18:00-09:30
@@ -16,7 +16,7 @@ Fill model (the calibration rules):
     nothing trades after a close entry within its own bar, so the entry bar's low/high never stops it
     (TradingView agrees: 2026-04-13, entry bar touched the stop before closing out); time exit at the close
     of the bar that opens at 16:00; stop beats the time exit on the same bar.
-    Costs: 1 tick slippage against every fill + $1 commission per side, MNQ $2/point, 1 contract.
+    Costs: 1 tick slippage against every fill + $1 commission per side, 1 contract; MNQ $2/point (MES: --point-value 5).
 Stop-order entry (--entry-mode stop): while flat inside the entry window, buy stop at ORH + 2 ticks and sell stop at
     ORL - 2 ticks rest from each bar's close to the next bar. They fill at the stop price when a bar trades through it,
     or at the open when the bar opens beyond it. The first side to fill (bar path as TradingView assumes it: open ->
@@ -31,7 +31,7 @@ TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS = 0.25, 2.0, 1.0, 1
 P = dict(
     or_sess=("09:30", "09:45"), entry_sess=("09:45", "11:30"), trade_sess=("09:30", "16:00"),
     on_sess=("18:00", "09:30"), rth_sess=("09:30", "16:00"),
-    entry_mode="close", buf_ticks=2, max_trades=1, min_or_ticks=4, min_brk_or=0.15, on_filter="break",
+    point_value=PT_VALUE, entry_mode="close", buf_ticks=2, max_trades=1, min_or_ticks=4, min_brk_or=0.15, on_filter="break",
     start=pd.Timestamp("2020-01-01", tz="America/New_York"),
 )
 
@@ -88,7 +88,7 @@ def run(bars, p=P, entry_bar_stop=False, **over):
         nonlocal pos
         sgn = 1 if pos["side"] == "L" else -1
         fill = px - sgn * slip
-        pnl = sgn * (fill - pos["entry"]) * PT_VALUE - 2 * COMM_SIDE
+        pnl = sgn * (fill - pos["entry"]) * p["point_value"] - 2 * COMM_SIDE
         trades.append(dict(side=pos["side"], entry_time=ts[pos["i"]], entry=pos["entry"], exit_time=ts[i],
                            exit=fill, reason=reason, pnl=pnl, risk=pos["risk"], n=pos["n"], gap_fill=pos["gap_fill"],
                            **pos["tag"]))
@@ -231,12 +231,13 @@ if __name__ == "__main__":
     ap.add_argument("--entry-mode", choices=["close", "stop"], default=P["entry_mode"])
     ap.add_argument("--max-trades", type=int, default=P["max_trades"])
     ap.add_argument("--min-brk", type=float, default=P["min_brk_or"])
+    ap.add_argument("--point-value", type=float, default=PT_VALUE, help="$ per point: MNQ 2, MES 5")
     ap.add_argument("--out")
     a = ap.parse_args()
     bars = pd.read_parquet(a.bars)
     tr = run(bars, start=pd.Timestamp(a.start, tz="America/New_York"), or_sess=tuple(a.or_sess.split("-")),
              entry_sess=tuple(a.entry_window.split("-")), entry_mode=a.entry_mode, max_trades=a.max_trades,
-             min_brk_or=a.min_brk)
+             min_brk_or=a.min_brk, point_value=a.point_value)
     print(f"{tr.entry_time.iloc[0].date()} -> {bars.index[-1].date()}  or {a.or_sess}  entries {a.entry_window}  "
           f"mode {a.entry_mode}  max {a.max_trades}  min brk {a.min_brk}")
     report(tr, groups=("side", "reason", "n"))
