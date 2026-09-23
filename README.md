@@ -219,3 +219,9 @@ expected-move bands anchored at the 18:00 session open for a short and a long ho
 feed, so the expected move uses realised volatility (standard deviation of bar returns over a lookback, scaled by the
 square root of the horizon). A corner table lists the levels and the cumulative session delta from 1-minute up/down
 volume. Footprint bid/ask cells and options levels (Vol Trigger, Call Wall) cannot be built in Pine.
+
+## VWAP Reversion (new, separate file)
+`VWAP_Reversion_strategy.pine` is the complement of the ORB strategy: it trades only the days ORB skips (opening
+range inside the overnight range, "balance days") and fades a 5-minute close beyond the VWAP ±2σ band on the first
+close back inside it, stop beyond the excursion extreme plus half a sigma, target VWAP, one trade per side per day,
+flat at the close. Tags carry the regime, sigma, excursion depth, session-delta sign and time. Untested as of adding.
