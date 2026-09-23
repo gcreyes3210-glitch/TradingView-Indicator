@@ -97,9 +97,16 @@ int yy = year(time, tz)
 int mm = month(time, tz)
 int dd = dayofmonth(time, tz)
 int wd = dayofweek(time, tz)
+// fixed-date holidays are observed on the Friday before when they fall on a Saturday and the Monday after on a Sunday
+f_obs(int y, int m, int d) =>
+    int w = f_dow(y, m, d)
+    w == 7 ? d - 1 : w == 1 ? d + 1 : d
 bool thanksgiving = mm == 11 and dd == f_nth(yy, 11, 4, 5)
-bool halfDay = (mm == 11 and dd == f_nth(yy, 11, 4, 5) + 1) or (mm == 12 and dd == 24 and wd >= 2 and wd <= 6) or (mm == 7 and dd == 3 and wd >= 2 and wd <= 5)
-bool holiday = (mm == 1 and dd == f_nth(yy, 1, 3, 2)) or (mm == 2 and dd == f_nth(yy, 2, 3, 2)) or (mm == 5 and dd == f_lastMon(yy, 5, 31)) or (mm == 6 and dd == 19 and wd >= 2 and wd <= 6) or (mm == 7 and dd == 4 and wd >= 2 and wd <= 6) or (mm == 9 and dd == f_nth(yy, 9, 1, 2)) or thanksgiving
+bool xmasObs = mm == 12 and dd == f_obs(yy, 12, 25)
+bool july4Obs = mm == 7 and dd == f_obs(yy, 7, 4)
+bool juneteenthObs = yy >= 2022 and mm == 6 and dd == f_obs(yy, 6, 19)      // a market holiday since 2022
+bool halfDay = (mm == 11 and dd == f_nth(yy, 11, 4, 5) + 1) or (mm == 12 and dd == 24 and wd >= 2 and wd <= 5 and not xmasObs) or (mm == 7 and dd == 3 and wd >= 2 and wd <= 5 and not july4Obs)
+bool holiday = (mm == 1 and dd == f_nth(yy, 1, 3, 2)) or (mm == 2 and dd == f_nth(yy, 2, 3, 2)) or (mm == 5 and dd == f_lastMon(yy, 5, 31)) or juneteenthObs or july4Obs or (mm == 9 and dd == f_nth(yy, 9, 1, 2)) or thanksgiving or xmasObs
 int earlyMin = halfDay ? 795 : holiday ? 780 : -1          // minutes after midnight of the halt (13:15 / 13:00)
 int nowMin = hour(time, tz) * 60 + minute(time, tz)
 bool earlyEnd = earlyMin > 0 and inTrade and nowMin >= earlyMin - 10 and nz(nowMin[1]) < earlyMin - 10
