@@ -18,7 +18,7 @@ slip limit orders) + $1 commission per side, MNQ $2/point, 1 contract.
 """
 import argparse, math
 import pandas as pd
-from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, in_sess
+from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, in_sess, report
 
 P = dict(
     on_sess=("18:00", "09:30"), or_sess=("09:30", "09:45"), entry_sess=("10:00", "15:00"), trade_sess=("09:30", "16:00"),
@@ -155,34 +155,6 @@ def run(bars, **over):
         prev = dict(inON=inON, inOR=inOR, inTrade=inTrade)
 
     return pd.DataFrame(trades)
-
-
-def stats(df):
-    pnl = df.pnl
-    if len(df) == 0:
-        return dict(n=0, net=0, win=0, pf=None, dd=0, avg_win=None, avg_loss=None)
-    eq = pnl.cumsum()
-    gw, gl = pnl[pnl > 0].sum(), -pnl[pnl < 0].sum()
-    return dict(n=len(df), net=round(pnl.sum()), win=round(100 * (pnl > 0).mean(), 1),
-                pf=round(gw / gl, 2) if gl else None, dd=round(min((eq - eq.cummax()).min(), 0)),
-                avg_win=round(pnl[pnl > 0].mean()) if (pnl > 0).any() else None,
-                avg_loss=round(pnl[pnl < 0].mean()) if (pnl < 0).any() else None)
-
-
-def report(tr):
-    def row(name, d):
-        s = stats(d)
-        print(f"  {name:<10}" + "  ".join(f"{k} {v}" for k, v in s.items()))
-    row("all", tr)
-    print(" per calendar year:")
-    for y, d in tr.groupby(tr.entry_time.dt.year):
-        row(str(y), d)
-    print(" by side:")
-    for k, d in tr.groupby("side"):
-        row(k, d)
-    print(" by exit:")
-    for k, d in tr.groupby("reason"):
-        row(k, d)
 
 
 if __name__ == "__main__":
