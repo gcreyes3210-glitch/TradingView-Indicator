@@ -80,6 +80,8 @@ def shadow_flags(bars, events="data/events.csv"):
     f["F3"] = (gap.abs() < 0.5 * or_w.reindex(sessions)).astype(object).where(gap.notna())
     f["ORB8"] = f[["F1", "F2", "F3"]].apply(lambda r: True if (r == True).any() else (np.nan if r.isna().any() else False),  # noqa: E712
                                             axis=1)
+    if events is None:
+        return f
     ev = pd.read_csv(events)
     retail = set(pd.to_datetime(ev[ev.type == "retail_sales"].date).dt.date)
     ev_end = pd.to_datetime(ev.date).max().date()

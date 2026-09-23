@@ -190,7 +190,12 @@ def run(bars, p=P, entry_bar_stop=False, **over):
             pdPct = None if pdH is None or pdH - pdL <= 0 else 100.0 * orW / (pdH - pdL)
             orReady = orW >= p["min_or_ticks"] * TICK
 
-        okOn = p["on_filter"] == "off" or openLoc in ("topBreak", "above", "botBreak", "below")
+        # overnight filter: off / break (the opening range broke the overnight range) / direction (as break, and longs
+        # only after an overnight-high break, shorts only after an overnight-low break — Pine 'Break direction only')
+        upB, dnB = openLoc in ("topBreak", "above"), openLoc in ("botBreak", "below")
+        okOn = p["on_filter"] == "off" or upB or dnB
+        okL = p["on_filter"] == "off" or (upB if p["on_filter"] == "direction" else okOn)
+        okS = p["on_filter"] == "off" or (dnB if p["on_filter"] == "direction" else okOn)
         canTrade = (orReady and inEntry and inTrade and ts[i] >= p["start"] and pos is None
                     and tradesToday < p["max_trades"])
         if canTrade and stop_mode:
@@ -200,10 +205,10 @@ def run(bars, p=P, entry_bar_stop=False, **over):
             brkUp = C[i] > ORH + buf + p["min_brk_or"] * orW
             brkDn = C[i] < ORL - buf - p["min_brk_or"] * orW
             side = None
-            if brkUp and okOn and longsToday == 0:
+            if brkUp and okL and longsToday == 0:
                 side, stop = "L", ORL - buf
                 longsToday += 1
-            elif brkDn and okOn and shortsToday == 0:
+            elif brkDn and okS and shortsToday == 0:
                 side, stop = "S", ORH + buf
                 shortsToday += 1
             if side:
