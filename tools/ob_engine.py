@@ -62,9 +62,10 @@ def bias_15m(one):
     return {t.date(): v for t, v in at.items()}
 
 
-def run(one, orb=None, **over):
-    p = {**P, **over}
-    buf, slip = p["buf_ticks"] * TICK, SLIP_TICKS * TICK
+def blocks(one, p):
+    """Yield (A, day) for every day with a tradable bias: A holds the TF bar arrays (the same object every time),
+    day the session indices and the day's candidate block cand = (side, OB bar j, BOS bar k) or None."""
+    from types import SimpleNamespace
     bars = resample(one, p["tf"])
     ts = bars.index
     tod = np.asarray(ts.hour * 60 + ts.minute)
@@ -73,12 +74,10 @@ def run(one, orb=None, **over):
     rth = np.flatnonzero((tod >= 570) & (tod < 960))
     opens = pd.Series(rth, index=dates[rth]).groupby(level=0).min()
     onmask = in_win(tod, "18:00", "09:30")
-    form_end, entry_end, flat = _m(p["form_end"]), _m(p["entry_end"]), _m(p["flat"])
+    form_end, flat = _m(p["form_end"]), _m(p["flat"])
     b15 = bias_15m(one) if p["bias"] == "15m" else {}
-    orb = orb or {}
+    A = SimpleNamespace(ts=ts, tod=tod, O=O, H=H, L=L, C=C, dates=dates, onmask=onmask)
 
-    trades = []
-    cnt = dict(days=0, candidates=0, filled=0, expired=0, small=0, used_early=0, rr=0)
     prev_open = None
     for d, i0 in opens.items():
         span0, prev_open = (prev_open + 1 if prev_open is not None else 0), i0
@@ -102,7 +101,6 @@ def run(one, orb=None, **over):
             allowed, work_from = "LS", 570
         if not allowed:
             continue
-        cnt["days"] += 1
         iend = i0
         while iend + 1 < len(ts) and dates[iend + 1] == d and tod[iend + 1] < flat:
             iend += 1
@@ -142,6 +140,22 @@ def run(one, orb=None, **over):
             if cand is not None:
                 break
             k += 1
+        yield A, SimpleNamespace(d=d, i0=i0, iend=iend, span0=span0, daytype=daytype, work_from=work_from, cand=cand)
+
+
+def run(one, orb=None, **over):
+    p = {**P, **over}
+    buf, slip = p["buf_ticks"] * TICK, SLIP_TICKS * TICK
+    entry_end = _m(p["entry_end"])
+    orb = orb or {}
+
+    trades = []
+    cnt = dict(days=0, candidates=0, filled=0, expired=0, small=0, used_early=0, rr=0)
+    for A, day in blocks(one, p):
+        ts, tod, O, H, L, C, dates, onmask = A.ts, A.tod, A.O, A.H, A.L, A.C, A.dates, A.onmask
+        d, i0, iend, span0, daytype, work_from = day.d, day.i0, day.iend, day.span0, day.daytype, day.work_from
+        cnt["days"] += 1
+        cand = day.cand
         if cand is None:
             continue
         cnt["candidates"] += 1
