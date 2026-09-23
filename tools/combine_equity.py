@@ -4,7 +4,8 @@
     python3 tools/combine_equity.py base.csv other.csv [--names ORB,IVC1]
 
 Reports the other rule on the days the base rule did not trade, the overlap, the daily-PnL correlation on shared
-days, and the combined equity curve (trades ordered by exit time) against the base alone.
+days, and the combined equity curve (trades ordered by exit time) against the base alone, in dollars and in R
+(per-trade R = pnl / (risk x --pv, default 2)); the R/DD column is total R over the worst R drawdown.
 """
 import sys
 import pandas as pd
@@ -33,6 +34,15 @@ comb = pd.concat([a.assign(rule=names[0]), b.assign(rule=names[1])]).sort_values
 print(f"\n{'':<10}" + "  ".join(f"{k:>8}" for k in stats(a)))
 for n, t in ((names[0], a), (names[1], b), ("combined", comb)):
     print(f"{n:<10}" + "  ".join(f"{str(v):>8}" for v in stats(t).values()))
+# drawdown and return-to-drawdown in R (per-trade R = pnl / (risk points x point value), risk from each engine)
+pv = float(sys.argv[sys.argv.index("--pv") + 1]) if "--pv" in sys.argv else 2.0
+if "risk" in a and "risk" in b:
+    print(f"\n{'':<10}{'total R':>9}{'DD R':>8}{'R/DD':>7}{'$ net/DD':>10}")
+    for n, t in ((names[0], a), (names[1], b), ("combined", comb)):
+        r = (t.pnl / (t.risk * pv))
+        eq, eqd = r.cumsum(), t.pnl.cumsum()
+        ddr, ddd = (eq - eq.cummax()).min(), (eqd - eqd.cummax()).min()
+        print(f"{n:<10}{r.sum():>9.1f}{ddr:>8.1f}{r.sum() / -ddr:>7.2f}{t.pnl.sum() / -ddd:>10.2f}")
 print("\nper calendar year (net):   " + names[0] + " / " + names[1] + " / combined")
 for y in sorted(comb.exit_time.dt.year.unique()):
     f = lambda t: t[t.exit_time.dt.year == y].pnl.sum()
