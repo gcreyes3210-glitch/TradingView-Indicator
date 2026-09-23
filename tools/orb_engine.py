@@ -77,7 +77,7 @@ def run(bars, p=P, entry_bar_stop=False, **over):
     trades = []
     prev = dict(inOR=False, inEntry=False, inTrade=False, inON=False, inRth=False)
     onH = onL = ONH = ONL = None
-    rthH = rthL = rthC = pdH = pdL = pdC = None
+    rthH = rthL = rthC = rthO = pdH = pdL = pdC = pdO = None
     orH = orL = ORH = ORL = orW = None
     orReady, openLoc, gap, pdPct = False, "-", None, None
     tradesToday = longsToday = shortsToday = 0
@@ -98,7 +98,9 @@ def run(bars, p=P, entry_bar_stop=False, **over):
         nonlocal pos
         sgn = 1 if side == "L" else -1
         pos = dict(side=side, entry=px + sgn * slip, stop=stop, i=i, risk=sgn * (px - stop), n=tradesToday,
-                   gap_fill=gap_fill, tag=dict(or_w=orW, on=openLoc, pd=pdPct, gap=gap))
+                   gap_fill=gap_fill, tag=dict(or_w=orW, on=openLoc, pd=pdPct, gap=gap,
+                   on_w=None if ONH is None else ONH - ONL, pd_range=None if pdH is None else pdH - pdL,
+                   pd_dir=None if pdC is None else ("up" if pdC > pdO else "down" if pdC < pdO else "flat")))
 
     for i in range(len(ts)):
         t = tod[i]
@@ -142,8 +144,10 @@ def run(bars, p=P, entry_bar_stop=False, **over):
             rthH = max(rthH, H[i]) if prev["inRth"] else H[i]
             rthL = min(rthL, L[i]) if prev["inRth"] else L[i]
             rthC = C[i]
+            if not prev["inRth"]:
+                rthO = O[i]
         if rthEnd:
-            pdH, pdL, pdC = rthH, rthL, rthC
+            pdH, pdL, pdC, pdO = rthH, rthL, rthC, rthO
 
         if tradeStart:
             orReady, ORH, ORL, orW, openLoc = False, None, None, None, "-"
