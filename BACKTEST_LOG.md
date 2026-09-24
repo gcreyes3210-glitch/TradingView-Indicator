@@ -627,5 +627,28 @@ Shuffle check on the best split (split_check, side / zone / SMT type): level vs 
 **Verdict: IFVG-1m fails.** No exit or zone set gives positive R, and the neighbours agree in sign (negative). Z-high, the trader's named secondary, is no better than Z-all.
 **What the rule could not encode:** "strong move" as a feeling, the V-shape, the "stronger trade" comparison between overlapping signals, and whether a gap is visible beyond the 1-point minimum. The trader names the day's bias as the missing input; the forward bias log is the test of it.
 
+## BIAS study — pre-registered 2026-09-24, awaiting answers
+Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
+**Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:
+- a 09:30 bar;
+- at least 60 earlier trading days in the data;
+- the same front contract at the previous cash close, at 09:29 and at the day's cash close, so no roll falls inside the scored move.
+The 40 days are split at random into two blocks of 20.
+**Charts.** One PNG per day, `data/studies/bias/block1|2/<6-digit id>.png`, with four MNQ panels cut at 09:30:
+- daily: 60 completed trading days, plus today so far;
+- 4-hour: 10 days, buckets from 18:00;
+- 1-hour: 5 days;
+- 15-minute: the previous session plus today's overnight.
+Each panel shows the prior-day high / low (18:00–17:00), the prior settlement (last 1m close before 16:00, a proxy for CME's 30-second VWAP), the overnight high / low, the 09:29 close, and every unfilled FVG of that panel's timeframe formed in the window, labelled with the timeframe. No date appears on any chart. The key `data/studies/bias/key.csv` (id, block, date) is committed and never printed.
+**Answers:** `data/studies/bias/answers.csv` with columns id, bias (long / short / none), confidence 1–3, draw_level (a price), reasons (semicolon-separated tags). Block 1 is released first; `release2` appends the block 2 rows.
+**Scoring, fixed before any answer** (`python3 tools/bias_study.py score [--block 1|2|all]`):
+1. **Direction** = the day's cash close (last 1m close before 16:00) against the previous day's cash close.
+2. **Hit rate of the long / short calls** against the base rate over the same scored dates. Under the null, a long call is right with probability equal to the share of up days, and a short call with the share of down days. The one-sided p is the Poisson-binomial P(hits ≥ observed). 'None' calls are counted, not scored.
+3. **Confidence-3 calls alone,** with the same test.
+4. **Draw level:** the share of days on which MNQ traded to the stated level between 09:30 and 15:59 (at or through it, on the side away from the 09:29 close).
+5. **Hit rate per reason tag** (a call counts under each tag it lists).
+6. **Features.** After scoring, the reasons are turned into computable features (e.g. above / below the prior settlement, overnight-range position, the side of the nearest unfilled HTF FVG, the 20-bar daily slope). The report shows how often a simple rule on those features matches the trader's calls on the 40 days.
+**Any rule built from those features is run only if the trader says so:** on 2019–2022 first, confirmed on 2023–2026 untouched, with the usual criterion.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
