@@ -1,21 +1,21 @@
-id,same_gap,my_gap_time
-audit_01,,
-audit_02,,
-audit_03,,
-audit_04,,
-audit_05,,
-audit_06,,
-audit_07,,
-audit_08,,
-audit_09,,
-audit_10,,
-audit_11,,
-audit_12,,
-audit_13,,
-audit_14,,
-audit_15,,
-audit_16,,
-audit_17,,
-audit_18,,
-audit_19,,
-audit_20,,
+id,same_gap,my_gap_time,entry_shift,note
+audit_01,no,none,,
+audit_02,yes,,-1,strong move; would enter on the candle before (nearly full close above the FVG)
+audit_03,yes,,,low confidence; took a while to inverse
+audit_04,no,none,,would not consider this an IFVG at all
+audit_05,no,08:10,,
+audit_06,no,none,,
+audit_07,no,1:15,,time as labelled on the chart (am/pm not stated)
+audit_08,no,none,,
+audit_09,no,4:15,,time as labelled on the chart (am/pm not stated)
+audit_10,no,none,,
+audit_11,yes,,-1,entry on the candle before
+audit_12,no,20:10,,
+audit_13,yes,,,
+audit_14,yes,,-1,entry on the candle before
+audit_15,yes,,,
+audit_16,no,1:50,,time as labelled on the chart (am/pm not stated)
+audit_17,no,none,,
+audit_18,no,none,,
+audit_19,no,none,,
+audit_20,no,3:25,,time as labelled on the chart (am/pm not stated)
