@@ -24,7 +24,10 @@ Rule (New York time, on the TF bars):
         open if the bar opens through it), else no trade.
     stop = sweep extreme (highest high / lowest low from the sweep bar through the entry bar) +/- 2 ticks
     target = the other side of A (--target 2r: entry -/+ 2 x risk); skip if reward:risk < 1.0 at entry
-    --dir-filter (AMD2): opening range 09:30-09:45 broke the overnight high -> bullish setups only, the low -> bearish
+    --amd2: trigger = the LAST FVG completed in the sweep leg at or before the sweep extreme (highest high / lowest low
+    from the sweep bar to the confirmation bar), entered at the first close through it from the confirmation bar on,
+    within 10 bars of the confirmation close (else no trade); skip if |entry - stop| > 1.5 x the 20-bar ATR at entry.
+    --dir-filter (the run logged as AMD2-1m, direction from the opening range): opening range 09:30-09:45 broke the overnight high -> bullish setups only, the low -> bearish
     only, both -> either, inside -> no trade; the day's setup is taken only if its side is allowed and its entry is at
     or after 09:45 (when the filter is known).
     one trade a day, first setup only (a skipped setup uses the day up); flat at the close of the first bar at or after
@@ -39,7 +42,7 @@ from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, _path, exi
 TZ = "America/New_York"
 ACC = dict(overnight=("18:00", "09:30"), asia=("20:00", "00:00"), london=("02:00", "05:00"), premarket=("08:00", "09:30"))
 P = dict(tf=5, acc="overnight", man_end="10:30", entry_end="11:00", flat="12:00", target="range", trigger="any",
-         dir_filter=False,
+         dir_filter=False, fresh_bars=10, max_stop_atr=None,
          buf_ticks=2, min_rr=1.0, retest_bars=6, start=pd.Timestamp("2019-06-01", tz=TZ))
 
 
@@ -67,6 +70,8 @@ def run(one, orb=None, **over):
     tod = np.asarray(ts.hour * 60 + ts.minute)
     O, H, L, C = (bars[k].to_numpy() for k in ("open", "high", "low", "close"))
     dates = np.array(ts.date)
+    pc = np.r_[np.nan, C[:-1]]
+    atr = pd.Series(np.nanmax(np.c_[H - L, np.abs(H - pc), np.abs(L - pc)], axis=1)).rolling(20).mean().to_numpy()
     rth = np.flatnonzero((tod >= 570) & (tod < 960))
     opens = pd.Series(rth, index=dates[rth]).groupby(level=0).min()
     accmask = in_win(tod, *ACC[p["acc"]])
@@ -129,7 +134,24 @@ def run(one, orb=None, **over):
                 fvgs.append((i, L[i - 2]))           # FVG high
         # distribution trigger
         trig = None
-        for k in range(c, iend):
+        if p["trigger"] == "last-fvg":
+            # AMD2: the last FVG completed in the leg at or before the sweep extreme, inverted by the first close through
+            # it from the confirmation bar on, within fresh_bars of the confirmation close
+            seg = np.arange(s, c + 1)
+            xb = seg[np.argmax(H[seg])] if side == "S" else seg[np.argmin(L[seg])]
+            last = [(i, e) for i, e in fvgs if i <= xb]
+            if last:
+                i_f, edge = last[-1]
+                for k in range(max(c, i_f + 1), min(c + p["fresh_bars"] + 1, iend)):
+                    if tod[k] >= entry_end or dates[k] != d:
+                        break
+                    if sgn * (C[k] - edge) > 0:
+                        trig = (k, "IFVG-last", [edge])
+                        break
+            if trig is None:
+                skipped["no_fresh_ifvg"] = skipped.get("no_fresh_ifvg", 0) + 1
+                continue
+        for k in range(c, iend) if trig is None else ():
             if tod[k] >= entry_end or dates[k] != d:
                 break
             mss = sgn * (C[k] - legPx) > 0
@@ -171,6 +193,9 @@ def run(one, orb=None, **over):
             if side not in allowed or tod[fill_i] < 585:
                 skipped["dir_filter"] = skipped.get("dir_filter", 0) + 1
                 continue
+        if p["max_stop_atr"] is not None and abs(fill_px - stop) > p["max_stop_atr"] * atr[fill_i]:
+            skipped["stop_atr"] = skipped.get("stop_atr", 0) + 1         # AMD2: stop too far for the day's volatility
+            continue
         risk = sgn * (fill_px - stop)
         tp = fill_px + sgn * 2 * risk if p["target"] == "2r" else (AL if side == "S" else AH)
         rr = sgn * (tp - fill_px) / risk if risk > 0 else 0
@@ -219,7 +244,9 @@ if __name__ == "__main__":
     ap.add_argument("--trigger", choices=["any", "mss", "ifvg-retest"], default=P["trigger"])
     ap.add_argument("--man-end", default=P["man_end"])
     ap.add_argument("--entry-end", default=P["entry_end"])
-    ap.add_argument("--dir-filter", action="store_true", help="AMD2: direction from the opening range vs overnight range")
+    ap.add_argument("--dir-filter", action="store_true", help="direction from the opening range vs overnight range")
+    ap.add_argument("--amd2", action="store_true", help="AMD2: last FVG before the sweep extreme, inverted within 10 bars "
+                                                       "of the confirmation close; skip if the stop > 1.5 x ATR(20)")
     ap.add_argument("--orb-trades")
     ap.add_argument("--out")
     a = ap.parse_args()
@@ -227,10 +254,12 @@ if __name__ == "__main__":
     if a.orb_trades:
         o = pd.read_csv(a.orb_trades)
         orb = dict(zip(pd.to_datetime(o.entry_time, utc=True).dt.tz_convert(TZ).dt.date, o.side))
-    tr, sk = run(pd.read_parquet(a.bars1m), orb, tf=a.tf, start=pd.Timestamp(a.start, tz=TZ), acc=a.acc,
-                 target=a.target, flat=a.flat, trigger=a.trigger, man_end=a.man_end, entry_end=a.entry_end,
-                 dir_filter=a.dir_filter)
-    print(f"tf {a.tf}m acc {a.acc} target {a.target} flat {a.flat} trigger {a.trigger} man<{a.man_end} "
+    kw = dict(tf=a.tf, start=pd.Timestamp(a.start, tz=TZ), acc=a.acc, target=a.target, flat=a.flat, trigger=a.trigger,
+              man_end=a.man_end, entry_end=a.entry_end, dir_filter=a.dir_filter)
+    if a.amd2:
+        kw.update(trigger="last-fvg", max_stop_atr=1.5)
+    tr, sk = run(pd.read_parquet(a.bars1m), orb, **kw)
+    print(f"tf {a.tf}m acc {a.acc} target {a.target} flat {a.flat} trigger {kw['trigger']} man<{a.man_end} "
           f"entry<{a.entry_end}: {len(tr)} trades, skipped {sk}")
     if len(tr):
         tr["orb_day"] = tr.orb != "-"

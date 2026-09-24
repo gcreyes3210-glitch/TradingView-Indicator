@@ -13,7 +13,9 @@ Rule (New York time, on the TF bars):
     BOS (bullish): the first close above the latest 3-bar fractal high whose three bars are at/after 09:30 and which is
       confirmed before the BOS bar. Order block: the latest down-close bar (close < open) among the 3 bars before the
       BOS such that the leg (OB bar .. BOS bar) holds a bullish FVG (bar[i-2].high < bar[i].low); OB bar between
-      09:30 and 11:00 (--form-end). Bearish mirror. Candidates are taken in BOS order; the first one in an allowed
+      09:30 and 11:00 (--form-end). Bearish mirror. --ob2: the block is instead the opposite-close candle holding the
+      displacement leg's extreme (bullish: the lowest low between the broken fractal and the BOS bar); the leg must travel
+      >= 2 x ATR(20) at the BOS and the 30 bars before the block must span >= 2 x ATR(20) at the block (else chop, void). Candidates are taken in BOS order; the first one in an allowed
       direction is the day's candidate (one per day). OB height < 4 ticks -> skipped, day used up.
     entry: limit at the OB high (--limit mid: the OB midpoint, on the tick) for the 30 bars after the BOS, working from
       09:45 when the bias needs the opening range; filled at the limit when a bar's low <= limit (bearish mirror),
@@ -32,7 +34,7 @@ from amd_engine import resample, in_win, _m
 
 TZ = "America/New_York"
 P = dict(tf=1, limit="top", stop="ob", target="2r", flat="12:00", bias="orb", form_end="11:00", entry_end="11:30",
-         fvg=True, valid_bars=30, buf_ticks=2, min_ticks=4, stop_leg=0.1, rr_extreme=1.5,
+         fvg=True, block="ob1", min_leg_atr=2.0, chop_bars=30, chop_atr=2.0, valid_bars=30, buf_ticks=2, min_ticks=4, stop_leg=0.1, rr_extreme=1.5,
          start=pd.Timestamp("2019-06-01", tz=TZ))
 
 
@@ -93,7 +95,9 @@ def blocks(one, p):
     onmask = in_win(tod, "18:00", "09:30")
     form_end, flat = _m(p["form_end"]), _m(p["flat"])
     b15 = bias_15m(one) if p["bias"] == "15m" else {}
-    A = SimpleNamespace(ts=ts, tod=tod, O=O, H=H, L=L, C=C, dates=dates, onmask=onmask)
+    pc = np.r_[np.nan, C[:-1]]
+    atr = pd.Series(np.nanmax(np.c_[H - L, np.abs(H - pc), np.abs(L - pc)], axis=1)).rolling(20).mean().to_numpy()
+    A = SimpleNamespace(ts=ts, tod=tod, O=O, H=H, L=L, C=C, dates=dates, onmask=onmask, atr=atr)
 
     prev_open = None
     for d, i0 in opens.items():
@@ -146,6 +150,22 @@ def blocks(one, p):
                 else:
                     fl_brk = True
                 if side not in allowed or cand is not None:
+                    continue
+                if p["block"] == "extreme":
+                    # OB2: the block is the opposite-close candle holding the displacement leg's extreme (bullish: the
+                    # lowest low between the broken fractal and the BOS), the leg travels >= min_leg_atr x ATR(20), and
+                    # the chop_bars bars before the block span >= chop_atr x ATR(20); otherwise not a candidate
+                    seg = np.arange(f[1], k + 1)
+                    j = seg[np.argmin(L[seg])] if side == "L" else seg[np.argmax(H[seg])]
+                    down = (C[j] < O[j]) if side == "L" else (C[j] > O[j])
+                    travel = (H[j:k + 1].max() - L[j]) if side == "L" else (H[j] - L[j:k + 1].min())
+                    pre = np.arange(max(j - p["chop_bars"], 0), j)
+                    span = H[pre].max() - L[pre].min() if len(pre) == p["chop_bars"] else 0.0
+                    fvg = any((H[i - 2] < L[i]) if side == "L" else (L[i - 2] > H[i]) for i in range(j + 2, k + 1))
+                    if (j >= i0 and tod[j] < form_end and down and travel >= p["min_leg_atr"] * atr[k]
+                            and span >= p["chop_atr"] * atr[j] and (fvg or not p["fvg"])):
+                        cand = (side, j, k)
+                        frac = f
                     continue
                 for j in range(k - 1, max(k - 4, i0 - 1), -1):
                     if tod[j] >= form_end or not ((C[j] < O[j]) if side == "L" else (C[j] > O[j])):
@@ -261,6 +281,8 @@ if __name__ == "__main__":
     ap.add_argument("--form-end", default=P["form_end"])
     ap.add_argument("--entry-end", default=P["entry_end"])
     ap.add_argument("--no-fvg", action="store_true")
+    ap.add_argument("--ob2", action="store_true", help="OB2: block = opposite-close candle at the leg extreme, leg >= 2 ATR,"
+                                                      " void if the 30 bars before it span < 2 ATR")
     ap.add_argument("--orb-trades")
     ap.add_argument("--out")
     a = ap.parse_args()
@@ -270,7 +292,7 @@ if __name__ == "__main__":
         orb = dict(zip(pd.to_datetime(o.entry_time, utc=True).dt.tz_convert(TZ).dt.date, o.side))
     tr, cnt = run(pd.read_parquet(a.bars1m), orb, tf=a.tf, start=pd.Timestamp(a.start, tz=TZ), limit=a.limit,
                   stop=a.stop, target=a.target, flat=a.flat, bias=a.bias, form_end=a.form_end, entry_end=a.entry_end,
-                  fvg=not a.no_fvg)
+                  fvg=not a.no_fvg, **(dict(block="extreme") if a.ob2 else {}))
     print(f"tf {a.tf}m limit {a.limit} stop {a.stop} target {a.target} flat {a.flat} bias {a.bias} form<{a.form_end} "
           f"entry<{a.entry_end} fvg {not a.no_fvg}: {len(tr)} trades  blocks {cnt}")
     if len(tr):

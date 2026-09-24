@@ -22,6 +22,9 @@ Rule (bullish; bearish mirror), New York time, on the TF bars:
       bearish, both -> either, inside -> none); setup = the first close from 09:45 to 11:00 above the latest confirmed
       fractal high since 09:30 (first close above it) in an allowed direction, leg low = lowest low from the fractal bar
       to the MSS bar, same FVG, leg, entry, stop (leg low - 2 ticks) and target.
+    --impulse (OTE3): as the defaults, but only in the direction of the first impulse, the sign of the 09:35 -> 09:50
+      net move (09:35 open to the close of the last bar before 09:50); fills before 09:50 and setups against it are
+      skipped, and the skipped setup uses the day up.
 Costs: 1 tick slippage on every fill, $1 commission per side, $2/point, 1 contract.
 """
 import argparse
@@ -32,7 +35,7 @@ from amd_engine import resample, in_win, _m
 from ob_engine import _tick, fractal_high, fractal_low, bull_fvg, bear_fvg
 
 TZ = "America/New_York"
-P = dict(tf=1, f=0.705, target="leg", liq="overnight", continuation=False, sweep_end="11:00", mss_end="11:15",
+P = dict(tf=1, f=0.705, target="leg", liq="overnight", continuation=False, impulse=False, sweep_end="11:00", mss_end="11:15",
          entry_end="11:30", flat="12:00", valid_bars=30, buf_ticks=2, min_leg_ticks=8, rr_opp=1.5,
          start=pd.Timestamp("2019-06-01", tz=TZ))
 
@@ -172,6 +175,14 @@ def run(one, orb=None, **over):
             cnt["expired"] += 1
             continue
         i, level, ext, leg = fill
+        if p["impulse"]:
+            # OTE3: trade only with the first impulse, the 09:35 -> 09:50 net move (09:35 open to the close of the last bar
+            # before 09:50), known at 09:50: fills before 09:50 and setups against the impulse are skipped
+            imp = [q for q in day if 575 <= tod[q] < 590]
+            move = C[imp[-1]] - O[imp[0]] if imp else 0.0
+            if tod[i] < 590 or move == 0 or (move > 0) != (side == "L"):
+                cnt["impulse"] = cnt.get("impulse", 0) + 1
+                continue
         risk = sgn * (level - stop)
         if p["target"] == "leg":
             tp = ext
@@ -222,6 +233,7 @@ if __name__ == "__main__":
     ap.add_argument("--target", choices=["leg", "opposite", "none", "2r"], default=P["target"])
     ap.add_argument("--liq", choices=["overnight", "prevday"], default=P["liq"])
     ap.add_argument("--continuation", action="store_true")
+    ap.add_argument("--impulse", action="store_true", help="OTE3: only with the sign of the 09:35-09:50 net move")
     ap.add_argument("--orb-trades")
     ap.add_argument("--out")
     a = ap.parse_args()
@@ -230,7 +242,8 @@ if __name__ == "__main__":
         o = pd.read_csv(a.orb_trades)
         orb = dict(zip(pd.to_datetime(o.entry_time, utc=True).dt.tz_convert(TZ).dt.date, o.side))
     tr, cnt = run(pd.read_parquet(a.bars1m), orb, tf=a.tf, start=pd.Timestamp(a.start, tz=TZ), f=a.f,
-                  target=a.target, liq=a.liq, continuation=a.continuation)
+                  target=a.target, liq=a.liq, continuation=a.continuation,
+                  impulse=a.impulse)
     print(f"tf {a.tf}m f {a.f} target {a.target} liq {a.liq} continuation {a.continuation}: {len(tr)} trades  "
           f"funnel {cnt}")
     if len(tr):
