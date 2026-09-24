@@ -34,7 +34,7 @@ from amd_engine import resample, in_win, _m
 
 TZ = "America/New_York"
 P = dict(tf=1, limit="top", stop="ob", target="2r", flat="12:00", bias="orb", form_end="11:00", entry_end="11:30",
-         fvg=True, block="ob1", min_leg_atr=2.0, chop_bars=30, chop_atr=2.0, valid_bars=30, buf_ticks=2, min_ticks=4, stop_leg=0.1, rr_extreme=1.5,
+         fvg=True, chop20=None, block="ob1", min_leg_atr=2.0, chop_bars=30, chop_atr=2.0, valid_bars=30, buf_ticks=2, min_ticks=4, stop_leg=0.1, rr_extreme=1.5,
          start=pd.Timestamp("2019-06-01", tz=TZ))
 
 
@@ -198,6 +198,12 @@ def run(one, orb=None, **over):
             continue
         cnt["candidates"] += 1
         side, j, k = cand
+        if p["chop20"]:
+            # chop rule: no entry if the 20 bars before the setup (BOS) bar span < chop20 x ATR(20) of those bars
+            pre = np.arange(max(k - 20, 0), k)
+            if H[pre].max() - L[pre].min() < p["chop20"] * A.atr[k - 1]:
+                cnt["chop20"] = cnt.get("chop20", 0) + 1
+                continue
         sgn = 1 if side == "L" else -1
         obH, obL = H[j], L[j]
         if obH - obL < p["min_ticks"] * TICK:
@@ -281,6 +287,7 @@ if __name__ == "__main__":
     ap.add_argument("--form-end", default=P["form_end"])
     ap.add_argument("--entry-end", default=P["entry_end"])
     ap.add_argument("--no-fvg", action="store_true")
+    ap.add_argument("--chop20", type=float, help="chop rule: skip if the 20 bars before the BOS span < x ATR(20)")
     ap.add_argument("--ob2", action="store_true", help="OB2: block = opposite-close candle at the leg extreme, leg >= 2 ATR,"
                                                       " void if the 30 bars before it span < 2 ATR")
     ap.add_argument("--orb-trades")
@@ -292,7 +299,7 @@ if __name__ == "__main__":
         orb = dict(zip(pd.to_datetime(o.entry_time, utc=True).dt.tz_convert(TZ).dt.date, o.side))
     tr, cnt = run(pd.read_parquet(a.bars1m), orb, tf=a.tf, start=pd.Timestamp(a.start, tz=TZ), limit=a.limit,
                   stop=a.stop, target=a.target, flat=a.flat, bias=a.bias, form_end=a.form_end, entry_end=a.entry_end,
-                  fvg=not a.no_fvg, **(dict(block="extreme") if a.ob2 else {}))
+                  fvg=not a.no_fvg, chop20=a.chop20, **(dict(block="extreme") if a.ob2 else {}))
     print(f"tf {a.tf}m limit {a.limit} stop {a.stop} target {a.target} flat {a.flat} bias {a.bias} form<{a.form_end} "
           f"entry<{a.entry_end} fvg {not a.no_fvg}: {len(tr)} trades  blocks {cnt}")
     if len(tr):

@@ -3,6 +3,7 @@
 
     python3 tools/build_flow.py download --days days.csv [--symbols NQ.v.0 ES.v.0] [--start 09:30 --end 11:35]
     python3 tools/build_flow.py build [--symbols NQ.v.0 ES.v.0]
+    python3 tools/build_flow.py bars30 [--symbols NQ.v.0]      (30-second OHLCV bars, used by AMD2-30s)
 
 download: GLBX.MDP3 schema 'trades', continuous front contract by volume, one request per New York day (days.csv has a
     'day' column), window --start..--end New York time. Files go to data/raw/<SYM>/<YYYY-MM-DD>.dbn.zst (git-ignored);
@@ -120,5 +121,26 @@ def build():
               f"sell {tot['A'] / v:.2%}, unclassified {tot['N'] / v:.3%}")
 
 
+def bars30():
+    """30-second OHLCV bars (bar open time, New York) from the raw trades: data/flow/<SYM>_bars_30s.parquet."""
+    import databento as db
+    FLOW.mkdir(parents=True, exist_ok=True)
+    for sym in symbols():
+        root = sym.split(".")[0]
+        out = []
+        for f in sorted((RAW / root).glob("*.dbn.zst")):
+            df = db.DBNStore.from_file(str(f)).to_df(price_type="float", pretty_ts=True, map_symbols=False)
+            if df.empty:
+                continue
+            df.index = pd.DatetimeIndex(df.ts_event).tz_convert(TZ)
+            b = df.price.resample("30s", label="left", closed="left").ohlc()
+            b["volume"] = df["size"].resample("30s", label="left", closed="left").sum()
+            out.append(b.dropna(subset=["open"]))
+        b = pd.concat(out)
+        b.index.name = "ts"
+        b.to_parquet(FLOW / f"{root}_bars_30s.parquet")
+        print(f"{root}: {len(b):,} 30-second bars, {len(set(b.index.date))} days")
+
+
 if __name__ == "__main__":
-    {"download": download, "build": build}[sys.argv[1]]()
+    {"download": download, "build": build, "bars30": bars30}[sys.argv[1]]()

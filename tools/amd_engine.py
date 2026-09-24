@@ -233,6 +233,185 @@ def run(one, orb=None, **over):
     return pd.DataFrame(trades), skipped
 
 
+def amd2(one, orb=None, bars30=None, target="internal", chop=2.5, max_stop_atr=1.5, fresh=5, start=None, days=None):
+    """AMD2 (amended, the trader's definitions), 1m, optionally with the gap detection on 30-second bars.
+
+    Sweep of the overnight extreme, sweep-leg start and close back inside exactly as AMD1 (1m). The trigger gap is the
+    last FVG formed in the leg into the liquidity at or before the sweep extreme (bearish setup: a bullish gap); it is
+    tracked bar by bar while the extreme extends. The first close through the trigger gap is the only chance: it is the
+    entry if it comes within `fresh` bars of the bar that completed the gap and the close back inside has happened; if
+    it comes later or before the close back inside, or the trigger gap goes `fresh` bars without being inverted, the day
+    has no trade. Stop = sweep extreme + 2 ticks. Target (internal): the most recent 3-bar fractal high (bearish setup;
+    fractal low for bullish) formed since 09:30 and confirmed before the sweep bar; 'overnight' (AMD2b): the far side
+    of the overnight range. Skip if reward:risk < 1.0, if |entry - stop| > max_stop_atr x ATR(20), or (chop) if the
+    20 1m bars before the sweep bar span < chop x ATR(20) of those bars (ATRs use completed 1m bars only). Flat at the close of the first bar at/after 12:00.
+    bars30: 30-second bars (NQ, from the trades) for the gap tracking, the extreme, the inversion and the exits up to
+    their last bar (11:35); the rest stays on the MNQ 1m bars. `days` limits the run to those dates.
+    """
+    buf, slip = 2 * TICK, SLIP_TICKS * TICK
+    ts = one.index
+    tod = np.asarray(ts.hour * 60 + ts.minute)
+    O, H, L, C = (one[k].to_numpy() for k in ("open", "high", "low", "close"))
+    dates = np.array(ts.date)
+    pc = np.r_[np.nan, C[:-1]]
+    atr = pd.Series(np.nanmax(np.c_[H - L, np.abs(H - pc), np.abs(L - pc)], axis=1)).rolling(20).mean().to_numpy()
+    rth = np.flatnonzero((tod >= 570) & (tod < 960))
+    opens = pd.Series(rth, index=dates[rth]).groupby(level=0).min()
+    onmask = in_win(tod, "18:00", "09:30")
+    if bars30 is not None:
+        t30 = bars30.index
+        O3, H3, L3, C3 = (bars30[k].to_numpy() for k in ("open", "high", "low", "close"))
+        d30 = np.array(t30.date)
+    orb = orb or {}
+    cnt = dict(days=0, sweeps=0, confirmed=0, no_gap=0, stale=0, early_inversion=0, no_target=0, rr=0, stop_atr=0,
+               chop=0, traded=0)
+    trades = []
+    prev_open = None
+    for d, i0 in opens.items():
+        span0, prev_open = (prev_open + 1 if prev_open is not None else 0), i0
+        if span0 == 0 or (start is not None and ts[i0] < start) or (days is not None and d not in days):
+            continue
+        acc_idx = np.arange(span0, i0)[onmask[span0:i0]]
+        if len(acc_idx) == 0:
+            continue
+        cnt["days"] += 1
+        AH, AL = H[acc_idx].max(), L[acc_idx].min()
+        iend = i0
+        while iend + 1 < len(ts) and dates[iend + 1] == d and tod[iend + 1] < 720:
+            iend += 1
+        iend = exit_bar(ts, iend)
+        # ---- sweep, leg start, close back inside: as AMD1
+        s = side = None
+        k = i0
+        while k < iend and dates[k] == d and tod[k] < 630:
+            up, dn = H[k] > AH, L[k] < AL
+            if up and dn:
+                break
+            if up or dn:
+                s, side = k, ("S" if up else "L")
+                break
+            k += 1
+        if s is None:
+            continue
+        cnt["sweeps"] += 1
+        sgn = 1 if side == "L" else -1
+        leg = None
+        for j in range(s - 2, i0, -1):
+            if side == "S" and L[j] < L[j - 1] and L[j] < L[j + 1]:
+                leg = j; break
+            if side == "L" and H[j] > H[j - 1] and H[j] > H[j + 1]:
+                leg = j; break
+        if leg is None:
+            seg = np.arange(i0, s + 1)
+            leg = seg[np.argmin(L[seg])] if side == "S" else seg[np.argmax(H[seg])]
+        c = next((k for k in range(s, iend) if tod[k] < 630 and dates[k] == d and
+                  (C[k] < AH if side == "S" else C[k] > AL)), None)
+        if c is None or tod[c] >= 630:
+            continue
+        cnt["confirmed"] += 1
+        conf_close = ts[c] + pd.Timedelta(minutes=1)
+        # ---- trigger: on the gap-detection bars (1m, or 30s)
+        if bars30 is None:
+            G = dict(t=ts, H=H, L=L, C=C, O=O, lo=leg, hi=iend, step=pd.Timedelta(minutes=1))
+        else:
+            m30 = np.flatnonzero((d30 == d) & (t30 >= ts[leg]) & (t30 < ts[iend]))
+            if len(m30) == 0:
+                continue
+            G = dict(t=t30, H=H3, L=L3, C=C3, O=O3, lo=m30[0], hi=m30[-1] + 1, step=pd.Timedelta(seconds=30))
+        gt, gH, gL, gC = G["t"], G["H"], G["L"], G["C"]
+        g_s = next(q for q in range(G["lo"], G["hi"]) if gt[q] >= ts[s])        # first gap-bar of the sweep minute
+        gaps, trig, ext_i, fate = [], None, None, "no_gap"
+        for q in range(G["lo"], G["hi"]):
+            tq = gt[q]
+            if tq.hour * 60 + tq.minute >= 660:                                # entries before 11:00
+                break
+            if q >= g_s:
+                if ext_i is None or (gH[q] > gH[ext_i] if side == "S" else gL[q] < gL[ext_i]):
+                    ext_i = q
+            if q - 2 >= G["lo"] and ((gH[q - 2] < gL[q]) if side == "S" else (gL[q - 2] > gH[q])):
+                gaps.append((q, gH[q - 2] if side == "S" else gL[q - 2]))    # (completed at, edge to close through)
+            if ext_i is None:
+                continue
+            cand = [g for g in gaps if g[0] <= ext_i]
+            if not cand:
+                continue
+            gi, edge = cand[-1]
+            fate = "stale"
+            if sgn * (gC[q] - edge) > 0:                                        # first close through the trigger gap
+                if q - gi <= fresh and tq + G["step"] >= conf_close:
+                    trig = (q, gi, edge)
+                else:
+                    fate = "stale" if q - gi > fresh else "early_inversion"
+                break
+            if q - gi > fresh:
+                break
+        if trig is None:
+            cnt[fate] += 1
+            continue
+        q, gi, edge = trig
+        ext = gH[g_s:q + 1].max() if side == "S" else gL[g_s:q + 1].min()
+        stop = ext + buf if side == "S" else ext - buf
+        fill_px = gC[q]
+        entry_t = gt[q]
+        m_entry = np.searchsorted(ts, entry_t, side="right") - 1                 # the 1m bar containing the entry
+        # target
+        if target == "internal":
+            tp = None
+            for m in range(s - 2, i0, -1):                                      # fractal confirmed before the sweep bar
+                if side == "S" and H[m] > H[m - 1] and H[m] > H[m + 1]:
+                    tp = H[m]; break
+                if side == "L" and L[m] < L[m - 1] and L[m] < L[m + 1]:
+                    tp = L[m]; break
+            if tp is None:
+                cnt["no_target"] += 1
+                continue
+        else:
+            tp = AL if side == "S" else AH
+        risk = sgn * (fill_px - stop)
+        rr = sgn * (tp - fill_px) / risk if risk > 0 else 0
+        if risk <= 0 or rr < 1.0:
+            cnt["rr"] += 1
+            continue
+        a_i = m_entry if entry_t + G["step"] >= ts[m_entry] + pd.Timedelta(minutes=1) else m_entry - 1   # completed bars only
+        if abs(fill_px - stop) > max_stop_atr * atr[a_i]:
+            cnt["stop_atr"] += 1
+            continue
+        pre = np.arange(max(s - 20, 0), s)
+        if chop and (H[pre].max() - L[pre].min()) < chop * atr[s - 1]:       # ATR of those same 20 bars
+            cnt["chop"] += 1
+            continue
+        cnt["traded"] += 1
+        tp = round(tp / TICK) * TICK
+        entry = fill_px + sgn * slip
+        out = None
+        # exits: on the gap-detection bars after the entry bar, then on 1m bars from where they end
+        qq = q + 1
+        while out is None and qq < G["hi"] and gt[qq] < ts[iend]:
+            if (gH[qq] >= stop) if side == "S" else (gL[qq] <= stop):
+                out = (gt[qq], stop, "SL")
+            elif (gL[qq] <= tp) if side == "S" else (gH[qq] >= tp):
+                out = (gt[qq], tp, "TP")
+            qq += 1
+        i = np.searchsorted(ts, (gt[qq - 1] + G["step"]) if qq > q + 1 else (entry_t + G["step"]))
+        i = max(i, m_entry + 1)
+        while out is None:
+            if (H[i] >= stop) if side == "S" else (L[i] <= stop):
+                out = (ts[i], stop, "SL")
+            elif (L[i] <= tp) if side == "S" else (H[i] >= tp):
+                out = (ts[i], tp, "TP")
+            elif i >= iend:
+                out = (ts[i], C[i], "time")
+            i += 1
+        xt, xpx, reason = out
+        fill = xpx - sgn * slip
+        pnl = sgn * (fill - entry) * PT_VALUE - 2 * COMM_SIDE
+        trades.append(dict(side=side, entry_time=entry_t, entry=entry, exit_time=xt, exit=fill, reason=reason, pnl=pnl,
+                           risk=risk, R=pnl / (risk * PT_VALUE), rr=rr, gap_t=gt[gi], gap_edge=edge, gap_age=q - gi,
+                           acc_hi=AH, acc_lo=AL, sweep_t=ts[s], leg_t=ts[leg], leg_px=L[leg] if side == "S" else H[leg],
+                           conf_t=ts[c], ext=ext, stop=stop, tp=tp, orb=orb.get(d, "-")))
+    return pd.DataFrame(trades), cnt
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--bars1m", default="data/bars/MNQ_1m.parquet")

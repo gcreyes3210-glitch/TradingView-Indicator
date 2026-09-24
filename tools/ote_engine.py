@@ -35,7 +35,7 @@ from amd_engine import resample, in_win, _m
 from ob_engine import _tick, fractal_high, fractal_low, bull_fvg, bear_fvg
 
 TZ = "America/New_York"
-P = dict(tf=1, f=0.705, target="leg", liq="overnight", continuation=False, impulse=False, sweep_end="11:00", mss_end="11:15",
+P = dict(tf=1, f=0.705, target="leg", liq="overnight", continuation=False, impulse=False, chop20=None, sweep_end="11:00", mss_end="11:15",
          entry_end="11:30", flat="12:00", valid_bars=30, buf_ticks=2, min_leg_ticks=8, rr_opp=1.5,
          start=pd.Timestamp("2019-06-01", tz=TZ))
 
@@ -47,6 +47,8 @@ def run(one, orb=None, **over):
     ts = bars.index
     tod = np.asarray(ts.hour * 60 + ts.minute)
     O, H, L, C = (bars[k].to_numpy() for k in ("open", "high", "low", "close"))
+    pc = np.r_[np.nan, C[:-1]]
+    atr = pd.Series(np.nanmax(np.c_[H - L, np.abs(H - pc), np.abs(L - pc)], axis=1)).rolling(20).mean().to_numpy()
     dates = np.array(ts.date)
     rthm = (tod >= 570) & (tod < 960)
     rth = np.flatnonzero(rthm)
@@ -151,6 +153,12 @@ def run(one, orb=None, **over):
         side, lo_i, mss = setup
         sgn = 1 if side == "L" else -1
         cnt["mss"] += 1
+        if p["chop20"]:
+            # chop rule: no entry if the 20 bars before the setup (MSS) bar span < chop20 x ATR(20) of those bars
+            pre = np.arange(max(mss - 20, 0), mss)
+            if H[pre].max() - L[pre].min() < p["chop20"] * atr[mss - 1]:
+                cnt["chop20"] = cnt.get("chop20", 0) + 1
+                continue
         if not any((bull_fvg(H, L, i) if side == "L" else bear_fvg(H, L, i)) for i in range(lo_i + 2, mss + 1)):
             cnt["no_fvg"] += 1
             continue
@@ -233,6 +241,7 @@ if __name__ == "__main__":
     ap.add_argument("--target", choices=["leg", "opposite", "none", "2r"], default=P["target"])
     ap.add_argument("--liq", choices=["overnight", "prevday"], default=P["liq"])
     ap.add_argument("--continuation", action="store_true")
+    ap.add_argument("--chop20", type=float, help="chop rule: skip if the 20 bars before the MSS span < x ATR(20)")
     ap.add_argument("--impulse", action="store_true", help="OTE3: only with the sign of the 09:35-09:50 net move")
     ap.add_argument("--orb-trades")
     ap.add_argument("--out")
@@ -243,7 +252,7 @@ if __name__ == "__main__":
         orb = dict(zip(pd.to_datetime(o.entry_time, utc=True).dt.tz_convert(TZ).dt.date, o.side))
     tr, cnt = run(pd.read_parquet(a.bars1m), orb, tf=a.tf, start=pd.Timestamp(a.start, tz=TZ), f=a.f,
                   target=a.target, liq=a.liq, continuation=a.continuation,
-                  impulse=a.impulse)
+                  impulse=a.impulse, chop20=a.chop20)
     print(f"tf {a.tf}m f {a.f} target {a.target} liq {a.liq} continuation {a.continuation}: {len(tr)} trades  "
           f"funnel {cnt}")
     if len(tr):
