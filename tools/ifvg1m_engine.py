@@ -5,6 +5,7 @@
     python3 tools/ifvg1m_engine.py run [--exit T3|T2|TL] [--zones all|high] [--session ny|asia] [--fresh 5]
                                        [--min-gap 1.0] [--cap 2.0] [--out trades.csv]
     python3 tools/ifvg1m_engine.py charts [--n 10] [--seed 11]      1m charts of random primary-run trades, cut at entry
+    python3 tools/ifvg1m_engine.py esdist trades.csv [--out with_es.csv]   ES distance from its level at the sweep bar
 
 Data: MNQ and ES 1m bars (data/bars/{MNQ,ES}_1m.parquet, Databento, New York time); ES aligned to the MNQ minutes
 (a missing ES minute repeats the last). 5m bars are the 1m bars in 5-minute buckets. Zone windows are cached in
@@ -534,11 +535,36 @@ def charts(n=10, seed=11, out="data/studies/ifvg1m_charts"):
     print(f"{len(key)} charts in {out}")
 
 
+def es_distance(t):
+    """How far ES was from its corresponding level on the sweep bar, on the side it failed to take: ES points
+    (level - ES high for a high sweep, ES low - level for a low sweep; positive = ES short of its level) and the
+    same in ATR(14) of ES's last closed 5m bar."""
+    load()
+    b = pd.read_parquet("data/bars/ES_1m.parquet").reindex(S["ts"]).ffill()
+    C5 = pd.Series(b.close.to_numpy()).groupby(S["k5"]).last().to_numpy()
+    atrB5 = rma_atr(S["HB5"], S["LB5"], C5)
+    j = t.sweep_j.to_numpy().astype(int)
+    short = (t.side == "S").to_numpy()
+    d = np.where(short, t.lvlB - S["HB"][j], S["LB"][j] - t.lvlB)
+    k = S["k5"][j]
+    a = np.where(S["ts"][j].minute % 5 == 4, atrB5[k], atrB5[k - 1])
+    return t.assign(es_dist_pts=np.round(d, 2), es_dist_atr=np.round(d / a, 3))
+
+
 if __name__ == "__main__":
     opt = lambda k, d: type(d)(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     cmd = sys.argv[1] if len(sys.argv) > 1 else "all"
     if cmd == "all":
         run_all(opt("--outdir", "data/studies/ifvg1m"))
+    elif cmd == "esdist":
+        t = es_distance(pd.read_csv(sys.argv[2], parse_dates=["entry_time"]))
+        t["tercile"] = pd.qcut(t.es_dist_atr, 3, labels=["near", "mid", "far"])
+        for k, g in t.groupby("tercile", observed=True):
+            print(f"{k:<5} n {len(g):>3}  ES distance {g.es_dist_pts.min():.2f}-{g.es_dist_pts.max():.2f} pts / "
+                  f"{g.es_dist_atr.min():.2f}-{g.es_dist_atr.max():.2f} ATR  net {g.pnl.sum():+8,.0f}  R/trade {g.R.mean():+.3f}  "
+                  f"by year R " + " ".join(f"{v:+.2f}" for v in g.groupby(pd.to_datetime(g.entry_time, utc=True).dt.year).R.mean()))
+        if "--out" in sys.argv:
+            t.to_csv(opt("--out", ""), index=False)
     elif cmd == "charts":
         charts(opt("--n", 10), opt("--seed", 11))
     else:
