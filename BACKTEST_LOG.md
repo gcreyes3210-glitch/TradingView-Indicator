@@ -627,7 +627,7 @@ Shuffle check on the best split (split_check, side / zone / SMT type): level vs 
 **Verdict: IFVG-1m fails.** No exit or zone set gives positive R, and the neighbours agree in sign (negative). Z-high, the trader's named secondary, is no better than Z-all.
 **What the rule could not encode:** "strong move" as a feeling, the V-shape, the "stronger trade" comparison between overlapping signals, and whether a gap is visible beyond the 1-point minimum. The trader names the day's bias as the missing input; the forward bias log is the test of it.
 
-## BIAS study — pre-registered 2026-09-24, awaiting answers
+## BIAS study — pre-registered 2026-09-24; block 1 scored, block 2 pending
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
 **Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:
 - a 09:30 bar;
@@ -649,6 +649,39 @@ Each panel shows the prior-day high / low (18:00–17:00), the prior settlement 
 5. **Hit rate per reason tag** (a call counts under each tag it lists).
 6. **Features.** After scoring, the reasons are turned into computable features (e.g. above / below the prior settlement, overnight-range position, the side of the nearest unfilled HTF FVG, the 20-bar daily slope). The report shows how often a simple rule on those features matches the trader's calls on the 40 days.
 **Any rule built from those features is run only if the trader says so:** on 2019–2022 first, confirmed on 2023–2026 untouched, with the usual criterion.
+
+**Block 1 scored** (`python3 tools/bias_study.py resolve` fills `draw_level` from the trader's `draw_ref`; `score --block 1 --implied 348227:short,808881:short,976546:long`; per-day output in `data/studies/bias/scored_block1.csv`). The answers add a `draw_ref` (a level name) and `tags` column.
+**Draw references resolved** (printed by `resolve`):
+- Named levels: ON high / low, PDH / PDL.
+- 102411: the 1H Fri 06:00 high, 29,903.50.
+- 220251: the 1H Wed 21:00 high, 29,541.25.
+- 227794: the 15m 08:30 news-candle high that day, 13,479.50.
+- 160425, "18:00 low": read as today's 18:00 open bar on the 15m. Its low is also the ON low, 15,344.50. The only 18:00 label on that panel sits on the previous session's 18:00 bar (low 15,362.75), which was printed as the alternative.
+- Rule for a time without a weekday: the latest bar at that time.
+**Results.** Up days were 40 % of the 20 dates. Calls: 9 long, 5 short, 6 none.
+- **Direction:** 10 of 14 calls right (71 %), against 6.6 expected from the base rate, one-sided p = 0.056. Shorts 5 of 5, longs 5 of 9.
+- **Confidence 3:** 3 of 3 right (1.6 expected), p = 0.14.
+- **Draw level** reached between 09:30 and 15:59 on 12 of 17 days. There is no baseline for how often a level at that distance is reached anyway.
+- **"None" rows with a stated direction, scored separately** (348227 and 808881 bearish, 976546 turning bullish): 0 of 3. With them included, 10 of 17, p = 0.26.
+- **Tags:** most tags occur once or twice. Of the repeated ones, `wait-inversion` is 8 of 10, `wait-pdh-sweep` 3 of 3, `lrl-below` 2 of 2, `reject-1h-fvg` 2 of 2 and `daily-bull` 2 of 3.
+- Scorer bug fixed before this was logged: numpy booleans in an object column were summed as a logical OR, so the first print read 1 of 14.
+**Features from the tags** (`python3 tools/bias_study.py features --block 1`, table in `features_block1.csv`; no backtest):
+- 20-bar slope of D / 4H / 1H, in ATR per bar.
+- Whether the 09:29 close is inside an unfilled D / 4H / 1H / 15m FVG, and the distance to the nearest one above and below, in daily ATR.
+- 15m equal highs / lows: two unswept fractals within 0.1 × 15m ATR.
+- LRL: the longest run of 15m lower highs / higher lows in the last 16 bars.
+- Overnight-range position.
+
+Three rules were fixed in the tool's docstring before comparing them with the calls:
+
+| Rule | Matches the trader's 14 calls | Right on the day (its own calls) |
+|---|---|---|
+| R1 trend: ≥ 2 of D / 4H / 1H slopes beyond ±0.05 ATR per bar | 8 of 14 | 6 of 13 |
+| R2 LRL first (≥ 4 lower highs → long, ≥ 4 higher lows → short), else R1 | 7 of 14 | 6 of 18 |
+| R3 overnight-range half | 7 of 14 | 11 of 20 |
+| **R4 unfilled daily FVG above price → short, else long (found after reading the calls)** | **13 of 14** | 14 of 20 |
+
+None of the fixed rules reproduces the calls. The trend reading (the `daily-bull` / `all-bull` / `all-bear` tags) matches no better than chance, and the LRL feature as defined fires both ways on 6 of 20 days, so it does not discriminate. Reading the feature table showed that the calls follow the daily FVGs: all 5 shorts had an unfilled daily FVG above price, and 8 of 9 longs had none. R4 is in-sample by construction (13 of 14 is the fit, not a result). **Block 2 is its first real test:** how often R4 matches the block-2 calls, and how often R4 is right on those days. Neither a rule nor a backtest runs unless the trader asks.
 
 ## FLOW2 — order flow around IFVG-1m and AMD1-1m trades (observation only)
 `python3 tools/flow2.py`; per-trade measures in `data/studies/flow2_trades.csv`.

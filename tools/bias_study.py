@@ -3,7 +3,9 @@
 
     python3 tools/bias_study.py make  [--seed 2409] [--out data/studies/bias]
     python3 tools/bias_study.py release2                   append the block 2 rows to answers.csv
+    python3 tools/bias_study.py resolve                    fill draw_level from draw_ref (printed)
     python3 tools/bias_study.py score [--out data/studies/bias] [--block 1|2|all]
+    python3 tools/bias_study.py features [--block 1]         computable features from the tags vs the calls
 
 make: 40 trading days drawn at random, 5 per calendar year 2019-2026 (numpy default_rng(seed)), from days that have
     a 09:30 bar, at least 60 earlier trading days in the data, and the same front contract at the previous cash close,
@@ -232,8 +234,8 @@ def score():
             reach = bool(day.high.max() >= lv) if lv >= px else bool(day.low.min() <= lv)
         b = r.bias.strip().lower()
         rows.append(dict(id=r.id, bias=b, conf=r.confidence.strip(), up=move > 0, move=move,
-                         hit=None if b not in ("long", "short") or move == 0 else (move > 0) == (b == "long"),
-                         reach=reach, reasons=[t.strip().lower() for t in r.reasons.split(";") if t.strip()]))
+                         hit=None if b not in ("long", "short") or move == 0 else bool((move > 0) == (b == "long")),
+                         reach=reach, reasons=[t.strip().lower() for t in (getattr(r, "tags", "") or r.reasons).split(";") if t.strip()]))
     s = pd.DataFrame(rows)
     up = s.up.mean()
     print(f"days scored {len(s)}; up days {100 * up:.0f} %; calls long {int((s.bias == 'long').sum())}, short "
@@ -244,7 +246,7 @@ def score():
         if c.empty:
             print(f"  {label}: no calls"); return
         probs = np.where(c.bias == "long", up, 1 - up)
-        k = int(c.hit.sum())
+        k = int(c.hit.astype(bool).sum())
         print(f"  {label}: {k} of {len(c)} right ({100 * k / len(c):.0f} %), expected under the base rate "
               f"{probs.sum():.1f}, one-sided p = {pbinom_ge(probs, k):.3f}")
     test(s, "all calls")
@@ -254,8 +256,158 @@ def score():
         print(f"  draw level reached 09:30-15:59: {int(r_.reach.sum())} of {len(r_)} ({100 * r_.reach.mean():.0f} %)")
     tags = s.explode("reasons").dropna(subset=["reasons"])
     for t, g in tags[tags.hit.notna()].groupby("reasons"):
-        print(f"    tag {t:<24} {int(g.hit.sum())} of {len(g)} right")
+        print(f"    tag {t:<24} {int(g.hit.astype(bool).sum())} of {len(g)} right")
+    if "--implied" in sys.argv:                          # 'none' rows whose reasons state a direction
+        imp = dict(z.split(":") for z in opt("--implied", "").split(","))
+        v = s[s.id.isin(imp)].copy()
+        v["bias"] = v.id.map(imp)
+        v["hit"] = [None if m == 0 else bool((m > 0) == (b_ == "long")) for m, b_ in zip(v.move, v.bias)]
+        print("  directional 'none' rows, scored separately: " + ", ".join(f"{r.id} {r.bias} -> {'right' if r.hit else 'wrong'}" for r in v.itertuples()))
+        test(v, "those rows alone")
+        test(pd.concat([s[s.hit.notna()], v]), "calls + those rows")
     s.drop(columns=["reasons"]).to_csv(OUT / f"scored_block{blk}.csv", index=False)
+
+
+def context(one, d):
+    """Everything drawn on a chart (as of 09:29): levels and the panel bars."""
+    cut = pd.Timestamp(f"{d} 09:30", tz=TZ)
+    x = one[one.index < cut]
+    x = x[x.index >= cut - pd.Timedelta(days=120)]
+    days = sorted(set(x.td))
+    pday = x[x.td == days[-2]]
+    on = x[x.td == days[-1]]
+    lv = dict(PDH=pday.high.max(), PDL=pday.low.min(), settle=pday[pday.tod < 960].close.iloc[-1],
+              ONH=on.high.max(), ONL=on.low.min(), last=x.close.iloc[-1])
+    xd = x[x.td.isin(days[-61:])]
+    dD = bars(xd, key=xd.td)
+    x4 = x[x.td.isin(days[-10:])]
+    naive = x4.index.tz_localize(None)
+    base = x4.td - pd.Timedelta(hours=6)
+    k4 = x4.td.astype("int64") // 10 ** 9 * 10 + ((naive - base.to_numpy()) // pd.Timedelta(hours=4)).astype(int)
+    return lv, dict(D=dD, **{"4H": bars(x4, key=k4.to_numpy())}, **{"1H": bars(x[x.td.isin(days[-5:])], "1h")},
+                    **{"15m": bars(x[x.td.isin(days[-2:])], "15min")})
+
+
+def resolve_ref(lv, pan, ref):
+    """draw_ref -> (price or None, how it was read, alternatives)."""
+    import re
+    r = ref.strip()
+    low = r.lower()
+    if low.startswith("none") or not r:
+        return None, "no level", ""
+    for k, name in (("on high", "ONH"), ("on low", "ONL"), ("pdh", "PDH"), ("pdl", "PDL")):
+        if low.startswith(k):
+            return lv[name], name, ""
+    m = re.search(r"(\d{1,2}:\d{2})", r)
+    side = "high" if "high" in low else "low"
+    days = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3, "friday": 4, "saturday": 5, "sunday": 6}
+    wd = next((v for k, v in days.items() if k in low), None)
+    hh, mm = map(int, m.group(1).split(":"))
+    pname = "1H" if ("1h" in low or wd is not None) else "15m"
+    b = pan[pname]
+    hit = b[(b.index.hour == hh) & (b.index.minute == mm) & ((b.index.dayofweek == wd) if wd is not None else True)]
+    val = lambda t: b.loc[t, side]
+    alts = ", ".join(f"{t:%a %H:%M} {val(t):,.2f}" for t in hit.index[:-1])
+    t = hit.index[-1]
+    return val(t), f"{pname} bar {t:%a %H:%M} {side}", (f"other {pname} bars at that time: {alts}" if alts else "")
+
+
+def resolve():
+    one = one_min()
+    key = pd.read_csv(OUT / "key.csv", dtype={"id": str})
+    a = pd.read_csv(OUT / "answers.csv", dtype=str).fillna("")
+    for k, r in a.iterrows():
+        if not r.get("draw_ref", "").strip():
+            continue
+        d = key.loc[key.id == r.id, "date"].iloc[0]
+        lv, pan = context(one, d)
+        px, how, alt = resolve_ref(lv, pan, r.draw_ref)
+        a.at[k, "draw_level"] = "" if px is None else f"{px:.2f}"
+        print(f"{r.id}  '{r.draw_ref}' -> " + ("none" if px is None else f"{px:,.2f} ({how}; 09:29 close {lv['last']:,.2f})") + (f"  [{alt}]" if alt else ""))
+    a.to_csv(OUT / "answers.csv", index=False)
+
+
+def _atr(b, n=14):
+    pc = b.close.shift(1)
+    tr = pd.concat([b.high - b.low, (b.high - pc).abs(), (b.low - pc).abs()], axis=1).max(axis=1)
+    return tr.ewm(alpha=1 / n, adjust=False).mean().iloc[-1]
+
+
+def _slope(b, n=20):
+    """Least-squares slope of the last n closes, in that timeframe's ATR per bar."""
+    y = b.close.to_numpy()[-n:]
+    return np.polyfit(np.arange(len(y)), y, 1)[0] / _atr(b)
+
+
+def features():
+    """Computable versions of the trader's tags, per chart, and three simple rules fixed in this docstring:
+        R1 trend      long if at least 2 of the D / 4H / 1H 20-bar slopes are > +0.05 ATR per bar, short if at least
+                      2 are < -0.05, else none
+        R2 LRL first  long on a 15m run of >= 4 lower highs into price (liquidity resting above), short on a run of
+                      >= 4 higher lows (below); if both or neither, R1
+        R3 ON side    long if the 09:29 close is in the upper half of the overnight range, short if in the lower half
+        R4 daily FVG above (FOUND AFTER READING THE BLOCK-1 CALLS, so in-sample by construction): short if any
+                      unfilled daily FVG lies above the 09:29 close, else long; block 2 is its first real test
+    Features: slopes; for each timeframe whether the 09:29 close is inside an unfilled FVG (+1 bull, -1 bear, 0) and
+    the distance to the nearest unfilled FVG above / below in daily ATR; 15m equal highs / lows (two unswept 15m
+    3-bar fractal highs / lows within 0.1 x 15m ATR, above / below price); the longest 15m run of lower highs /
+    higher lows in the last 16 bars; the overnight-range position."""
+    one = one_min()
+    key = pd.read_csv(OUT / "key.csv", dtype={"id": str})
+    a = pd.read_csv(OUT / "answers.csv", dtype=str).fillna("")
+    blk = int(opt("--block", 1))
+    x = key[key.block == blk].merge(a, on="id")
+    cc = cash_close(one)
+    rows = []
+    for r in x.itertuples():
+        lv, pan = context(one, r.date)
+        px = lv["last"]
+        f = dict(id=r.id, call=r.bias.strip().lower(), conf=r.confidence)
+        for tf in ("D", "4H", "1H"):
+            b = pan[tf] if tf != "D" else pan[tf].iloc[:-1]            # daily: completed bars only
+            f[f"slope_{tf}"] = round(_slope(b), 3)
+        aD = _atr(pan["D"].iloc[:-1])
+        for tf in ("D", "4H", "1H", "15m"):
+            gs = fvgs(pan[tf], None)
+            inside = [(1 if bull else -1) for _, bot, top, bull in gs if bot <= px <= top]
+            f[f"in_{tf}"] = inside[-1] if inside else 0
+            above = [bot - px for _, bot, top, _b in gs if bot > px]
+            below = [px - top for _, bot, top, _b in gs if top < px]
+            f[f"up_{tf}"] = round(min(above) / aD, 2) if above else np.nan
+            f[f"dn_{tf}"] = round(min(below) / aD, 2) if below else np.nan
+        b15 = pan["15m"]
+        a15 = _atr(b15)
+        H, L = b15.high.to_numpy(), b15.low.to_numpy()
+        fh = [k for k in range(1, len(b15) - 1) if H[k] > H[k - 1] and H[k] >= H[k + 1] and not (H[k + 1:] > H[k]).any()]
+        fl = [k for k in range(1, len(b15) - 1) if L[k] < L[k - 1] and L[k] <= L[k + 1] and not (L[k + 1:] < L[k]).any()]
+        f["eq_highs"] = int(any(abs(H[i] - H[j]) <= 0.1 * a15 for i in fh for j in fh if i < j))
+        f["eq_lows"] = int(any(abs(L[i] - L[j]) <= 0.1 * a15 for i in fl for j in fl if i < j))
+        run_lh = run_hl = best_lh = best_hl = 0
+        for k in range(len(b15) - 16, len(b15)):
+            run_lh = run_lh + 1 if H[k] < H[k - 1] else 0
+            run_hl = run_hl + 1 if L[k] > L[k - 1] else 0
+            best_lh, best_hl = max(best_lh, run_lh), max(best_hl, run_hl)
+        f["run_lower_highs"], f["run_higher_lows"] = best_lh, best_hl
+        f["on_pos"] = round((px - lv["ONL"]) / (lv["ONH"] - lv["ONL"]), 2) if lv["ONH"] > lv["ONL"] else np.nan
+        votes = sum(np.sign(f[f"slope_{tf}"]) * (abs(f[f"slope_{tf}"]) > 0.05) for tf in ("D", "4H", "1H"))
+        f["R1"] = "long" if votes >= 2 else "short" if votes <= -2 else "none"
+        lrl_up, lrl_dn = best_lh >= 4, best_hl >= 4
+        f["R2"] = "long" if lrl_up and not lrl_dn else "short" if lrl_dn and not lrl_up else f["R1"]
+        f["R3"] = "long" if f["on_pos"] >= 0.5 else "short"
+        f["R4"] = "short" if not np.isnan(f["up_D"]) else "long"
+        k = cc.index.get_loc(pd.Timestamp(r.date))
+        f["actual"] = "long" if cc.close.iloc[k] > cc.close.iloc[k - 1] else "short"
+        rows.append(f)
+    t = pd.DataFrame(rows)
+    pd.set_option("display.width", 250); pd.set_option("display.max_columns", 40)
+    print(t.to_string(index=False))
+    calls = t[t.call.isin(["long", "short"])]
+    for rule in ("R1", "R2", "R3", "R4"):
+        same = (calls[rule] == calls.call).sum()
+        print(f"{rule}: matches {same} of {len(calls)} directional calls; on the 6 'none' rows it says "
+              f"{', '.join(t[~t.call.isin(['long', 'short'])][rule])}; right on the day {int((t[rule] == t.actual).sum())} of "
+              f"{int((t[rule] != 'none').sum())} of its own calls")
+    t.to_csv(OUT / f"features_block{blk}.csv", index=False)
 
 
 def release2():
@@ -267,4 +419,4 @@ def release2():
 
 
 if __name__ == "__main__":
-    {"make": make, "score": score, "release2": release2}[sys.argv[1]]()
+    {"make": make, "score": score, "release2": release2, "resolve": resolve, "features": features}[sys.argv[1]]()
