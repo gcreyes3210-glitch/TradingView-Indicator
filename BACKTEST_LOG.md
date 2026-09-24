@@ -650,5 +650,32 @@ Each panel shows the prior-day high / low (18:00–17:00), the prior settlement 
 6. **Features.** After scoring, the reasons are turned into computable features (e.g. above / below the prior settlement, overnight-range position, the side of the nearest unfilled HTF FVG, the 20-bar daily slope). The report shows how often a simple rule on those features matches the trader's calls on the 40 days.
 **Any rule built from those features is run only if the trader says so:** on 2019–2022 first, confirmed on 2023–2026 untouched, with the usual criterion.
 
+## FLOW2 — order flow around IFVG-1m and AMD1-1m trades (observation only)
+`python3 tools/flow2.py`; per-trade measures in `data/studies/flow2_trades.csv`.
+**Day-coverage caveat.** The order-flow data covers only the 876 ORB v1.4 trade days, 09:30–11:35. Those are days whose opening range broke the overnight range, not a random sample of days.
+- IFVG-1m (T3, Z-all): 221 of 490 trades fall on those days. On them the family makes −1,222, −0.118 R per trade.
+- AMD1-1m (defaults): 552 of 916 trades fall on them, making +12,146, +0.147 R.
+- The sweep-bar measures are missing when the sweep came before 09:30. That affects 31 IFVG-1m trades and no AMD trade.
+**Measures.** Deltas are signed in the trade's direction, so positive means aggressive flow with the trade.
+- `sweep_delta`: NQ delta on the sweep bar.
+- `sweep_cum`: NQ cumulative delta from 09:30 through the sweep bar.
+- `sweep_div`: NQ minus ES cumulative delta, each divided by its own volume.
+- `stack`: the largest run of stacked diagonal imbalances in the trade's direction on the inversion candle (3 : 1 ratio, opposite side floored at 1 contract). It uses a 1m footprint built from the raw NQ trades.
+- `absorption`: NQ volume divided by (range in ticks + 1) on the inversion candle.
+- `entry_delta`: NQ delta on the entry bar.
+- The inversion candle is the entry bar for IFVG-1m, and the trigger bar for AMD1-1m (for MSS triggers, the break candle).
+**Test.** Terciles within each year. For each measure, top minus bottom tercile R per trade, with a two-sided shuffle p (20,000 within-year permutations; the sign was not pre-registered). Bonferroni across the 6 measures: p < 0.0083 per family.
+
+| Measure | AMD1-1m: bottom / middle / top R | top − bottom, p | IFVG-1m: bottom / middle / top R | top − bottom, p |
+|---|---|---|---|---|
+| sweep_delta | −0.026 / +0.365 / +0.106 | +0.133, 0.44 | −0.239 / +0.149 / −0.196 | +0.043, 0.88 |
+| sweep_cum | +0.144 / +0.219 / +0.077 | −0.067, 0.70 | +0.087 / −0.070 / −0.336 | −0.423, 0.14 |
+| sweep_div | +0.019 / +0.082 / +0.341 | +0.322, 0.059 | −0.039 / −0.091 / −0.184 | −0.145, 0.60 |
+| stack | +0.130 / +0.122 / +0.189 | +0.059, 0.73 | +0.036 / −0.184 / −0.213 | −0.248, 0.35 |
+| absorption | +0.158 / +0.278 / +0.004 | −0.153, 0.37 | −0.090 / −0.049 / −0.216 | −0.126, 0.63 |
+| entry_delta | −0.039 / +0.278 / +0.206 | +0.246, 0.15 | +0.087 / −0.208 / −0.242 | −0.329, 0.21 |
+
+**Result: nothing passes.** The smallest p is 0.059 (AMD1-1m `sweep_div`: ES flow relatively weaker than NQ's at the sweep, in the trade's direction, 187–183 trades per tercile), seven times the Bonferroni bar. In the two families the same measure often points opposite ways (e.g. `entry_delta` +0.25 R in AMD, −0.33 R in IFVG-1m). As with FLOW1, 1-minute delta, stacked imbalances and absorption add nothing here that survives the test. Observation only.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
