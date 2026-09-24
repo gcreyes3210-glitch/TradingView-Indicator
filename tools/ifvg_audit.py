@@ -24,10 +24,9 @@ make: 20 random Run I trades (data/tradingview/RunI_MNQ_2025-2026.csv). Each cha
     level, or the previous MNQ pivot for a pivot SMT); the rest fall back to the reconstruction above.
     Files audit_01.png .. audit_20.png, key <out>/audit_key.csv (trade number, times; no outcomes shown in the charts),
     answer template <out>/answers.csv (id, same_gap yes/no, my_gap_time HH:MM of the gap's middle candle).
-score: agreement rate; for each 'no', the named gap (same direction, in view) is traded with the same stop and Run I's
-    rules: entry at its first close through the far edge within 30 bars of forming (not before the chart's first
-    bar), target 3 R from that entry, 200-bar time stop, stop first on a shared bar, 1 tick slippage and $1 / side;
-    compared with the indicator's trade from the export.
+score: see score() — agreement rate (entry_shift -1 counts as the same gap), the named gaps matched to the chart's
+    labels (12-hour times allowed), every version re-simulated with the indicator's stop, 3 R and a 200-bar time stop;
+    writes <out>/audit_scored.csv.
 """
 import sys, pathlib, collections
 import numpy as np
@@ -313,53 +312,115 @@ def make():
           f"HTF zone found {int(k.zone.notna().sum())}; SMT reference found {int(k.smt_ref.notna().sum())}")
 
 
+def simulate(b5, k, stop, sgn, bars=200):
+    """Enter at the close of bar k; the stop, 3 R from that close, time exit after `bars` bars. House fills: 1 tick
+    slippage on every fill (a bar opening beyond a level fills at the open), stop first on a shared bar, $1 / side.
+    Returns dict(pnl, R, reason, exit_t, risk) or None when the stop is not on the losing side of the entry."""
+    O, H, L, C = (b5[c].to_numpy() for c in ("open", "high", "low", "close"))
+    risk = sgn * (C[k] - stop)
+    if risk <= 0:
+        return None
+    tp, entry = C[k] + sgn * 3 * risk, C[k] + sgn * TICK
+    out = None
+    for q in range(k + 1, min(k + bars + 2, len(C))):
+        o = O[q]
+        if sgn * (o - stop) <= 0:
+            out = (o - sgn * TICK, "SL", q); break
+        if sgn * (o - tp) >= 0:
+            out = (o - sgn * TICK, "TP", q); break
+        if (L[q] <= stop) if sgn > 0 else (H[q] >= stop):
+            out = (stop - sgn * TICK, "SL", q); break
+        if (H[q] >= tp) if sgn > 0 else (L[q] <= tp):
+            out = (tp - sgn * TICK, "TP", q); break
+        if q - k > bars:
+            out = (C[q] - sgn * TICK, "time", q); break
+    if out is None:
+        q = len(C) - 1
+        out = (C[q] - sgn * TICK, "open", q)
+    pnl = sgn * (out[0] - entry) * PV - 2
+    return dict(pnl=round(pnl, 2), R=round(pnl / (risk * PV), 3), reason=out[1], exit_t=b5.index[out[2]], risk=risk,
+                entry_t=b5.index[k])
+
+
 def score():
+    """answers.csv: id, same_gap (yes / no), my_gap_time ('none' = would not trade, else the HH:MM label of the gap
+    on the chart, 24-hour or 12-hour), entry_shift (-1 = enter one bar before the indicator's entry), note.
+    Agreement counts entry_shift -1 rows as the same gap. Every row is re-simulated on the same basis (simulate()):
+    the indicator's trade from its entry bar, the trader's version from the shifted bar or from the named gap's first
+    close through its far edge (within 30 bars of forming), all with the indicator's stop."""
     trades = load_trades()
     b5 = pd.read_parquet("data/bars/MNQ_5m.parquet")
     atr = atr_rma(b5)
     key = pd.read_csv(OUT / "audit_key.csv")
     ans = pd.read_csv(OUT / "answers.csv", dtype=str).fillna("")
     x = key.merge(ans, on="id")
-    x["agree"] = x.same_gap.str.strip().str.lower().isin(("yes", "y"))
-    print(f"answered {int((x.same_gap.str.strip() != '').sum())} of {len(x)}; same gap as the indicator: "
-          f"{int(x.agree.sum())} ({100 * x.agree.mean():.0f} %)")
-    H, L, C = b5.high.to_numpy(), b5.low.to_numpy(), b5.close.to_numpy()
+    C = b5.close.to_numpy()
     rows = []
-    for _, r in x[~x.agree & (x.my_gap_time.str.strip() != "")].iterrows():
+    for _, r in x.iterrows():
         tr = trades.loc[int(r.trade)]
         e = int(b5.index.get_indexer([tr.entry_time])[0])
-        s0 = max(e - 30, 0)
-        hh, mm = map(int, r.my_gap_time.strip().split(":"))
-        g = [f for f in fvgs(b5, atr, s0 + 2, e, loose=False) if f["mid_t"].hour == hh and f["mid_t"].minute == mm
-             and f["bull"] == (tr.side == "S")]
-        res = dict(id=r.id, trade=int(r.trade), indicator_pnl=tr.pnl, my_gap=r.my_gap_time)
-        if not g:
-            rows.append({**res, "my_pnl": np.nan, "note": "no gap of the trade's direction at that time in view"}); continue
-        g = g[0]
-        edge = g["bottom"] if g["bull"] else g["top"]
         sgn = 1 if tr.side == "L" else -1
-        k = next((k for k in range(g["i"] + 1, min(g["i"] + 31, len(C))) if sgn * (C[k] - edge) > 0), None)
-        if k is None:
-            rows.append({**res, "my_pnl": 0.0, "note": "gap never inverted within 30 bars: no trade"}); continue
-        entry = C[k] + sgn * TICK
-        risk = sgn * (C[k] - r.stop)
-        if risk <= 0:
-            rows.append({**res, "my_pnl": 0.0, "note": "stop on the wrong side of this entry: no trade"}); continue
-        tp = C[k] + sgn * 3 * risk
-        out = None
-        for q in range(k + 1, min(k + 201, len(C))):
-            if (L[q] <= r.stop) if sgn > 0 else (H[q] >= r.stop):
-                out = (r.stop - sgn * TICK, "SL"); break
-            if (H[q] >= tp) if sgn > 0 else (L[q] <= tp):
-                out = (tp, "TP"); break
-        if out is None:
-            out = (C[min(k + 200, len(C) - 1)] - sgn * TICK, "time")
-        pnl = sgn * (out[0] - entry) * PV - 2
-        rows.append({**res, "my_pnl": round(pnl, 2), "note": f"entry {b5.index[k]:%H:%M}, {out[1]}"})
+        ind = simulate(b5, e, r.stop, sgn)
+        same = r.same_gap.strip().lower() in ("yes", "y")
+        gap = r.my_gap_time.strip().lower()
+        kind = "same" if same else "none" if gap in ("", "none") else "other"
+        row = dict(id=r.id, date=f"{tr.entry_time:%Y-%m-%d}", side=tr.side, kind=kind, entry_shift=r.entry_shift.strip(),
+                   tv_pnl=tr.pnl, ind_pnl=ind["pnl"], ind_R=ind["R"], ind_exit=ind["reason"], my_pnl=np.nan, my_R=np.nan,
+                   my_exit="", matched="")
+        mine = None
+        if kind == "same":
+            k = e + (int(r.entry_shift) if r.entry_shift.strip() else 0)
+            mine = simulate(b5, k, r.stop, sgn)
+            if mine is None:
+                row["my_exit"] = "stop not beyond the shifted entry: no trade"
+        elif kind == "other":
+            hh, mm = map(int, gap.split(":"))
+            s0 = max(e - 30, 0)
+            reads = lambda f: f["mid_t"].minute == mm and (f["mid_t"].hour == hh or (hh <= 12 and f["mid_t"].hour % 12 == hh % 12))
+            cand = [f for f in fvgs(b5, atr, s0 + 2, e) if reads(f)]  # the gaps labelled on the chart
+            src = "labelled"
+            if not cand:                                             # a gap below the Loose filter (not drawn)
+                cand, src = [f for f in fvgs(b5, atr, s0 + 2, e, loose=False) if reads(f)], "NOT labelled (below Loose)"
+            if len(cand) > 1:                                        # prefer the one that can invert into the trade
+                cand = [f for f in cand if f["bull"] == (tr.side == "S")] or cand
+            if len(cand) != 1:
+                row["matched"] = f"{len(cand)} gaps read {gap}"
+            else:
+                g = cand[0]
+                row["matched"] = (f"{g['mid_t']:%H:%M} {'bull' if g['bull'] else 'bear'} gap {g['bottom']:,.2f}-{g['top']:,.2f} "
+                                  f"({(g['top'] - g['bottom']) / atr.iloc[g['i']]:.2f} ATR), {src}")
+                if g["bull"] != (tr.side == "S"):
+                    row["my_exit"] = "gap points the trade's way: it cannot invert into this trade"
+                else:
+                    edge = g["bottom"] if g["bull"] else g["top"]
+                    k = next((k for k in range(g["i"] + 1, min(g["i"] + 31, len(C))) if sgn * (C[k] - edge) > 0), None)
+                    if k is None:
+                        row["my_exit"] = "never closed through within 30 bars: no trade"
+                    else:
+                        mine = simulate(b5, k, r.stop, sgn)
+                        if mine is None:
+                            row["my_exit"] = f"entry {b5.index[k]:%H:%M} is beyond the stop: no trade"
+        if mine is not None:
+            row.update(my_pnl=mine["pnl"], my_R=mine["R"], my_exit=f"{mine['reason']} (entry {mine['entry_t']:%H:%M})")
+        rows.append(row)
     d = pd.DataFrame(rows)
-    if len(d):
-        print(d.to_string(index=False))
-        print(f"disagreements simulated: {len(d)}; indicator net {d.indicator_pnl.sum():+,.1f} vs your gap {d.my_pnl.sum():+,.1f}")
+    n_same, n_named = int((d.kind == "same").sum()), int(d.kind.isin(["same", "other"]).sum())
+    print(f"answered {len(d)}: same gap {n_same} (of them entry one bar earlier: {int((d.entry_shift == "-1").sum())}), "
+          f"other gap {int((d.kind == 'other').sum())}, would not trade {int((d.kind == 'none').sum())}")
+    print(f"agreement: {n_same} of {len(d)} charts ({100 * n_same / len(d):.0f} %); {n_same} of the {n_named} where a gap was "
+          f"named ({100 * n_same / n_named:.0f} %)")
+    pd.set_option("display.width", 250)
+    print(d.to_string(index=False))
+    for kind, lab in (("same", "same gap"), ("other", "other gap"), ("none", "would not trade")):
+        g = d[d.kind == kind]
+        t = g[g.my_pnl.notna()]
+        print(f"{lab:<16} n {len(g):>2}  indicator net {g.ind_pnl.sum():+8,.1f}  R/trade {g.ind_R.mean():+.3f}   "
+              + (f"yours: {len(t)} trades, net {t.my_pnl.sum():+8,.1f}, R/trade {t.my_R.mean():+.3f}" if kind != "none" else
+                 f"(skipped by you: 0)"))
+    tot = d.my_pnl.fillna(0).where(d.kind != "none", 0)
+    print(f"all 20 days: indicator net {d.ind_pnl.sum():+,.1f} ({d.ind_R.mean():+.3f} R/trade over 20); "
+          f"your version net {tot.sum():+,.1f} on {int(d.my_pnl.notna().sum())} trades")
+    d.to_csv(OUT / "audit_scored.csv", index=False)
 
 
 if __name__ == "__main__":

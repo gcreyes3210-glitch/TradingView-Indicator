@@ -1,0 +1,21 @@
+id,date,side,kind,entry_shift,tv_pnl,ind_pnl,ind_R,ind_exit,my_pnl,my_R,my_exit,matched
+audit_01,2025-09-23,L,none,,-44.0,-44.0,-1.073,SL,,,,
+audit_02,2025-09-24,L,same,-1,-82.0,-82.0,-1.038,SL,-53.0,-1.06,SL (entry 03:40),
+audit_03,2025-10-03,L,same,,394.0,394.0,2.352,time,394.0,2.352,time (entry 14:15),
+audit_04,2025-11-28,L,none,,-74.5,-74.5,-1.042,SL,,,,
+audit_05,2025-12-08,S,other,,-83.5,-83.5,-1.037,SL,-61.0,-1.052,SL (entry 08:20),"08:10 bull gap 25,809.25-25,810.00 (0.08 ATR), NOT labelled (below Loose)"
+audit_06,2026-01-22,L,none,,-85.0,-85.0,-1.037,SL,,,,
+audit_07,2026-02-27,L,other,,-106.0,-106.0,-1.029,SL,-70.0,-1.045,SL (entry 01:30),"01:15 bear gap 25,008.25-25,010.75 (0.19 ATR), labelled"
+audit_08,2026-03-10,S,none,,360.5,360.0,2.975,TP,,,,
+audit_09,2026-03-25,S,other,,-203.0,-203.0,-1.015,SL,-80.0,-1.039,SL (entry 04:35),"04:15 bull gap 24,497.75-24,503.75 (0.23 ATR), NOT labelled (below Loose)"
+audit_10,2026-04-30,L,none,,-199.0,-199.0,-1.015,SL,,,,
+audit_11,2026-05-19,L,same,-1,-471.0,-471.0,-1.006,SL,-314.0,-1.01,SL (entry 09:30),
+audit_12,2026-05-19,L,other,,782.0,781.5,2.989,TP,580.5,2.985,TP (entry 20:25),"20:10 bear gap 28,840.75-28,853.00 (0.34 ATR), NOT labelled (below Loose)"
+audit_13,2026-06-08,L,same,,461.0,460.5,2.981,TP,460.5,2.981,TP (entry 02:00),
+audit_14,2026-06-09,S,same,-1,1050.5,1050.0,2.991,TP,694.5,2.987,TP (entry 09:50),
+audit_15,2026-08-21,L,same,,233.0,232.5,2.962,TP,232.5,2.962,TP (entry 00:45),
+audit_16,2026-09-01,S,other,,324.5,324.0,2.972,TP,255.0,2.965,TP (entry 02:20),"01:50 bull gap 29,537.25-29,542.00 (0.26 ATR), labelled"
+audit_17,2026-09-04,L,none,,296.0,295.5,2.97,TP,,,,
+audit_18,2026-09-11,L,none,,515.0,514.5,2.983,TP,,,,
+audit_19,2026-09-14,L,none,,607.5,-92.5,-1.034,SL,,,,
+audit_20,2026-09-17,S,other,,-157.0,-157.0,-1.019,SL,-70.5,-1.044,SL (entry 03:45),"03:25 bull gap 29,536.50-29,546.00 (0.45 ATR), NOT labelled (below Loose)"
