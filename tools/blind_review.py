@@ -117,7 +117,7 @@ def chart(one, r, fam, sid, path):
         prop = f"proposed entry: {'buy' if long_ else 'sell'} limit at the block edge (valid 30 bars)"
     else:
         if pd.notna(r.sweep_t):
-            mark(pd.Timestamp(r.sweep_t), r.base_px, "sweep of the overnight extreme", "#c62828")
+            mark(pd.Timestamp(r.base_t), r.base_px, "sweep extreme (leg 0 %)", "#c62828")
         mark(pd.Timestamp(r.frac_t), r.frac_px, "fractal swing broken (MSS level)", "#1565c0", dy=-30)
         mark(pd.Timestamp(r.mss_t), b.close.iloc[-1], "MSS close", "#1565c0", "s", dy=20)
         ax.plot([X(pd.Timestamp(r.base_t)), n - 1], [r.base_px, r.ext_mss], color="#6a1b9a", lw=1.5)

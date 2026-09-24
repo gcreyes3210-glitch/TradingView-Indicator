@@ -101,7 +101,7 @@ def chart(one, r, kind, path):
         title = "AMD1-1m · accumulation → manipulation → distribution"
     else:
         if pd.notna(r.sweep_t):
-            mark(r.sweep_t, r.base_px, "sweep of the overnight extreme", "#c62828")
+            mark(r.base_t, r.base_px, "sweep extreme (leg 0 %)", "#c62828")
         mark(r.frac_t, r.frac_px, "fractal swing broken (MSS level)", "#1565c0", dy=-30)
         ax.plot([X(r.frac_t), X(r.mss_t)], [r.frac_px, r.frac_px], color="#1565c0", lw=1, ls=":")
         mark(r.mss_t, b.close.iloc[X(r.mss_t)], "MSS close", "#1565c0", "s", dy=20)
