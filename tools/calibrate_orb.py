@@ -17,7 +17,7 @@ whether each ORB8 filter would have skipped it, and the retail-sales flag — sh
     ORB8 skip = F1 or F2 or F3        retail = Census advance retail-sales release day (data/events.csv)
 Then the running shadow lines (trades taken, trades ORB8 / retail would have skipped, net of the skipped trades) and a
 ready-to-paste row for the "Forward test" table in BACKTEST_LOG.md. Flags need bars (and events.csv) that reach the
-trade date; otherwise they print as n/a.
+trade date; otherwise they print as n/a. Last, the forward bias log score (tools/bias_log.py, data/forward/bias_log.csv).
 """
 import sys, collections
 import numpy as np
@@ -164,3 +164,5 @@ if __name__ == "__main__":
         print(diff[cols].to_string())
 
     shadow_report(tv, shadow_flags(bars), since)
+    import bias_log
+    bias_log.report()

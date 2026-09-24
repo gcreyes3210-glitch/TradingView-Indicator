@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """IFVG agreement audit on the Run I trade list (ICT_SMT_IFVG_strategy.pine, MNQ 5m, 2025-09 -> 2026-09).
 
-    python3 tools/ifvg_audit.py make  [--n 20] [--seed 5] [--out data/studies/audit]
+    python3 tools/ifvg_audit.py make  [--n 20] [--seed 5] [--out data/studies/audit] [--engine trades.csv]
     python3 tools/ifvg_audit.py score [--out data/studies/audit]        (reads <out>/answers.csv)
 
 make: 20 random Run I trades (data/tradingview/RunI_MNQ_2025-2026.csv). Each chart: the 30 MNQ 5m bars before the entry
@@ -19,6 +19,9 @@ make: 20 random Run I trades (data/tradingview/RunI_MNQ_2025-2026.csv). Each cha
         latest 5m 5/5 pivot swept within the 40 bars before entry; Pivot: the chart market's last two 5m pivots)
       * entry (the inversion close) and the stop: exact from the export for SL / TP exits (SL fill -/+ 1 tick slippage;
         TP2 = entry close +/- 3 x risk), reconstructed (sweep extreme + 2 ticks) for time exits
+    With --engine (a tools/ifvg_engine.py --out trade list), every audit trade the engine also takes is drawn from
+    the engine's exact state instead: IFVG, stop, primary selected HTF zone and the SMT's level (PDH / PDL / swing
+    level, or the previous MNQ pivot for a pivot SMT); the rest fall back to the reconstruction above.
     Files audit_01.png .. audit_20.png, key <out>/audit_key.csv (trade number, times; no outcomes shown in the charts),
     answer template <out>/answers.csv (id, same_gap yes/no, my_gap_time HH:MM of the gap's middle candle).
 score: agreement rate; for each 'no', the named gap (same direction, in view) is traded with the same stop and Run I's
@@ -63,8 +66,9 @@ def atr_rma(b, n=14):
     return tr.ewm(alpha=1 / n, adjust=False).mean()
 
 
-def fvgs(b, atr, lo_i, hi_i):
-    """Loose-filter FVGs completed at bars lo_i..hi_i: dicts(i, bull, bottom, top, mid_t)."""
+def fvgs(b, atr, lo_i, hi_i, loose=True):
+    """FVGs completed at bars lo_i..hi_i (Loose filter as the Pine measures it: gap and the completing third candle's
+    body / range against ATR(14) at that candle): dicts(i, bull, bottom, top, mid_t)."""
     H, L, O, C = b.high.to_numpy(), b.low.to_numpy(), b.open.to_numpy(), b.close.to_numpy()
     out = []
     for i in range(max(lo_i, 2), hi_i + 1):
@@ -72,12 +76,11 @@ def fvgs(b, atr, lo_i, hi_i):
             bot, top = (H[i - 2], L[i]) if bull else (H[i], L[i - 2])
             if top <= bot:
                 continue
-            m = i - 1
-            rng = H[m] - L[m]
+            rng = H[i] - L[i]
             a = atr.iloc[i]
-            if rng <= 0 or (top - bot) < 0.15 * a or abs(C[m] - O[m]) < 0.40 * rng or rng < 0.40 * a:
+            if loose and (rng <= 0 or (top - bot) < 0.15 * a or abs(C[i] - O[i]) < 0.40 * rng or rng < 0.40 * a):
                 continue
-            out.append(dict(i=i, bull=bull, bottom=bot, top=top, mid_t=b.index[m]))
+            out.append(dict(i=i, bull=bull, bottom=bot, top=top, mid_t=b.index[i - 1]))
     return out
 
 
@@ -210,6 +213,12 @@ def make():
     OUT.mkdir(parents=True, exist_ok=True)
     pick = trades.loc[np.sort(rng.choice(trades.index, size=opt("--n", 20), replace=False))]
     pick = pick.sort_values("entry_time")
+    eng = None
+    if "--engine" in sys.argv:                              # exact geometry from tools/ifvg_engine.py --out
+        eng = pd.read_csv(opt("--engine", ""))
+        for c in ("entry_time", "ifvg_fvg_t", "ifvg_inv_t", "zone_t", "smt_level_t", "sweep_bar_t"):
+            eng[c] = pd.to_datetime(eng[c], utc=True).dt.tz_convert(TZ)
+        eng = eng.set_index(["entry_time", "side"])
     key = []
     for n, (tno, tr) in enumerate(pick.iterrows(), 1):
         e = int(b5.index.get_indexer([tr.entry_time])[0])
@@ -217,9 +226,25 @@ def make():
             print(f"trade {tno}: entry bar not in the data, skipped"); continue
         cands = chosen_ifvg(b5, atr, e, tr.side)
         g = cands[-1] if cands else None
-        lvl, sk, sname = smt_ref(one, b5, e, tr.side, tr.smt)
-        stop, stop_src, entry_close = stop_of(tr, b5, e, sk)
-        zone = htf_zone(one, tr.zone, g, tr.entry_time) if g else None
+        x = eng.loc[(tr.entry_time, tr.side)] if eng is not None and (tr.entry_time, tr.side) in eng.index else None
+        if x is not None:
+            fi = int(b5.index.get_indexer([x.ifvg_fvg_t])[0]) + 1
+            g = dict(i=fi, bull=tr.side == "S", bottom=x.ifvg_bot, top=x.ifvg_top, mid_t=x.ifvg_fvg_t,
+                     inv=int(b5.index.get_indexer([x.ifvg_inv_t])[0]))
+            cands = [g]
+            entry_close = tr.entry + (TICK if tr.side == "S" else -TICK)
+            stop, stop_src = x.stop, "engine: sweep extreme + 2 ticks"
+            zone = dict(bottom=x.zone_bot, top=x.zone_top, t=x.zone_t, name=f"{x.zone} {'zone' if x.zone == 'NDOG' else 'FVG'}")
+            lvl = x.smt_level
+            sk = int(b5.index.get_indexer([x.smt_level_t if pd.notna(x.smt_level_t) else x.sweep_bar_t])[0])
+            sname = f"{x.smt} level" if not str(x.smt).startswith("Pivot") else f"{x.smt}: previous MNQ pivot"
+            if str(x.smt) != tr.smt.rstrip("+~"):
+                sname += f" [engine's SMT; the TradingView tag says {tr.smt.rstrip('+~')}]"
+        else:
+            lvl, sk, sname = smt_ref(one, b5, e, tr.side, tr.smt)
+            stop, stop_src, entry_close = stop_of(tr, b5, e, sk)
+            zone = htf_zone(one, tr.zone, g, tr.entry_time) if g else None
+        src = "engine" if x is not None else "reconstructed"
         s0 = max(e - 30, 0)
         v = b5.iloc[s0:e + 1]
         fig, ax = plt.subplots(figsize=(15, 8))
@@ -247,11 +272,11 @@ def make():
             x0 = max(X(int(np.searchsorted(b5.index, zone["t"]))), -1)
             ax.add_patch(Rectangle((x0 - 0.5, zone["bottom"]), nv - x0 + 1, zone["top"] - zone["bottom"],
                                    color="#7e57c2", alpha=0.12, lw=0))
-            ax.text(max(x0, 0), max(zone["bottom"], min(v.low.min(), stop, entry_close)), f" eligible HTF zone (reconstructed): {zone['name']} from {zone['t']:%m-%d %H:%M}",
+            ax.text(max(x0, 0), max(zone["bottom"], min(v.low.min(), stop, entry_close)), f" eligible HTF zone ({src}): {zone['name']}, first candle {zone['t']:%m-%d %H:%M}",
                     fontsize=8, color="#5e35b1", va="top")
         if lvl is not None:
             ax.axhline(lvl, color="#1565c0", ls="-.", lw=1)
-            ax.text(0, lvl, f" SMT reference (reconstructed, tag {tr.smt}): {sname} {lvl:,.2f}", fontsize=8, color="#1565c0", va="bottom")
+            ax.text(0, lvl, f" SMT reference ({src}, tag {tr.smt}): {sname} {lvl:,.2f}", fontsize=8, color="#1565c0", va="bottom")
             if sk is not None and sk >= s0:
                 ax.plot(X(sk), b5.high.iloc[sk] if tr.side == "S" else b5.low.iloc[sk], "*", color="#1565c0", ms=12)
         ax.axhline(stop, color=DN, lw=1.3)
@@ -278,7 +303,7 @@ def make():
         plt.close(fig)
         key.append(dict(id=f"audit_{n:02d}", trade=tno, entry_time=tr.entry_time, side=tr.side, tag=tr.tag,
                         ifvg_mid_t=g["mid_t"] if g else None, ifvg_inverted=b5.index[g["inv"]] if g else None, ifvg_candidates=len(cands), stop=stop, stop_source=stop_src,
-                        entry_close=entry_close, zone=zone["name"] if zone else None, smt_ref=lvl))
+                        entry_close=entry_close, zone=zone["name"] if zone else None, smt_ref=lvl, geometry=src))
     k = pd.DataFrame(key)
     k.to_csv(OUT / "audit_key.csv", index=False)
     if not (OUT / "answers.csv").exists():
@@ -305,7 +330,7 @@ def score():
         e = int(b5.index.get_indexer([tr.entry_time])[0])
         s0 = max(e - 30, 0)
         hh, mm = map(int, r.my_gap_time.strip().split(":"))
-        g = [f for f in fvgs(b5, atr, s0 + 2, e) if f["mid_t"].hour == hh and f["mid_t"].minute == mm
+        g = [f for f in fvgs(b5, atr, s0 + 2, e, loose=False) if f["mid_t"].hour == hh and f["mid_t"].minute == mm
              and f["bull"] == (tr.side == "S")]
         res = dict(id=r.id, trade=int(r.trade), indicator_pnl=tr.pnl, my_gap=r.my_gap_time)
         if not g:
