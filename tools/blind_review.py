@@ -2,7 +2,7 @@
 """Blind setup review: charts that end at the decision bar, a private key, and scoring of a yes / no list.
 
     python3 tools/blind_review.py make  [--seed 7] [--out data/studies/blind]
-    python3 tools/blind_review.py score <answers.csv>        (columns: id, answer = yes / no)
+    python3 tools/blind_review.py score <answers.csv> [--reveal]  (columns: id, answer = yes / no; --reveal prints the key)
 
 make: 30 setups, 10 per family (AMD1-1m, OB1-1m, OTE1-1m defaults), 5 the engine took and 5 that formed but were not
     traded, each group spread over different years where possible (numpy default_rng(seed)). Not traded = AMD setups
@@ -14,7 +14,8 @@ make: 30 setups, 10 per family (AMD1-1m, OB1-1m, OTE1-1m defaults), 5 the engine
     bar. Files are named by a random 6-digit number; the number -> outcome key goes to <out>/key.csv, which this
     tool never prints.
 score: net and R per setup (unfilled = 0) for the setups answered yes versus no, and a shuffle p for the difference
-    in R per setup (answers permuted 20,000 times, one-sided: yes better than no). Prints aggregates only.
+    in R per setup (answers permuted 20,000 times, one-sided: yes better than no), win rates and engine-taken counts,
+    overall and by family. Prints aggregates only unless --reveal.
 """
 import sys, pathlib
 import numpy as np
@@ -168,20 +169,38 @@ def make():
           f"Mix: {key.groupby(['family', 'taken']).size().to_dict()}; years {sorted({d.year for d in key.date})}")
 
 
+def _cmp(x, rng, n=20000):
+    """yes vs no on R per setup: observed difference and one-sided shuffle p (answers permuted n times)."""
+    y, R = x.yes.to_numpy(), x.R.to_numpy()
+    if y.all() or (~y).all():
+        return float("nan"), float("nan")
+    obs = R[y].mean() - R[~y].mean()
+    sims = np.array([(lambda q: R[q].mean() - R[~q].mean())(rng.permutation(y)) for _ in range(n)])
+    return obs, (sims >= obs).mean()
+
+
 def score():
     ans = pd.read_csv(sys.argv[2])
     key = pd.read_csv(OUT / "key.csv")
     x = key.merge(ans.assign(id=ans.id.astype(int)), on="id", how="inner")
     x["yes"] = x.answer.str.strip().str.lower().isin(("yes", "y", "1", "true"))
-    print(f"answers matched: {len(x)} of {len(key)} setups")
-    for lab, g in (("yes", x[x.yes]), ("no", x[~x.yes])):
-        print(f"  {lab:<3}: {len(g):>2} setups, net {g.pnl.sum():+,.1f} $, R per setup {g.R.mean() if len(g) else float('nan'):+.3f}"
-              f" (taken by the engine: {int(g.taken.sum())})")
-    y = x.yes.to_numpy(); R = x.R.to_numpy()
-    obs = R[y].mean() - R[~y].mean()
     rng = np.random.default_rng(1)
-    sims = np.array([(lambda p: R[p].mean() - R[~p].mean())(rng.permutation(y)) for _ in range(20000)])
-    print(f"  yes - no: {obs:+.3f} R per setup, shuffle p {(sims >= obs).mean():.4f} (one-sided, 20,000 permutations)")
+    print(f"answers matched: {len(x)} of {len(key)} setups (win = net > 0; an unfilled limit is 0, not a win)")
+
+    def line(lab, g):
+        return (f"{lab:<4} {len(g):>2} setups · net {g.pnl.sum():>+8,.1f} $ · R per setup "
+                f"{(g.R.mean() if len(g) else float('nan')):>+.3f} · win {100 * (g.pnl > 0).mean() if len(g) else 0:>5.1f} % · "
+                f"engine-taken {int(g.taken.sum())} / not taken {int((~g.taken).sum())}")
+    for name, g in [("ALL", x)] + [(f, x[x.family == f]) for f in ("AMD", "OB", "OTE")]:
+        obs, p = _cmp(g, rng)
+        print(f"\n{name}:")
+        print("  " + line("yes", g[g.yes]))
+        print("  " + line("no", g[~g.yes]))
+        print(f"  yes - no: {obs:+.3f} R per setup, shuffle p {p:.4f} (one-sided, 20,000 permutations)")
+    if "--reveal" in sys.argv:
+        print("\nkey with answers:")
+        cols = ["id", "family", "date", "side", "taken", "status", "pnl", "R", "answer"]
+        print(x.sort_values(["family", "date"])[cols].to_string(index=False))
 
 
 if __name__ == "__main__":
