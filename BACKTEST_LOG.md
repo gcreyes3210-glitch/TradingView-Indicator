@@ -627,7 +627,7 @@ Shuffle check on the best split (split_check, side / zone / SMT type): level vs 
 **Verdict: IFVG-1m fails.** No exit or zone set gives positive R, and the neighbours agree in sign (negative). Z-high, the trader's named secondary, is no better than Z-all.
 **What the rule could not encode:** "strong move" as a feeling, the V-shape, the "stronger trade" comparison between overlapping signals, and whether a gap is visible beyond the 1-point minimum. The trader names the day's bias as the missing input; the forward bias log is the test of it.
 
-## BIAS study — pre-registered 2026-09-24; block 1 scored, block 2 pending
+## BIAS study — pre-registered 2026-09-24; block 1 scored, block 2 released
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
 **Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:
 - a 09:30 bar;
@@ -682,6 +682,32 @@ Three rules were fixed in the tool's docstring before comparing them with the ca
 | **R4 unfilled daily FVG above price → short, else long (found after reading the calls)** | **13 of 14** | 14 of 20 |
 
 None of the fixed rules reproduces the calls. The trend reading (the `daily-bull` / `all-bull` / `all-bear` tags) matches no better than chance, and the LRL feature as defined fires both ways on 6 of 20 days, so it does not discriminate. Reading the feature table showed that the calls follow the daily FVGs: all 5 shorts had an unfilled daily FVG above price, and 8 of 9 longs had none. R4 is in-sample by construction (13 of 14 is the fit, not a result). **Block 2 is its first real test:** how often R4 matches the block-2 calls, and how often R4 is right on those days. Neither a rule nor a backtest runs unless the trader asks.
+
+**Block 2 released** 2026-09-24: 20 charts in `data/studies/bias/block2/`, and 20 empty rows appended to `answers.csv` (same columns as block 1, including `draw_ref` and `tags`). Block-2 scoring is the block-1 scoring above, plus two measures: how often R4 matches the block-2 calls, and R4's own hit rate on those 20 days.
+
+### R4 seven-year test — pre-registered 2026-09-24, NOT to be run until the block-2 answers are scored
+**The rule, fixed now.** It is R4 as coded in `tools/bias_study.py features`. At 09:30 New York, take the MNQ daily chart used in the study: the last 60 completed trading days (18:00–17:00), plus today's bar up to 09:29. An FVG is a 3-bar gap on those bars that no later bar, including today's partial bar, has traded through at its far edge. If any such FVG has its bottom above the 09:29 close, the call is **short**; otherwise **long**. Every eligible day gets a call; there is no "none".
+**Days.** The study's eligibility rules: a 09:30 bar, at least 60 earlier trading days, and the same front contract at the previous cash close, at 09:29 and at the cash close. The 40 BIAS-study days are excluded; R4 was found on block 1, and block 2 is its separate first test. Span: 2019 (from the 61st trading day in the data) → 2026-09-21.
+**Test 1 — direction (report only, not an adoption test).**
+- Direction is the cash close (last 1m close before 16:00) against the previous cash close.
+- For each calendar year: R4's hit rate against that year's base rate. The null is right with that year's share of up days on a long call, and of down days on a short call.
+- One-sided p = the Poisson-binomial P(hits ≥ observed).
+- Also reported: pooled over all years; the long and short calls separately; the share of short calls per year.
+**Test 2 — R4 as an ORB v1.4 side filter (the adoption test).**
+- **Filter:** ORB v1.4 defaults on the local engine (`tools/orb_engine.py`, house fills). Skip every trade whose side is against that day's R4 call: a long when R4 says short, a short when R4 says long. Trades on days without an R4 call (roll days, the 40 study days) are kept unchanged.
+- **Stage 1, 2019–2022 only, written into this log before stage 2 is run.** It passes if all four hold:
+  - the skipped trades are net negative;
+  - they are negative in at least 3 of the 4 calendar years (2019 is a half year);
+  - the kept trades' R per trade is above all trades' R per trade;
+  - a shuffle check passes: skipping the same number of trades at random within each year, 20,000 times, gives an R per trade of the kept trades at least as high in fewer than 5 % of shuffles. That is one hypothesis, so there is no multiple-comparison division.
+- **Stage 2, 2023–2026,** untouched until stage 1 is logged. It passes if all hold:
+  - the skipped trades are net negative;
+  - they are negative in at least 3 of the 4 calendar years;
+  - the kept trades' R per trade is above all trades';
+  - over the full span, the filtered ORB still meets the usual criterion: at least 6 of 8 positive years and at least +0.05 R per trade.
+- **Neighbours (both stages):** daily look-back 40 and 80 completed days instead of 60. The skipped trades must be net negative in each.
+- **Adoption** requires stage 1 and stage 2 and the neighbours to pass, and the filter-adoption standard: one pre-specified hypothesis plus a stated mechanism (unfilled daily FVGs above act as overhead supply, which is the trader's own reading). If any part fails, R4 is not adopted and becomes at most a shadow flag in the weekly forward check.
+- If stage 1 fails, stage 2 is still run once and reported, but it cannot rescue adoption.
 
 ## FLOW2 — order flow around IFVG-1m and AMD1-1m trades (observation only)
 `python3 tools/flow2.py`; per-trade measures in `data/studies/flow2_trades.csv`.
