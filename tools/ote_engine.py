@@ -35,7 +35,7 @@ from amd_engine import resample, in_win, _m
 from ob_engine import _tick, fractal_high, fractal_low, bull_fvg, bear_fvg
 
 TZ = "America/New_York"
-P = dict(tf=1, f=0.705, target="leg", liq="overnight", continuation=False, impulse=False, chop20=None, sweep_end="11:00", mss_end="11:15",
+P = dict(tf=1, f=0.705, target="leg", liq="overnight", continuation=False, impulse=False, chop20=None, shadow=False, sweep_end="11:00", mss_end="11:15",
          entry_end="11:30", flat="12:00", valid_bars=30, buf_ticks=2, min_leg_ticks=8, rr_opp=1.5,
          start=pd.Timestamp("2019-06-01", tz=TZ))
 
@@ -168,6 +168,8 @@ def run(one, orb=None, **over):
             cnt["small"] += 1
             continue
         stop = base - buf if side == "L" else base + buf
+        ext_mss = run_ext                                   # the leg as of the MSS close (the first limit placed)
+        level_mss = _tick(run_ext - sgn * p["f"] * sgn * (run_ext - base))
         fill = None
         deepest = 0.0
         for i in range(mss + 1, min(mss + 1 + p["valid_bars"], iend)):
@@ -181,6 +183,12 @@ def run(one, orb=None, **over):
             run_ext = max(run_ext, H[i]) if side == "L" else min(run_ext, L[i])
         if fill is None:
             cnt["expired"] += 1
+            if p["shadow"]:            # shadow: keep the unfilled setup (no trade, 0 R) with its geometry at the MSS
+                trades.append(dict(side=side, entry_time=pd.NaT, entry=np.nan, exit_time=pd.NaT, exit=np.nan,
+                                   reason="unfilled", pnl=0.0, risk=sgn * (level_mss - stop), R=0.0, status="expired",
+                                   day=daytype, liq_hi=liqH, liq_lo=liqL, mss_t=ts[mss], base_t=ts[lo_i], base_px=base,
+                                   ext_px=ext_mss, level=level_mss, ext_mss=ext_mss, level_mss=level_mss, stop=stop,
+                                   tp=ext_mss, f=p["f"], **geo))
             continue
         i, level, ext, leg = fill
         if p["impulse"]:
@@ -228,7 +236,8 @@ def run(one, orb=None, **over):
                            bars=i - mss, day=daytype, orb=orb.get(d, "-"),
                            # geometry (for charts): liquidity, sweep, fractal broken, MSS, leg 0 % and 100 %, the orders
                            liq_hi=liqH, liq_lo=liqL, mss_t=ts[mss], base_t=ts[lo_i], base_px=base, ext_px=ext,
-                           level=level, stop=stop, tp=tp, f=p["f"], **geo))
+                           level=level, stop=stop, tp=tp, f=p["f"], ext_mss=ext_mss, level_mss=level_mss,
+                           status="taken", **geo))
     return pd.DataFrame(trades), cnt
 
 

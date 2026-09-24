@@ -42,7 +42,7 @@ from orb_engine import TICK, PT_VALUE, COMM_SIDE, SLIP_TICKS, report, _path, exi
 TZ = "America/New_York"
 ACC = dict(overnight=("18:00", "09:30"), asia=("20:00", "00:00"), london=("02:00", "05:00"), premarket=("08:00", "09:30"))
 P = dict(tf=5, acc="overnight", man_end="10:30", entry_end="11:00", flat="12:00", target="range", trigger="any",
-         dir_filter=False, fresh_bars=10, max_stop_atr=None,
+         dir_filter=False, fresh_bars=10, max_stop_atr=None, shadow=False,
          buf_ticks=2, min_rr=1.0, retest_bars=6, start=pd.Timestamp("2019-06-01", tz=TZ))
 
 
@@ -199,9 +199,12 @@ def run(one, orb=None, **over):
         risk = sgn * (fill_px - stop)
         tp = fill_px + sgn * 2 * risk if p["target"] == "2r" else (AL if side == "S" else AH)
         rr = sgn * (tp - fill_px) / risk if risk > 0 else 0
+        status = "taken"
         if risk <= 0 or rr < p["min_rr"]:
             skipped["rr"] += 1
-            continue
+            if not (p["shadow"] and risk > 0):
+                continue
+            status = "skipped_rr"      # shadow: keep the skipped setup and simulate what it would have done
         tp = round(tp / TICK) * TICK
         entry = fill_px + sgn * slip
         out = None
@@ -227,7 +230,7 @@ def run(one, orb=None, **over):
                            acc_w=AH - AL, depth=(ext - AH if side == "S" else AL - ext) / (AH - AL),
                            bars=fill_i - s, day="balance" if orH <= onH and orL >= onL else "break",
                            acc_hi=AH, acc_lo=AL, sweep_t=ts[s], leg_t=ts[leg], leg_px=legPx, conf_t=ts[c], trig_t=ts[k],
-                           ext=ext, stop=stop, tp=tp,        # geometry (for charts)
+                           ext=ext, stop=stop, tp=tp, status=status,        # geometry (for charts)
                            orb=orb.get(d, "-"), or_break=("both" if orH > onH and orL < onL else "high" if orH > onH
                                                           else "low" if orL < onL else "inside")))
     return pd.DataFrame(trades), skipped

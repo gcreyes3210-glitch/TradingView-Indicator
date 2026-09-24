@@ -88,7 +88,9 @@ def chart(one, r, kind, path):
         title = f"OB1-1m · order block pullback"
     elif kind == "AMD":
         zone(pd.Timestamp(f"{d} 09:30", tz=TZ), r.acc_lo, r.acc_hi, "accumulation (overnight) range", "#7e57c2", 0.05)
-        mark(r.sweep_t, r.ext, "sweep extreme (manipulation)", "#c62828")
+        w = b[(b.index >= r.sweep_t) & (b.index <= r.trig_t)]
+        mark((w.low.idxmin() if long_ else w.high.idxmax()), r.ext, "sweep extreme (manipulation)", "#c62828")
+        mark(r.sweep_t, b.high.iloc[X(r.sweep_t)] if not long_ else b.low.iloc[X(r.sweep_t)], "sweep bar", "#c62828", "v" if long_ else "^", dy=-20)
         mark(r.leg_t, r.leg_px, "sweep-leg start (fractal / MSS level)", "#1565c0", dy=-30)
         ax.plot([X(r.leg_t), X(r.trig_t)], [r.leg_px, r.leg_px], color="#1565c0", lw=1, ls=":")
         mark(r.conf_t, b.close.iloc[X(r.conf_t)], "close back inside (confirmation)", "#6a1b9a", "s", dy=20)

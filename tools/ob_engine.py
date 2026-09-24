@@ -34,7 +34,7 @@ from amd_engine import resample, in_win, _m
 
 TZ = "America/New_York"
 P = dict(tf=1, limit="top", stop="ob", target="2r", flat="12:00", bias="orb", form_end="11:00", entry_end="11:30",
-         fvg=True, chop20=None, block="ob1", min_leg_atr=2.0, chop_bars=30, chop_atr=2.0, valid_bars=30, buf_ticks=2, min_ticks=4, stop_leg=0.1, rr_extreme=1.5,
+         fvg=True, chop20=None, shadow=False, block="ob1", min_leg_atr=2.0, chop_bars=30, chop_atr=2.0, valid_bars=30, buf_ticks=2, min_ticks=4, stop_leg=0.1, rr_extreme=1.5,
          start=pd.Timestamp("2019-06-01", tz=TZ))
 
 
@@ -232,6 +232,11 @@ def run(one, orb=None, **over):
                 break
         if fill is None:
             cnt["expired"] += 1
+            if p["shadow"]:            # shadow: keep the unfilled setup (no trade, 0 R) with its geometry
+                trades.append(dict(side=side, entry_time=pd.NaT, entry=np.nan, exit_time=pd.NaT, exit=np.nan,
+                                   reason="unfilled", pnl=0.0, risk=sgn * (lim - stop), R=0.0, status="expired",
+                                   day=daytype, ob_t=ts[j], ob_hi=obH, ob_lo=obL, bos_t=ts[k], frac_t=ts[day.frac[1]],
+                                   frac_px=day.frac[0], lim=lim, stop=stop, tp=_tick(lim + sgn * 2 * sgn * (lim - stop))))
             continue
         if fill == "dead":
             continue
@@ -270,7 +275,7 @@ def run(one, orb=None, **over):
                            orb=orb.get(d, "-"),
                            # geometry (for charts): order-block bar, BOS bar, the fractal it broke, the orders
                            ob_t=ts[j], ob_hi=obH, ob_lo=obL, bos_t=ts[k], frac_t=ts[day.frac[1]], frac_px=day.frac[0],
-                           lim=lim, stop=stop, tp=tp))
+                           lim=lim, stop=stop, tp=tp, status="taken"))
     return pd.DataFrame(trades), cnt
 
 
