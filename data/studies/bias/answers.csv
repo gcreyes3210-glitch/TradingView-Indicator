@@ -1,21 +1,21 @@
-id,bias,confidence,draw_level,reasons
-102411,,,,
-160425,,,,
-220251,,,,
-227794,,,,
-348227,,,,
-406320,,,,
-421212,,,,
-496862,,,,
-517515,,,,
-597195,,,,
-756857,,,,
-768238,,,,
-770811,,,,
-808881,,,,
-878524,,,,
-883920,,,,
-905100,,,,
-970176,,,,
-976546,,,,
-992014,,,,
+id,bias,confidence,draw_level,draw_ref,reasons,tags
+102411,long,3,,1H high at 06:00 Friday,daily bullish; in a 4H bullish FVG; rejecting off a 1H FVG and a 15m FVG,daily-bull;in-4h-fvg;reject-1h-fvg;reject-15m-fvg
+160425,short,2,,18:00 low,low-resistance liquidity down to that level; would wait for a sweep of PDH or a tap into the daily FVG at 15500 and a clean inversion,lrl-below;wait-pdh-sweep;daily-fvg-above;wait-inversion
+220251,long,2,,21:00 Wednesday high,low-resistance liquidity up to it and a 1H FVG right above; daily bullish; 4H overall bullish; 1H mild downtrend not strong; 15m shows the LRL,lrl-above;1h-fvg-above;daily-bull;4h-bull;1h-weak-down
+227794,long,1,,08:30 wick high (news candle),news candle high is a good draw; daily bullish; 4H bullish; 1H accumulating so low confidence; would go long on a strong inversion after a sweep of Monday 13:00 candle inside a 1H FVG,news-high-draw;daily-bull;4h-bull;1h-accumulating;wait-sweep;in-1h-fvg;wait-inversion
+348227,none,2,,none (lower),all timeframes bearish but no reachable FVG to tap within a day so no trade,all-bear;no-reachable-fvg
+406320,long,2,,ON high,relatively equal 15m lows and a 4H FVG; long on a strong inversion after those levels are taken,equal-lows-15m;4h-fvg;wait-sweep;wait-inversion
+421212,none,3,,ON high,low-resistance liquidity up to ON high,lrl-above
+496862,short,,,ON low,after a sweep of PDH look for a strong inversion toward ON low; ON low has relatively equal lows,wait-pdh-sweep;wait-inversion;equal-lows-onl
+517515,short,3,,PDL,low-resistance liquidity down to PDL; only after a sweep of PDH which sits in a daily FVG and a strong inversion out of it,lrl-below;wait-pdh-sweep;pdh-in-daily-fvg;wait-inversion
+597195,long,1,,ON high,not enough confluence; all timeframes bullish; would wait for a tap into the 15m/1H FVG and a strong inversion for longs,all-bull;low-confluence;wait-fvg-tap;wait-inversion
+756857,long,1,,PDH,15m seems to be accumulating; a long would be a strong IFVG off the 15m FVG price is in; other HTF FVGs too far,15m-accumulating;in-15m-fvg;htf-fvg-far
+768238,none,3,,ON low,between 15m FVGs; if trading would wait for a PDH sweep and a strong inversion to short toward ON low,between-fvgs;wait-pdh-sweep;wait-inversion
+770811,long,2,,ON high,daily FVG above ON high; all timeframes bullish; wait for a sweep of the lows in the 15m FVG at 04:45 and a strong inversion for longs,daily-fvg-above;all-bull;wait-sweep;wait-inversion
+808881,none,3,,none (lower),no reachable FVGs; all timeframes bearish so price likely keeps going lower,all-bear;no-reachable-fvg
+878524,short,2,,ON low,only setup is a rejection off the 1H FVG with a strong IFVG for shorts,reject-1h-fvg;wait-inversion
+883920,long,1,,PDH,after a tap into the 15m FVG below price wait for a strong inversion for longs,wait-fvg-tap;15m-fvg-below;wait-inversion
+905100,long,1,,PDH,do not like the confluence; would wait for a strong inversion off a sweep of ON low which sits in a daily FVG; PDH is the draw because HTFs are overall bullish,low-confluence;wait-onl-sweep;onl-in-daily-fvg;htf-bull
+970176,none,3,,none,between HTF FVGs so price can go either way,between-fvgs
+976546,none,1,,PDH,do not like the setup; price seems to be turning bullish but equal lows on the 15m at ON low,turning-bull;equal-lows-onl
+992014,short,3,,ON low,wait for a tap into the 1H or 15m FVG and a strong inversion off it,wait-fvg-tap;wait-inversion
