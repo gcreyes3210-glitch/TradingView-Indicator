@@ -124,7 +124,7 @@ def blocks(one, p):
         iend = exit_bar(ts, iend)                       # early close: the session's last bar
 
         # scan for the day's candidate, in BOS order
-        cand = None
+        cand = frac = None
         fh = fl = None            # (price, center index) of the latest confirmed fractal high / low
         fh_brk = fl_brk = True
         k = i0
@@ -153,11 +153,12 @@ def blocks(one, p):
                     fvg = any((H[i - 2] < L[i]) if side == "L" else (L[i - 2] > H[i]) for i in range(j + 2, k + 1))
                     if fvg or not p["fvg"]:
                         cand = (side, j, k)
+                        frac = f
                         break
             if cand is not None:
                 break
             k += 1
-        yield A, SimpleNamespace(d=d, i0=i0, iend=iend, span0=span0, daytype=daytype, work_from=work_from, cand=cand)
+        yield A, SimpleNamespace(d=d, i0=i0, iend=iend, span0=span0, daytype=daytype, work_from=work_from, cand=cand, frac=frac)
 
 
 def run(one, orb=None, **over):
@@ -240,7 +241,10 @@ def run(one, orb=None, **over):
         trades.append(dict(side=side, entry_time=ts[fill], entry=entry, exit_time=ts[xi], exit=px, reason=reason,
                            pnl=pnl, risk=risk, R=pnl / (risk * PT_VALUE), tf=p["tf"], bias=p["bias"], ob_h=obH - obL,
                            leg_x=leg / (obH - obL), bars=fill - k, limit=p["limit"], day=daytype,
-                           orb=orb.get(d, "-")))
+                           orb=orb.get(d, "-"),
+                           # geometry (for charts): order-block bar, BOS bar, the fractal it broke, the orders
+                           ob_t=ts[j], ob_hi=obH, ob_lo=obL, bos_t=ts[k], frac_t=ts[day.frac[1]], frac_px=day.frac[0],
+                           lim=lim, stop=stop, tp=tp))
     return pd.DataFrame(trades), cnt
 
 

@@ -201,6 +201,8 @@ def run(one, orb=None, **over):
                            pnl=pnl, risk=risk, R=pnl / (risk * PT_VALUE), rr=rr, trigger=kind, tf=p["tf"],
                            acc_w=AH - AL, depth=(ext - AH if side == "S" else AL - ext) / (AH - AL),
                            bars=fill_i - s, day="balance" if orH <= onH and orL >= onL else "break",
+                           acc_hi=AH, acc_lo=AL, sweep_t=ts[s], leg_t=ts[leg], leg_px=legPx, conf_t=ts[c], trig_t=ts[k],
+                           ext=ext, stop=stop, tp=tp,        # geometry (for charts)
                            orb=orb.get(d, "-"), or_break=("both" if orH > onH and orL < onL else "high" if orH > onH
                                                           else "low" if orL < onL else "inside")))
     return pd.DataFrame(trades), skipped

@@ -110,6 +110,7 @@ def run(one, orb=None, **over):
             seg = np.arange(s, mss + 1)
             lo_i = seg[np.argmin(L[seg])] if side == "L" else seg[np.argmax(H[seg])]
             setup = (side, lo_i, mss)
+            geo = dict(sweep_t=ts[s], frac_t=ts[fr[1]], frac_px=fr[0])
         else:
             allowed = {"high": "L", "low": "S", "both": "LS", "inside": ""}[daytype]
             if not allowed:
@@ -138,6 +139,7 @@ def run(one, orb=None, **over):
                         seg = np.arange(f[1], k + 1)
                         lo_i = seg[np.argmin(L[seg])] if side == "L" else seg[np.argmax(H[seg])]
                         setup = (side, lo_i, k)
+                        geo = dict(sweep_t=pd.NaT, frac_t=ts[f[1]], frac_px=f[0])
                 if setup is not None:
                     break
             if setup is None:
@@ -204,7 +206,10 @@ def run(one, orb=None, **over):
         pnl = sgn * (px - entry) * PT_VALUE - 2 * COMM_SIDE
         trades.append(dict(side=side, entry_time=ts[i], entry=entry, exit_time=ts[xi], exit=px, reason=reason, pnl=pnl,
                            risk=risk, R=pnl / (risk * PT_VALUE), rr=rr, tf=p["tf"], leg=leg, deepest=deepest,
-                           bars=i - mss, day=daytype, orb=orb.get(d, "-")))
+                           bars=i - mss, day=daytype, orb=orb.get(d, "-"),
+                           # geometry (for charts): liquidity, sweep, fractal broken, MSS, leg 0 % and 100 %, the orders
+                           liq_hi=liqH, liq_lo=liqL, mss_t=ts[mss], base_t=ts[lo_i], base_px=base, ext_px=ext,
+                           level=level, stop=stop, tp=tp, f=p["f"], **geo))
     return pd.DataFrame(trades), cnt
 
 
