@@ -156,6 +156,109 @@ class Ref:
         s.name, s.high, s.kind, s.a, s.b, s.bar, s.state, s.cur = name, high, kind, a, b, bar, state, None
 
 
+class ZoneBook:
+    """The indicator's HTF FVG / NDOG zones on a chart (any bar size): pre(i) before the engine runs on chart bar i
+    (expire after `days`, remove on a close through by the zone's own TF bar or, for NDOG, the chart bar, add new
+    zones, keep the newest `cap` per TF) and post(i) after it (lifecycle: touched / partial / CE 50 %, DEFENDED on a
+    close back across the CE, FILLED at the far edge; DEFENDED / FILLED are no longer eligible). With record=True each
+    zone's eligibility window is logged: eligible for engine queries on bars [first, end)."""
+
+    def __init__(s, one, ts, O, H, L, C, atr, htf, ndog=True, days=7, cap=6, record=False):
+        s.ts, s.O, s.H, s.L, s.C, s.atr, s.ndog, s.days, s.cap = ts, O, H, L, C, atr, ndog, days, cap
+        s.tsec = (ts.tz_convert("UTC").astype("int64") // 10 ** 9).to_numpy()
+        td = trading_date(ts)
+        s.new_day = np.r_[False, td[1:] != td[:-1]]
+        s.slots = []
+        for name, rule in htf:
+            hb = htf_bars(one, name, rule)
+            hh, hl, hc, ho = (hb[k].to_numpy() for k in ("high", "low", "close", "open"))
+            bk = np.searchsorted(hb.index.to_numpy(), ts.to_numpy(), side="right") - 1   # HTF bar containing chart bar
+            s.slots.append((name, bk, np.r_[False, bk[1:] != bk[:-1]], ho, hh, hl, hc, rma_atr(hh, hl, hc), hb.index))
+        s.zones, s.record, s.log = [], record, {}
+
+    def _keep(s, zs, i):
+        if s.record:
+            kept = {id(z) for z in zs}
+            for z in s.zones:
+                if id(z) not in kept and s.log[id(z)][1] is None:
+                    s.log[id(z)][1] = i
+        s.zones = zs
+
+    def _add(s, z, i):
+        s.zones.append(z)
+        if s.record:
+            s.log[id(z)] = [i, None, z]
+
+    def pre(s, i):
+        t, C = s.tsec[i], s.C
+        s._keep([z for z in s.zones if t - z.born <= s.days * 86400], i)
+        for name, bk, isnew, ho, hh, hl, hc, hatr, hix in s.slots:
+            if isnew[i] and bk[i] >= 1:
+                cC = hc[bk[i] - 1]
+                s._keep([z for z in s.zones if not (z.tf == name and (cC < z.bot if z.bull else cC > z.top))], i)
+        if s.ndog:
+            s._keep([z for z in s.zones if not (z.tf == "NDOG" and (C[i] < z.bot if z.bull else C[i] > z.top))], i)
+        for name, bk, isnew, ho, hh, hl, hc, hatr, hix in s.slots:
+            k = bk[i] - 1
+            if isnew[i] and k >= 2:
+                hC_, lC_, hA_, lA_ = hh[k], hl[k], hh[k - 2], hl[k - 2]
+                a2 = hatr[k - 1]
+                rng2 = max(hh[k - 1] - hl[k - 1], TICK)
+                ra = rng2 / a2 if a2 > 0 else None
+                br = abs(hc[k - 1] - ho[k - 1]) / rng2
+                made = False
+                if lC_ > hA_:
+                    s._add(Zone(True, lC_, hA_, name, t, (lC_ - hA_) / a2 if a2 > 0 else None, ra, br, hix[k - 2]), i); made = True
+                if hC_ < lA_:
+                    s._add(Zone(False, lA_, hC_, name, t, (lA_ - hC_) / a2 if a2 > 0 else None, ra, br, hix[k - 2]), i); made = True
+                if made:
+                    s._cap(name, i)
+        if s.ndog and s.new_day[i] and i > 0 and s.O[i] != C[i - 1]:
+            up = s.O[i] > C[i - 1]
+            top, bot = (s.O[i], C[i - 1]) if up else (C[i - 1], s.O[i])
+            s._add(Zone(up, top, bot, "NDOG", t, (top - bot) / s.atr[i] if s.atr[i] > 0 else None, t1=s.ts[i]), i)
+            s._cap("NDOG", i)
+
+    def _cap(s, name, i):
+        same = [z for z in s.zones if z.tf == name]
+        if len(same) > s.cap:
+            drop = {id(z) for z in same[:len(same) - s.cap]}
+            s._keep([z for z in s.zones if id(z) not in drop], i)
+
+    def post(s, i):
+        o, h, l, c = s.O[i], s.H[i], s.L[i], s.C[i]
+        for z in s.zones:
+            if not z.eligible:
+                continue
+            gh = max(z.top - z.bot, TICK)
+            pen = (z.top - l) / gh if z.bull else (h - z.bot) / gh
+            z.deep = max(z.deep, min(1.0, pen))
+            if z.state >= HZ_FILLED:
+                continue
+            touched = l <= z.top if z.bull else h >= z.bot
+            ce_hit = l <= z.ce if z.bull else h >= z.ce
+            filled = l <= z.bot if z.bull else h >= z.top
+            if filled:
+                z.state = HZ_FILLED
+                z.eligible = False
+            elif z.state < HZ_DEFENDED:
+                if ce_hit and z.state < HZ_CE50:
+                    z.state = HZ_CE50
+                elif touched and z.state < HZ_CE50:
+                    z.state = HZ_PARTIAL if z.bot <= c <= z.top else max(z.state, HZ_TOUCHED)
+                if z.state == HZ_CE50 and (c > z.ce if z.bull else c < z.ce):
+                    z.state = HZ_DEFENDED
+                    z.eligible = False
+            if s.record and not z.eligible and s.log[id(z)][1] is None:
+                s.log[id(z)][1] = i + 1
+
+    def windows(s):
+        """Eligibility windows as a DataFrame: tf, bull, top, bot, first, end (chart bar indexes), t1."""
+        n = len(s.ts)
+        return pd.DataFrame([dict(tf=z.tf, bull=z.bull, top=z.top, bot=z.bot, first=a, end=n if b is None else b, t1=z.t1)
+                             for a, b, z in s.log.values()])
+
+
 def load(tf, one_a=None, one_b=None):
     one_a = pd.read_parquet("data/bars/MNQ_1m.parquet") if one_a is None else one_a
     one_b = pd.read_parquet("data/bars/ES_1m.parquet") if one_b is None else one_b
@@ -201,17 +304,9 @@ def run(one_a, one_b, a, b, tf=5, start=None, end=None, **over):
     pwL = np.where(wpos >= 0, wkL.to_numpy()[wpos], np.nan)
     new_day = np.r_[False, td[1:] != td[:-1]]
 
-    slots = []
-    for name, rule in p["htf"]:
-        hb = htf_bars(one_a, name, rule)
-        hh, hl, hc, ho = (hb[k].to_numpy() for k in ("high", "low", "close", "open"))
-        hatr = rma_atr(hh, hl, hc)
-        bk = np.searchsorted(hb.index.to_numpy(), ts.to_numpy(), side="right") - 1   # HTF bar containing chart bar
-        isnew = np.r_[False, bk[1:] != bk[:-1]]
-        slots.append((name, bk, isnew, ho, hh, hl, hc, hatr, hb.index))
+    book = ZoneBook(one_a, ts, O, H, L, C, atr, p["htf"], p["ndog"], p["htf_days"], p["htf_cap"])
 
     # ---- state ----
-    zones = []
     raw = []            # [formBar, dir, top, bot, gapAtr, bodyR, rangeAtr, formT]
     ifvgs = []          # dicts
     setups = []
@@ -236,7 +331,7 @@ def run(one_a, one_b, a, b, tf=5, start=None, end=None, **over):
         prox = 0.5 * (atr[i] if not np.isnan(atr[i]) else 0.0)
         lv = [(pdA[i, 0], 1.0), (pdA[i, 1], 1.0), (pwH[i], 1.0), (pwL[i], 1.0),
               ((pdA[i, 0] + pdA[i, 1]) / 2, 0.5), ((pwH[i] + pwL[i]) / 2, 0.5)]
-        cands = [z for z in zones if z.eligible]
+        cands = [z for z in book.zones if z.eligible]
         sc = {}
         for z in cands:
             base = (1.0, 0.8, 0.55, 0.3)[z.state] if z.state <= HZ_CE50 else 0.0
@@ -269,32 +364,6 @@ def run(one_a, one_b, a, b, tf=5, start=None, end=None, **over):
             if k not in best or sc[id(z)] > sc[id(best[k])]:     # tuple order = score, then the tie chain
                 best[k] = z
         return {id(z) for z in best.values()}
-
-    def zone_update(i):
-        o, h, l, c = O[i], H[i], L[i], C[i]
-        for z in zones:
-            if not z.eligible:
-                continue
-            gh = max(z.top - z.bot, TICK)
-            pen = (z.top - l) / gh if z.bull else (h - z.bot) / gh
-            z.deep = max(z.deep, min(1.0, pen))
-            if z.state >= HZ_FILLED:
-                continue
-            touched = l <= z.top if z.bull else h >= z.bot
-            ce_hit = l <= z.ce if z.bull else h >= z.ce
-            filled = l <= z.bot if z.bull else h >= z.top
-            if filled:
-                z.state = HZ_FILLED
-                z.eligible = False
-                continue
-            if z.state < HZ_DEFENDED:
-                if ce_hit and z.state < HZ_CE50:
-                    z.state = HZ_CE50
-                elif touched and z.state < HZ_CE50:
-                    z.state = HZ_PARTIAL if z.bot <= c <= z.top else max(z.state, HZ_TOUCHED)
-                if z.state == HZ_CE50 and (c > z.ce if z.bull else c < z.ce):
-                    z.state = HZ_DEFENDED
-                    z.eligible = False
 
     def close_pos(i, px, reason):
         nonlocal pos
@@ -333,39 +402,7 @@ def run(one_a, one_b, a, b, tf=5, start=None, end=None, **over):
 
         # ---------- A. HTF zones: expire, invalidate, add, NDOG ----------
         t = tsec[i]
-        zones = [z for z in zones if t - z.born <= p["htf_days"] * 86400]
-        for name, bk, isnew, ho, hh, hl, hc, hatr, hix in slots:
-            if isnew[i] and bk[i] >= 1:
-                cC = hc[bk[i] - 1]
-                zones = [z for z in zones if not (z.tf == name and (cC < z.bot if z.bull else cC > z.top))]
-        if p["ndog"]:
-            zones = [z for z in zones if not (z.tf == "NDOG" and (C[i] < z.bot if z.bull else C[i] > z.top))]
-        for name, bk, isnew, ho, hh, hl, hc, hatr, hix in slots:
-            k = bk[i] - 1
-            if isnew[i] and k >= 2:
-                hC_, lC_, hA_, lA_ = hh[k], hl[k], hh[k - 2], hl[k - 2]
-                a2 = hatr[k - 1]
-                rng2 = max(hh[k - 1] - hl[k - 1], TICK)
-                ra = rng2 / a2 if a2 > 0 else None
-                br = abs(hc[k - 1] - ho[k - 1]) / rng2
-                made = False
-                if lC_ > hA_:
-                    zones.append(Zone(True, lC_, hA_, name, t, (lC_ - hA_) / a2 if a2 > 0 else None, ra, br, hix[k - 2])); made = True
-                if hC_ < lA_:
-                    zones.append(Zone(False, lA_, hC_, name, t, (lA_ - hC_) / a2 if a2 > 0 else None, ra, br, hix[k - 2])); made = True
-                if made:
-                    same = [z for z in zones if z.tf == name]
-                    if len(same) > p["htf_cap"]:
-                        drop = {id(z) for z in same[:len(same) - p["htf_cap"]]}
-                        zones = [z for z in zones if id(z) not in drop]
-        if p["ndog"] and new_day[i] and i > 0 and O[i] != C[i - 1]:
-            up = O[i] > C[i - 1]
-            top, bot = (O[i], C[i - 1]) if up else (C[i - 1], O[i])
-            zones.append(Zone(up, top, bot, "NDOG", t, (top - bot) / atr[i] if atr[i] > 0 else None, t1=ts[i]))
-            same = [z for z in zones if z.tf == "NDOG"]
-            if len(same) > p["htf_cap"]:
-                drop = {id(z) for z in same[:len(same) - p["htf_cap"]]}
-                zones = [z for z in zones if id(z) not in drop]
+        book.pre(i)
 
         # ---------- engine ----------
         sig = None
@@ -513,7 +550,7 @@ def run(one_a, one_b, a, b, tf=5, start=None, end=None, **over):
                 bull = anc[1] == -1
                 top, bot = anc[2], anc[3]
                 sel = select(i)
-                match = [z for z in zones if z.eligible and id(z) in sel and top >= z.bot and bot <= z.top]
+                match = [z for z in book.zones if z.eligible and id(z) in sel and top >= z.bot and bot <= z.top]
                 prim, zb = "", None
                 if match:
                     zb = max(match, key=lambda z: (z.sec, z.created, -abs(c - z.ce)))
@@ -554,7 +591,7 @@ def run(one_a, one_b, a, b, tf=5, start=None, end=None, **over):
                 break
 
         # lifecycle after the engine
-        zone_update(i)
+        book.post(i)
 
         # ---------- strategy ----------
         if sig is not None and t_start <= t <= t_end:
