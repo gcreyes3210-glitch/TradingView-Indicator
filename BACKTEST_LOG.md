@@ -117,7 +117,8 @@ VP2y (overnight value area 80 % rule), the earlier candidate: fails out of sampl
 Events: one pre-registered skip filter qualifies — ORB does not trade well on retail-sales release days (39 trades, −2,409, negative 8 of 8 years, p = 0.011); skipping them gives +23,652, PF 1.32, +0.147 R. Pending as v1.4 of the Pine script. FOMC afternoons have helped open positions. Engines now flatten on the last bar of an early-close session (ORB: 17 trades, +243).
 ORB context check (pre-registered, no rule change): four of five splits pass the 6-of-8-years rule, but label shuffles pass it 26–50 % of the time and the best split is p ≈ 0.14, so v1.3 stays as it is. Watch in the forward test, don't trade on: days after the previous day's range is in its widest third, and days whose overnight range is wider than the previous day's; ORB has made ≈ 0 R on both.
 **The SMT + IFVG family is closed** on both the indicator's selection (IFVG7: Run I ported and calibrated to TradingView, 89 of 95 trades on the same bar; 773 trades, −0.112 R, 2 of 8 positive years) and the trader's own selection (IFVG-1m: agreement 7 of 10 on the check charts; 6 pre-registered 1m runs from −0.06 to −0.26 R, 1–3 positive years of 8). The trader names the day's bias as the missing input; the forward bias log tests it. The agreement audit is scored (6 of 20 same gap on the 5m).
-**Discretionary bias (BIAS study, 40 blind pre-open charts):** the trader's calls are 13 of 23 right over 40 days (p 0.37). Block 1 was 10 of 14, block 2 3 of 9, and the implied directions 1 of 10. R4 (unfilled daily FVG above → short), the rule that fitted the block-1 calls, is rejected over seven years: right on 52.3 % of 1,746 days against 52.0 % expected, and as an ORB side filter it would skip +3,581 (2019–22) and +8,627 (2023–26) of ORB's profit. ORB v1.4 stays unfiltered; the forward bias log continues as the live test of the day's bias.
+**Discretionary bias (BIAS study, 40 blind pre-open charts):** the trader's calls are 13 of 23 right over 40 days (p 0.37). Block 1 was 10 of 14, block 2 3 of 9, and the implied directions 1 of 10. R4 (unfilled daily FVG above → short), the rule that fitted the block-1 calls, is rejected over seven years: right on 52.3 % of 1,746 days against 52.0 % expected, and as an ORB side filter it would skip +3,581 (2019–22) and +8,627 (2023–26) of ORB's profit. ORB v1.4 stays unfiltered; the forward bias log continues as the live test of the day's bias. Blocks 3–12 (200 more days) are pre-registered and being answered one block at a time.
+**POWELL 10:00 model** (manipulation from the 10:00 open, then a close back through it; P1 / P4 × 3R / 5R / IL): all six runs fail. There are 71 trades in seven years, at most 4 positive years, and the 2019–2022 half is negative in every run.
 Sizing (see "Sizing"): one MNQ ≈ 1.1% of a $25k account at the median stop; a repeat of the worst drawdown ≈ −17% at that size. The edge is in the top 5% of trades, so every qualifying trade is taken.
 Forward test: v1.4 on the TradingView MNQ 5m chart with one "Any alert() function call" alert; each week export the strategy's list of trades and run `python3 tools/calibrate_orb.py <export.csv>` (live window from 2026-09-23 by default): it matches the live trades against the engine, prints the ORB8 filters and the retail-sales flag for every live trade, and ends with the row for the "Forward test" table below. Shadow rules are tracked, not traded.
 
@@ -834,6 +835,29 @@ MNQ 1m, 2019-06 → 2026-09-21, house fills (1 tick slippage on every fill, $1 p
 - observation only: R per trade by whether the manipulation side matched the 09:30–10:00 direction (09:59 close vs 09:30 open).
 **Check charts:** 10 random P1 trades (3R run), 1m bars from 09:30 cut at the entry bar, outcome hidden.
 **Not encoded:** the model's HTF-PDA bias (which higher-timeframe array price is drawn to) and its 0.79 Fibonacci entry. Entry here is the close back through the 10:00 open.
+
+### POWELL — results (run 2026-09-25)
+`python3 tools/powell_engine.py all`; trade lists in `data/studies/powell/`. 1,885 days with a 10:00 bar.
+
+| Run | n | Net | R/trade | Win % | PF | Positive years | R 2019–22 / 2023–26 | p (mean R > 0) | Neighbours 0.35 / 0.75 ATR, R/trade |
+|---|---|---|---|---|---|---|---|---|---|
+| P1 3R | 71 | +240 | −0.040 | 28.2 | 1.10 | 4 of 8 | −0.184 / +0.180 | 0.58 | −0.057 / +0.085 |
+| P1 5R | 71 | +1,210 | +0.095 | 23.9 | 1.48 | 4 of 8 | −0.093 / +0.385 | 0.36 | +0.115 / +0.253 |
+| P1 IL | 25 | −90 | −0.123 | 24.0 | 0.91 | 3 of 6 | −0.431 / +0.426 | 0.63 | −0.337 / −0.187 |
+| P4 3R / 5R / IL | identical to P1 | | | | | | | | |
+
+- **Funnel (P1):** 1,885 days → 328 with a manipulation → 131 signals by 10:29 → 71 within the stop cap → 71 trades (IL: 46 skipped as under 2 R or without a fractal, leaving 25).
+  - Most days fail at the first step: the 10:00 bar itself usually trades more than 2 ticks on both sides of its open.
+  - The typical signal comes 2–3 minutes after 10:00.
+- **P4 equals P1.** P4 finds 19 more signals (150), all after 10:30. Every one has a stop of 2.2–6.8 × ATR, because a manipulation that runs past 10:30 leaves its extreme far away, so the 1.5 × ATR cap removes them all. P4 therefore trades exactly the P1 days.
+- **P1 5R by year:** −74, −538, +368, +548, +650, +564, −224, −84 (2026 has 1 trade). Long 26 trades +0.191 R, short 45 trades +0.040 R.
+- **Observation only, the manipulation side against the 09:30–10:00 direction:**
+  - 3R: same direction 47 trades +0.094 R; opposite direction 24 trades −0.302 R.
+  - 5R: same 47 trades +0.341 R; opposite 24 trades −0.385 R.
+  - This is not tested and not a filter: 71 trades, one split looked at after the fact.
+**Verdict: every run fails.** None has 6 positive years (the best has 4). Every run's 2019–2022 half is negative. The smallest p is 0.24 on a neighbour and 0.36 on a run, against 0.0083 needed. The 5R run's +0.095 R rests on 12 targets in seven years.
+**Not encoded,** as stated in the pre-registration: the model's HTF-PDA bias and its 0.79 Fibonacci entry.
+**Check charts:** `data/studies/powell_charts/powell_01…10.png`, 10 random P1 trades from the 3R run, 1m from 09:30 cut at the entry bar, outcome hidden. They show the 10:00 open, the 0.5 × ATR threshold, the manipulation extreme and the stop. Answer template `answers.csv` (manipulation_is_right, entry_is_right, note).
 
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
