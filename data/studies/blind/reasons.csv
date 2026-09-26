@@ -1,0 +1,31 @@
+id,answer,reason,tags
+104738,yes,looks fine,fine
+149977,no,stop loss too big; entry should have been at the 9:37 IFVG,big-stop;wrong-entry
+207173,no,no IFVG entry; 79-point stop,no-ifvg;big-stop
+218294,yes,looks fine,fine
+302681,yes,looks fine,fine
+329381,no,wrong candles chosen,wrong-swing
+350581,no,FVG too old and accumulation,stale-gap;accumulation
+356554,no,no ideal IFVG (unless a 30s IFVG at 9:55-9:56),no-ifvg;check-30s
+370143,no,accumulation before; not at top or bottom of a strong move; decent idea,accumulation;mid-move
+372726,no,stop loss too big; would check for a 30s IFVG at 9:35-9:36,big-stop;check-30s
+407440,yes,decent not the greatest,decent
+500567,no,ideal range would be 10:06-10:13 or 9:43-10:13 for a short,wrong-swing
+521136,no,no clear range to measure,wrong-swing
+530333,yes,decent,decent
+549800,yes,OTE entry lines up with low-resistance liquidity,fine;lrl
+554093,no,stop loss too big; would check for a 30s IFVG at 9:49 for longs,big-stop;check-30s
+620448,no,not at the top or bottom of a move,mid-move
+662568,no,too deep into the move,mid-move
+715743,yes,decent,decent
+747520,yes,decent,decent
+798098,yes,inside an imbalance,fine
+817352,no,accumulation,accumulation
+834811,no,accumulation in the middle of both candles,accumulation
+839094,no,not at top or bottom of a move,mid-move
+850266,yes,the most valid IFVG seen all day,fine
+886182,no,would choose the IFVG at 9:40,wrong-entry
+907469,no,no IFVG (unless one at 9:48 on the 30s),no-ifvg;check-30s
+921345,no,not at the top or bottom of a move,mid-move
+950387,yes,a little accumulation before the move up but looks ok,decent
+991410,yes,low-resistance liquidity leading up to the OTE,fine;lrl

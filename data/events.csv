@@ -1,0 +1,674 @@
+date,type,time_ny,note
+2019-06-07,NFP,08:30,BLS release archive
+2019-06-11,PPI,08:30,BLS release archive
+2019-06-12,CPI,08:30,BLS release archive
+2019-06-14,retail_sales,08:30,Census MARTS release dates
+2019-06-19,FOMC,14:00,"scheduled meeting, statement 14:00"
+2019-06-21,opex,09:30,quad witching; AM-settled index options settle at the open
+2019-06-28,PCE,08:30,"Personal Income and Outlays, May 2019"
+2019-07-03,early_close,13:15,NYSE half day
+2019-07-04,early_close,13:00,exchange holiday: CME Globex-only session
+2019-07-05,NFP,08:30,BLS release archive
+2019-07-11,CPI,08:30,BLS release archive
+2019-07-12,PPI,08:30,BLS release archive
+2019-07-16,retail_sales,08:30,Census MARTS release dates
+2019-07-19,opex,09:30,monthly; AM-settled index options settle at the open
+2019-07-26,GDP_advance,08:30,"Gross Domestic Product, Second Quarter 2019 (Advance Estimate) and Annual Update"
+2019-07-30,PCE,08:30,Personal Income and Outlays: June 2019
+2019-07-31,FOMC,14:00,"scheduled meeting, statement 14:00"
+2019-08-02,NFP,08:30,BLS release archive
+2019-08-09,PPI,08:30,BLS release archive
+2019-08-13,CPI,08:30,BLS release archive
+2019-08-15,retail_sales,08:30,Census MARTS release dates
+2019-08-16,opex,09:30,monthly; AM-settled index options settle at the open
+2019-08-30,PCE,08:30,"Personal Income and Outlays, July 2019"
+2019-09-02,early_close,13:00,exchange holiday: CME Globex-only session
+2019-09-06,NFP,08:30,BLS release archive
+2019-09-11,PPI,08:30,BLS release archive
+2019-09-12,CPI,08:30,BLS release archive
+2019-09-13,retail_sales,08:30,Census MARTS release dates
+2019-09-18,FOMC,14:00,"scheduled meeting, statement 14:00"
+2019-09-20,opex,09:30,quad witching; AM-settled index options settle at the open
+2019-09-27,PCE,08:30,"Personal Income and Outlays, August 2019"
+2019-10-04,NFP,08:30,BLS release archive
+2019-10-08,PPI,08:30,BLS release archive
+2019-10-10,CPI,08:30,BLS release archive
+2019-10-16,retail_sales,08:30,Census MARTS release dates
+2019-10-18,opex,09:30,monthly; AM-settled index options settle at the open
+2019-10-30,FOMC,14:00,"scheduled meeting, statement 14:00"
+2019-10-30,GDP_advance,08:30,"Gross Domestic Product, Third Quarter 2019 (Advance Estimate)"
+2019-10-31,PCE,08:30,"Personal Income and Outlays, September 2019"
+2019-11-01,NFP,08:30,BLS release archive
+2019-11-13,CPI,08:30,BLS release archive
+2019-11-14,PPI,08:30,BLS release archive
+2019-11-15,opex,09:30,monthly; AM-settled index options settle at the open
+2019-11-15,retail_sales,08:30,Census MARTS release dates
+2019-11-27,PCE,08:30,"Personal Income and Outlays, October 2019"
+2019-11-28,early_close,13:00,exchange holiday: CME Globex-only session
+2019-11-29,early_close,13:15,NYSE half day
+2019-12-06,NFP,08:30,BLS release archive
+2019-12-11,CPI,08:30,BLS release archive
+2019-12-11,FOMC,14:00,"scheduled meeting, statement 14:00"
+2019-12-12,PPI,08:30,BLS release archive
+2019-12-13,retail_sales,08:30,Census MARTS release dates
+2019-12-20,PCE,08:30,"Personal Income and Outlays, November 2019"
+2019-12-20,opex,09:30,quad witching; AM-settled index options settle at the open
+2019-12-24,early_close,13:15,NYSE half day
+2020-01-10,NFP,08:30,BLS release archive
+2020-01-14,CPI,08:30,BLS release archive
+2020-01-15,PPI,08:30,BLS release archive
+2020-01-16,retail_sales,08:30,Census MARTS release dates
+2020-01-17,opex,09:30,monthly; AM-settled index options settle at the open
+2020-01-20,early_close,13:00,exchange holiday: CME Globex-only session
+2020-01-29,FOMC,14:00,"scheduled meeting, statement 14:00"
+2020-01-30,GDP_advance,08:30,"Gross Domestic Product, Fourth Quarter and Year 2019 (Advance Estimate)"
+2020-01-31,PCE,08:30,"Personal Income and Outlays, December 2019"
+2020-02-07,NFP,08:30,BLS release archive
+2020-02-13,CPI,08:30,BLS release archive
+2020-02-14,retail_sales,08:30,Census MARTS release dates
+2020-02-17,early_close,13:00,exchange holiday: CME Globex-only session
+2020-02-19,PPI,08:30,BLS release archive
+2020-02-21,opex,09:30,monthly; AM-settled index options settle at the open
+2020-02-28,PCE,08:30,"Personal Income and Outlays, January 2020"
+2020-03-03,FOMC,10:00,unscheduled; statement released 10:00
+2020-03-06,NFP,08:30,BLS release archive
+2020-03-11,CPI,08:30,BLS release archive
+2020-03-12,PPI,08:30,BLS release archive
+2020-03-15,FOMC,17:00,"unscheduled; Sunday, no cash session"
+2020-03-17,retail_sales,08:30,Census MARTS release dates
+2020-03-20,opex,09:30,quad witching; AM-settled index options settle at the open
+2020-03-27,PCE,08:30,Personal Income and Outlays: February 2020
+2020-04-03,NFP,08:30,BLS release archive
+2020-04-09,PPI,08:30,BLS release archive
+2020-04-10,CPI,08:30,BLS release archive
+2020-04-15,retail_sales,08:30,Census MARTS release dates
+2020-04-17,opex,09:30,monthly; AM-settled index options settle at the open
+2020-04-29,FOMC,14:00,"scheduled meeting, statement 14:00"
+2020-04-29,GDP_advance,08:30,"Gross Domestic Product, 1st Quarter 2020 (Advance Estimate)"
+2020-04-30,PCE,08:30,Personal Income and Outlays: March 2020
+2020-05-08,NFP,08:30,BLS release archive
+2020-05-12,CPI,08:30,BLS release archive
+2020-05-13,PPI,08:30,BLS release archive
+2020-05-15,opex,09:30,monthly; AM-settled index options settle at the open
+2020-05-15,retail_sales,08:30,Census MARTS release dates
+2020-05-25,early_close,13:00,exchange holiday: CME Globex-only session
+2020-05-29,PCE,08:30,Personal Income and Outlays: April 2020
+2020-06-05,NFP,08:30,BLS release archive
+2020-06-10,CPI,08:30,BLS release archive
+2020-06-10,FOMC,14:00,"scheduled meeting, statement 14:00"
+2020-06-11,PPI,08:30,BLS release archive
+2020-06-16,retail_sales,08:30,Census MARTS release dates
+2020-06-19,opex,09:30,quad witching; AM-settled index options settle at the open
+2020-06-26,PCE,08:30,Personal Income and Outlays: May 2020
+2020-07-02,NFP,08:30,BLS release archive
+2020-07-03,early_close,13:00,exchange holiday: CME Globex-only session
+2020-07-10,PPI,08:30,BLS release archive
+2020-07-14,CPI,08:30,BLS release archive
+2020-07-16,retail_sales,08:30,Census MARTS release dates
+2020-07-17,opex,09:30,monthly; AM-settled index options settle at the open
+2020-07-29,FOMC,14:00,"scheduled meeting, statement 14:00"
+2020-07-30,GDP_advance,08:30,"Gross Domestic Product, 2nd Quarter 2020 (Advance Estimate) and Annual Update"
+2020-07-31,PCE,08:30,"Personal Income and Outlays, June 2020 and Annual Update"
+2020-08-07,NFP,08:30,BLS release archive
+2020-08-11,PPI,08:30,BLS release archive
+2020-08-12,CPI,08:30,BLS release archive
+2020-08-14,retail_sales,08:30,Census MARTS release dates
+2020-08-21,opex,09:30,monthly; AM-settled index options settle at the open
+2020-08-28,PCE,08:30,"Personal Income and Outlays, July 2020"
+2020-09-04,NFP,08:30,BLS release archive
+2020-09-07,early_close,13:00,exchange holiday: CME Globex-only session
+2020-09-10,PPI,08:30,BLS release archive
+2020-09-11,CPI,08:30,BLS release archive
+2020-09-16,FOMC,14:00,"scheduled meeting, statement 14:00"
+2020-09-16,retail_sales,08:30,Census MARTS release dates
+2020-09-18,opex,09:30,quad witching; AM-settled index options settle at the open
+2020-10-01,PCE,08:30,"Personal Income and Outlays, August 2020"
+2020-10-02,NFP,08:30,BLS release archive
+2020-10-13,CPI,08:30,BLS release archive
+2020-10-14,PPI,08:30,BLS release archive
+2020-10-16,opex,09:30,monthly; AM-settled index options settle at the open
+2020-10-16,retail_sales,08:30,Census MARTS release dates
+2020-10-29,GDP_advance,08:30,"Gross Domestic Product, Third Quarter 2020 (Advance Estimate)"
+2020-10-30,PCE,08:30,"Personal Income and Outlays, September 2020"
+2020-11-05,FOMC,14:00,"scheduled meeting, statement 14:00"
+2020-11-06,NFP,08:30,BLS release archive
+2020-11-12,CPI,08:30,BLS release archive
+2020-11-13,PPI,08:30,BLS release archive
+2020-11-17,retail_sales,08:30,Census MARTS release dates
+2020-11-20,opex,09:30,monthly; AM-settled index options settle at the open
+2020-11-25,PCE,08:30,"Personal Income and Outlays, October 2020"
+2020-11-26,early_close,13:00,exchange holiday: CME Globex-only session
+2020-11-27,early_close,13:15,NYSE half day
+2020-12-04,NFP,08:30,BLS release archive
+2020-12-10,CPI,08:30,BLS release archive
+2020-12-11,PPI,08:30,BLS release archive
+2020-12-16,FOMC,14:00,"scheduled meeting, statement 14:00"
+2020-12-16,retail_sales,08:30,Census MARTS release dates
+2020-12-18,opex,09:30,quad witching; AM-settled index options settle at the open
+2020-12-23,PCE,08:30,"Personal Income and Outlays, November 2020"
+2020-12-24,early_close,13:15,NYSE half day
+2021-01-08,NFP,08:30,BLS release archive
+2021-01-13,CPI,08:30,BLS release archive
+2021-01-15,PPI,08:30,BLS release archive
+2021-01-15,opex,09:30,monthly; AM-settled index options settle at the open
+2021-01-15,retail_sales,08:30,Census MARTS release dates
+2021-01-18,early_close,13:00,exchange holiday: CME Globex-only session
+2021-01-27,FOMC,14:00,"scheduled meeting, statement 14:00"
+2021-01-28,GDP_advance,08:30,"Gross Domestic Product, 4th Quarter and Year 2020 (Advance Estimate)"
+2021-01-29,PCE,08:30,"Personal Income and Outlays, December 2020"
+2021-02-05,NFP,08:30,BLS release archive
+2021-02-10,CPI,08:30,BLS release archive
+2021-02-15,early_close,13:00,exchange holiday: CME Globex-only session
+2021-02-17,PPI,08:30,BLS release archive
+2021-02-17,retail_sales,08:30,Census MARTS release dates
+2021-02-19,opex,09:30,monthly; AM-settled index options settle at the open
+2021-02-26,PCE,08:30,"Personal Income and Outlays, January 2021"
+2021-03-05,NFP,08:30,BLS release archive
+2021-03-10,CPI,08:30,BLS release archive
+2021-03-12,PPI,08:30,BLS release archive
+2021-03-16,retail_sales,08:30,Census MARTS release dates
+2021-03-17,FOMC,14:00,"scheduled meeting, statement 14:00"
+2021-03-19,opex,09:30,quad witching; AM-settled index options settle at the open
+2021-03-26,PCE,08:30,"Personal Income and Outlays, February 2021"
+2021-04-02,NFP,08:30,BLS release archive
+2021-04-09,PPI,08:30,BLS release archive
+2021-04-13,CPI,08:30,BLS release archive
+2021-04-15,retail_sales,08:30,Census MARTS release dates
+2021-04-16,opex,09:30,monthly; AM-settled index options settle at the open
+2021-04-28,FOMC,14:00,"scheduled meeting, statement 14:00"
+2021-04-29,GDP_advance,08:30,"Gross Domestic Product, First Quarter 2021 (Advance Estimate)"
+2021-04-30,PCE,08:30,"Personal Income and Outlays, March 2021"
+2021-05-07,NFP,08:30,BLS release archive
+2021-05-12,CPI,08:30,BLS release archive
+2021-05-13,PPI,08:30,BLS release archive
+2021-05-14,retail_sales,08:30,Census MARTS release dates
+2021-05-21,opex,09:30,monthly; AM-settled index options settle at the open
+2021-05-28,PCE,08:30,"Personal Income and Outlays, April 2021"
+2021-05-31,early_close,13:00,exchange holiday: CME Globex-only session
+2021-06-04,NFP,08:30,BLS release archive
+2021-06-10,CPI,08:30,BLS release archive
+2021-06-15,PPI,08:30,BLS release archive
+2021-06-15,retail_sales,08:30,Census MARTS release dates
+2021-06-16,FOMC,14:00,"scheduled meeting, statement 14:00"
+2021-06-18,opex,09:30,quad witching; AM-settled index options settle at the open
+2021-06-25,PCE,08:30,"Personal Income and Outlays, May 2021"
+2021-07-02,NFP,08:30,BLS release archive
+2021-07-05,early_close,13:00,exchange holiday: CME Globex-only session
+2021-07-13,CPI,08:30,BLS release archive
+2021-07-14,PPI,08:30,BLS release archive
+2021-07-16,opex,09:30,monthly; AM-settled index options settle at the open
+2021-07-16,retail_sales,08:30,Census MARTS release dates
+2021-07-28,FOMC,14:00,"scheduled meeting, statement 14:00"
+2021-07-29,GDP_advance,08:30,"Gross Domestic Product, Second Quarter 2021 (Advance Estimate) and Annual Update"
+2021-07-30,PCE,08:30,"Personal Income and Outlays, June 2021 and Annual Update"
+2021-08-06,NFP,08:30,BLS release archive
+2021-08-11,CPI,08:30,BLS release archive
+2021-08-12,PPI,08:30,BLS release archive
+2021-08-17,retail_sales,08:30,Census MARTS release dates
+2021-08-20,opex,09:30,monthly; AM-settled index options settle at the open
+2021-08-27,PCE,08:30,"Personal Income and Outlays, July 2021"
+2021-09-03,NFP,08:30,BLS release archive
+2021-09-06,early_close,13:00,exchange holiday: CME Globex-only session
+2021-09-10,PPI,08:30,BLS release archive
+2021-09-14,CPI,08:30,BLS release archive
+2021-09-16,retail_sales,08:30,Census MARTS release dates
+2021-09-17,opex,09:30,quad witching; AM-settled index options settle at the open
+2021-09-22,FOMC,14:00,"scheduled meeting, statement 14:00"
+2021-10-01,PCE,08:30,"Personal Income and Outlays, August 2021"
+2021-10-08,NFP,08:30,BLS release archive
+2021-10-13,CPI,08:30,BLS release archive
+2021-10-14,PPI,08:30,BLS release archive
+2021-10-15,opex,09:30,monthly; AM-settled index options settle at the open
+2021-10-15,retail_sales,08:30,Census MARTS release dates
+2021-10-28,GDP_advance,08:30,"Gross Domestic Product, Third Quarter 2021 (Advance Estimate)"
+2021-10-29,PCE,08:30,"Personal Income and Outlays, September 2021"
+2021-11-03,FOMC,14:00,"scheduled meeting, statement 14:00"
+2021-11-05,NFP,08:30,BLS release archive
+2021-11-09,PPI,08:30,BLS release archive
+2021-11-10,CPI,08:30,BLS release archive
+2021-11-16,retail_sales,08:30,Census MARTS release dates
+2021-11-19,opex,09:30,monthly; AM-settled index options settle at the open
+2021-11-24,PCE,08:30,"Personal Income and Outlays, October 2021"
+2021-11-25,early_close,13:00,exchange holiday: CME Globex-only session
+2021-11-26,early_close,13:15,NYSE half day
+2021-12-03,NFP,08:30,BLS release archive
+2021-12-10,CPI,08:30,BLS release archive
+2021-12-14,PPI,08:30,BLS release archive
+2021-12-15,FOMC,14:00,"scheduled meeting, statement 14:00"
+2021-12-15,retail_sales,08:30,Census MARTS release dates
+2021-12-17,opex,09:30,quad witching; AM-settled index options settle at the open
+2021-12-23,PCE,08:30,"Personal Income and Outlays, November 2021"
+2022-01-07,NFP,08:30,BLS release archive
+2022-01-12,CPI,08:30,BLS release archive
+2022-01-13,PPI,08:30,BLS release archive
+2022-01-14,retail_sales,08:30,Census MARTS release dates
+2022-01-17,early_close,13:00,exchange holiday: CME Globex-only session
+2022-01-21,opex,09:30,monthly; AM-settled index options settle at the open
+2022-01-26,FOMC,14:00,"scheduled meeting, statement 14:00"
+2022-01-27,GDP_advance,08:30,"Gross Domestic Product, Fourth Quarter and Year 2021 (Advance Estimate)"
+2022-01-28,PCE,08:30,"Personal Income and Outlays, December 2021"
+2022-02-04,NFP,08:30,BLS release archive
+2022-02-10,CPI,08:30,BLS release archive
+2022-02-15,PPI,08:30,BLS release archive
+2022-02-16,retail_sales,08:30,Census MARTS release dates
+2022-02-18,opex,09:30,monthly; AM-settled index options settle at the open
+2022-02-21,early_close,13:00,exchange holiday: CME Globex-only session
+2022-02-25,PCE,08:30,"Personal Income and Outlays, January 2022"
+2022-03-04,NFP,08:30,BLS release archive
+2022-03-10,CPI,08:30,BLS release archive
+2022-03-15,PPI,08:30,BLS release archive
+2022-03-16,FOMC,14:00,"scheduled meeting, statement 14:00"
+2022-03-16,retail_sales,08:30,Census MARTS release dates
+2022-03-18,opex,09:30,quad witching; AM-settled index options settle at the open
+2022-03-31,PCE,08:30,"Personal Income and Outlays, February 2022"
+2022-04-01,NFP,08:30,BLS release archive
+2022-04-12,CPI,08:30,BLS release archive
+2022-04-13,PPI,08:30,BLS release archive
+2022-04-14,opex,09:30,monthly; moved to Thursday (Good Friday); AM-settled index options settle at the open
+2022-04-14,retail_sales,08:30,Census MARTS release dates
+2022-04-28,GDP_advance,08:30,"Gross Domestic Product, First Quarter 2022 (Advance Estimate)"
+2022-04-29,PCE,08:30,"Personal Income and Outlays, March 2022"
+2022-05-04,FOMC,14:00,"scheduled meeting, statement 14:00"
+2022-05-06,NFP,08:30,BLS release archive
+2022-05-11,CPI,08:30,BLS release archive
+2022-05-12,PPI,08:30,BLS release archive
+2022-05-17,retail_sales,08:30,Census MARTS release dates
+2022-05-20,opex,09:30,monthly; AM-settled index options settle at the open
+2022-05-27,PCE,08:30,"Personal Income and Outlays, April 2022"
+2022-05-30,early_close,13:00,exchange holiday: CME Globex-only session
+2022-06-03,NFP,08:30,BLS release archive
+2022-06-10,CPI,08:30,BLS release archive
+2022-06-14,PPI,08:30,BLS release archive
+2022-06-15,FOMC,14:00,"scheduled meeting, statement 14:00"
+2022-06-15,retail_sales,08:30,Census MARTS release dates
+2022-06-17,opex,09:30,quad witching; AM-settled index options settle at the open
+2022-06-20,early_close,13:00,exchange holiday: CME Globex-only session
+2022-06-30,PCE,08:30,"Personal Income and Outlays, May 2022"
+2022-07-04,early_close,13:00,exchange holiday: CME Globex-only session
+2022-07-08,NFP,08:30,BLS release archive
+2022-07-13,CPI,08:30,BLS release archive
+2022-07-14,PPI,08:30,BLS release archive
+2022-07-15,opex,09:30,monthly; AM-settled index options settle at the open
+2022-07-15,retail_sales,08:30,Census MARTS release dates
+2022-07-27,FOMC,14:00,"scheduled meeting, statement 14:00"
+2022-07-28,GDP_advance,08:30,"Gross Domestic Product, Second Quarter 2022 (Advance Estimate)"
+2022-07-29,PCE,08:30,"Personal Income and Outlays, June 2022"
+2022-08-05,NFP,08:30,BLS release archive
+2022-08-10,CPI,08:30,BLS release archive
+2022-08-11,PPI,08:30,BLS release archive
+2022-08-17,retail_sales,08:30,Census MARTS release dates
+2022-08-19,opex,09:30,monthly; AM-settled index options settle at the open
+2022-08-26,PCE,08:30,"Personal Income and Outlays, July 2022"
+2022-09-02,NFP,08:30,BLS release archive
+2022-09-05,early_close,13:00,exchange holiday: CME Globex-only session
+2022-09-13,CPI,08:30,BLS release archive
+2022-09-14,PPI,08:30,BLS release archive
+2022-09-15,retail_sales,08:30,Census MARTS release dates
+2022-09-16,opex,09:30,quad witching; AM-settled index options settle at the open
+2022-09-21,FOMC,14:00,"scheduled meeting, statement 14:00"
+2022-09-30,PCE,08:30,"Personal Income and Outlays, August 2022 and Annual Update"
+2022-10-07,NFP,08:30,BLS release archive
+2022-10-12,PPI,08:30,BLS release archive
+2022-10-13,CPI,08:30,BLS release archive
+2022-10-14,retail_sales,08:30,Census MARTS release dates
+2022-10-21,opex,09:30,monthly; AM-settled index options settle at the open
+2022-10-27,GDP_advance,08:30,"Gross Domestic Product, Third Quarter 2022 (Advance Estimate)"
+2022-10-28,PCE,08:30,"Personal Income and Outlays, September 2022"
+2022-11-02,FOMC,14:00,"scheduled meeting, statement 14:00"
+2022-11-04,NFP,08:30,BLS release archive
+2022-11-10,CPI,08:30,BLS release archive
+2022-11-15,PPI,08:30,BLS release archive
+2022-11-16,retail_sales,08:30,Census MARTS release dates
+2022-11-18,opex,09:30,monthly; AM-settled index options settle at the open
+2022-11-24,early_close,13:00,exchange holiday: CME Globex-only session
+2022-11-25,early_close,13:15,NYSE half day
+2022-12-01,PCE,08:30,"Personal Income and Outlays, October 2022"
+2022-12-02,NFP,08:30,BLS release archive
+2022-12-09,PPI,08:30,BLS release archive
+2022-12-13,CPI,08:30,BLS release archive
+2022-12-14,FOMC,14:00,"scheduled meeting, statement 14:00"
+2022-12-15,retail_sales,08:30,Census MARTS release dates
+2022-12-16,opex,09:30,quad witching; AM-settled index options settle at the open
+2022-12-23,PCE,08:30,"Personal Income and Outlays, November 2022"
+2023-01-06,NFP,08:30,BLS release archive
+2023-01-12,CPI,08:30,BLS release archive
+2023-01-16,early_close,13:00,exchange holiday: CME Globex-only session
+2023-01-18,PPI,08:30,BLS release archive
+2023-01-18,retail_sales,08:30,Census MARTS release dates
+2023-01-20,opex,09:30,monthly; AM-settled index options settle at the open
+2023-01-26,GDP_advance,08:30,"Gross Domestic Product, Fourth Quarter and Year 2022 (Advance Estimate)"
+2023-01-27,PCE,08:30,"Personal Income and Outlays, December 2022"
+2023-02-01,FOMC,14:00,"scheduled meeting, statement 14:00"
+2023-02-03,NFP,08:30,BLS release archive
+2023-02-14,CPI,08:30,BLS release archive
+2023-02-15,retail_sales,08:30,Census MARTS release dates
+2023-02-16,PPI,08:30,BLS release archive
+2023-02-17,opex,09:30,monthly; AM-settled index options settle at the open
+2023-02-20,early_close,13:00,exchange holiday: CME Globex-only session
+2023-02-24,PCE,08:30,"Personal Income and Outlays, January 2023"
+2023-03-10,NFP,08:30,BLS release archive
+2023-03-14,CPI,08:30,BLS release archive
+2023-03-15,PPI,08:30,BLS release archive
+2023-03-15,retail_sales,08:30,Census MARTS release dates
+2023-03-17,opex,09:30,quad witching; AM-settled index options settle at the open
+2023-03-22,FOMC,14:00,"scheduled meeting, statement 14:00"
+2023-03-31,PCE,08:30,"Personal Income and Outlays, February 2023"
+2023-04-07,NFP,08:30,BLS release archive
+2023-04-12,CPI,08:30,BLS release archive
+2023-04-13,PPI,08:30,BLS release archive
+2023-04-14,retail_sales,08:30,Census MARTS release dates
+2023-04-21,opex,09:30,monthly; AM-settled index options settle at the open
+2023-04-27,GDP_advance,08:30,"Gross Domestic Product, First Quarter 2023 (Advance Estimate)"
+2023-04-28,PCE,08:30,"Personal Income and Outlays, March 2023"
+2023-05-03,FOMC,14:00,"scheduled meeting, statement 14:00"
+2023-05-05,NFP,08:30,BLS release archive
+2023-05-10,CPI,08:30,BLS release archive
+2023-05-11,PPI,08:30,BLS release archive
+2023-05-16,retail_sales,08:30,Census MARTS release dates
+2023-05-19,opex,09:30,monthly; AM-settled index options settle at the open
+2023-05-26,PCE,08:30,"Personal Income and Outlays, April 2023"
+2023-05-29,early_close,13:00,exchange holiday: CME Globex-only session
+2023-06-02,NFP,08:30,BLS release archive
+2023-06-13,CPI,08:30,BLS release archive
+2023-06-14,FOMC,14:00,"scheduled meeting, statement 14:00"
+2023-06-14,PPI,08:30,BLS release archive
+2023-06-15,retail_sales,08:30,Census MARTS release dates
+2023-06-16,opex,09:30,quad witching; AM-settled index options settle at the open
+2023-06-19,early_close,13:00,exchange holiday: CME Globex-only session
+2023-06-30,PCE,08:30,"Personal Income and Outlays, May 2023"
+2023-07-03,early_close,13:15,NYSE half day
+2023-07-04,early_close,13:00,exchange holiday: CME Globex-only session
+2023-07-07,NFP,08:30,BLS release archive
+2023-07-12,CPI,08:30,BLS release archive
+2023-07-13,PPI,08:30,BLS release archive
+2023-07-18,retail_sales,08:30,Census MARTS release dates
+2023-07-21,opex,09:30,monthly; AM-settled index options settle at the open
+2023-07-26,FOMC,14:00,"scheduled meeting, statement 14:00"
+2023-07-27,GDP_advance,08:30,"Gross Domestic Product, Second Quarter 2023 (Advance Estimate)"
+2023-07-28,PCE,08:30,"Personal Income and Outlays, June 2023"
+2023-08-04,NFP,08:30,BLS release archive
+2023-08-10,CPI,08:30,BLS release archive
+2023-08-11,PPI,08:30,BLS release archive
+2023-08-15,retail_sales,08:30,Census MARTS release dates
+2023-08-18,opex,09:30,monthly; AM-settled index options settle at the open
+2023-08-31,PCE,08:30,"Personal Income and Outlays, July 2023"
+2023-09-01,NFP,08:30,BLS release archive
+2023-09-04,early_close,13:00,exchange holiday: CME Globex-only session
+2023-09-13,CPI,08:30,BLS release archive
+2023-09-14,PPI,08:30,BLS release archive
+2023-09-14,retail_sales,08:30,Census MARTS release dates
+2023-09-15,opex,09:30,quad witching; AM-settled index options settle at the open
+2023-09-20,FOMC,14:00,"scheduled meeting, statement 14:00"
+2023-09-29,PCE,08:30,"Personal Income and Outlays, August 2023"
+2023-10-06,NFP,08:30,BLS release archive
+2023-10-11,PPI,08:30,BLS release archive
+2023-10-12,CPI,08:30,BLS release archive
+2023-10-17,retail_sales,08:30,Census MARTS release dates
+2023-10-20,opex,09:30,monthly; AM-settled index options settle at the open
+2023-10-26,GDP_advance,08:30,"Gross Domestic Product, Third Quarter 2023 (Advance Estimate)"
+2023-10-27,PCE,08:30,"Personal Income and Outlays, September 2023"
+2023-11-01,FOMC,14:00,"scheduled meeting, statement 14:00"
+2023-11-03,NFP,08:30,BLS release archive
+2023-11-14,CPI,08:30,BLS release archive
+2023-11-15,PPI,08:30,BLS release archive
+2023-11-15,retail_sales,08:30,Census MARTS release dates
+2023-11-17,opex,09:30,monthly; AM-settled index options settle at the open
+2023-11-23,early_close,13:00,exchange holiday: CME Globex-only session
+2023-11-24,early_close,13:15,NYSE half day
+2023-11-30,PCE,08:30,"Personal Income and Outlays, October 2023"
+2023-12-08,NFP,08:30,BLS release archive
+2023-12-12,CPI,08:30,BLS release archive
+2023-12-13,FOMC,14:00,"scheduled meeting, statement 14:00"
+2023-12-13,PPI,08:30,BLS release archive
+2023-12-14,retail_sales,08:30,Census MARTS release dates
+2023-12-15,opex,09:30,quad witching; AM-settled index options settle at the open
+2023-12-22,PCE,08:30,"Personal Income and Outlays, November 2023"
+2024-01-05,NFP,08:30,BLS release archive
+2024-01-11,CPI,08:30,BLS release archive
+2024-01-12,PPI,08:30,BLS release archive
+2024-01-15,early_close,13:00,exchange holiday: CME Globex-only session
+2024-01-17,retail_sales,08:30,Census MARTS release dates
+2024-01-19,opex,09:30,monthly; AM-settled index options settle at the open
+2024-01-25,GDP_advance,08:30,"Gross Domestic Product, Fourth Quarter and Year 2023 (Advance Estimate)"
+2024-01-26,PCE,08:30,"Personal Income and Outlays, December 2023"
+2024-01-31,FOMC,14:00,"scheduled meeting, statement 14:00"
+2024-02-02,NFP,08:30,BLS release archive
+2024-02-13,CPI,08:30,BLS release archive
+2024-02-15,retail_sales,08:30,Census MARTS release dates
+2024-02-16,PPI,08:30,BLS release archive
+2024-02-16,opex,09:30,monthly; AM-settled index options settle at the open
+2024-02-19,early_close,13:00,exchange holiday: CME Globex-only session
+2024-02-29,PCE,08:30,"Personal Income and Outlays, January 2024"
+2024-03-08,NFP,08:30,BLS release archive
+2024-03-12,CPI,08:30,BLS release archive
+2024-03-14,PPI,08:30,BLS release archive
+2024-03-14,retail_sales,08:30,Census MARTS release dates
+2024-03-15,opex,09:30,quad witching; AM-settled index options settle at the open
+2024-03-20,FOMC,14:00,"scheduled meeting, statement 14:00"
+2024-03-29,PCE,08:30,"Personal Income and Outlays, February 2024"
+2024-04-05,NFP,08:30,BLS release archive
+2024-04-10,CPI,08:30,BLS release archive
+2024-04-11,PPI,08:30,BLS release archive
+2024-04-15,retail_sales,08:30,Census MARTS release dates
+2024-04-19,opex,09:30,monthly; AM-settled index options settle at the open
+2024-04-25,GDP_advance,08:30,"Gross Domestic Product, First Quarter 2024 (Advance Estimate)"
+2024-04-26,PCE,08:30,"Personal Income and Outlays, March 2024"
+2024-05-01,FOMC,14:00,"scheduled meeting, statement 14:00"
+2024-05-03,NFP,08:30,BLS release archive
+2024-05-14,PPI,08:30,BLS release archive
+2024-05-15,CPI,08:30,BLS release archive
+2024-05-15,retail_sales,08:30,Census MARTS release dates
+2024-05-17,opex,09:30,monthly; AM-settled index options settle at the open
+2024-05-27,early_close,13:00,exchange holiday: CME Globex-only session
+2024-05-31,PCE,08:30,"Personal Income and Outlays, April 2024"
+2024-06-07,NFP,08:30,BLS release archive
+2024-06-12,CPI,08:30,BLS release archive
+2024-06-12,FOMC,14:00,"scheduled meeting, statement 14:00"
+2024-06-13,PPI,08:30,BLS release archive
+2024-06-18,retail_sales,08:30,Census MARTS release dates
+2024-06-19,early_close,13:00,exchange holiday: CME Globex-only session
+2024-06-21,opex,09:30,quad witching; AM-settled index options settle at the open
+2024-06-28,PCE,08:30,"Personal Income and Outlays, May 2024"
+2024-07-03,early_close,13:15,NYSE half day
+2024-07-04,early_close,13:00,exchange holiday: CME Globex-only session
+2024-07-05,NFP,08:30,BLS release archive
+2024-07-11,CPI,08:30,BLS release archive
+2024-07-12,PPI,08:30,BLS release archive
+2024-07-16,retail_sales,08:30,Census MARTS release dates
+2024-07-19,opex,09:30,monthly; AM-settled index options settle at the open
+2024-07-25,GDP_advance,08:30,"Gross Domestic Product, Second Quarter 2024 (Advance Estimate)"
+2024-07-26,PCE,08:30,"Personal Income and Outlays, June 2024"
+2024-07-31,FOMC,14:00,"scheduled meeting, statement 14:00"
+2024-08-02,NFP,08:30,BLS release archive
+2024-08-13,PPI,08:30,BLS release archive
+2024-08-14,CPI,08:30,BLS release archive
+2024-08-15,retail_sales,08:30,Census MARTS release dates
+2024-08-16,opex,09:30,monthly; AM-settled index options settle at the open
+2024-08-30,PCE,08:30,"Personal Income and Outlays, July 2024"
+2024-09-02,early_close,13:00,exchange holiday: CME Globex-only session
+2024-09-06,NFP,08:30,BLS release archive
+2024-09-11,CPI,08:30,BLS release archive
+2024-09-12,PPI,08:30,BLS release archive
+2024-09-17,retail_sales,08:30,Census MARTS release dates
+2024-09-18,FOMC,14:00,"scheduled meeting, statement 14:00"
+2024-09-20,opex,09:30,quad witching; AM-settled index options settle at the open
+2024-09-27,PCE,08:30,"Personal Income and Outlays, August 2024"
+2024-10-04,NFP,08:30,BLS release archive
+2024-10-10,CPI,08:30,BLS release archive
+2024-10-11,PPI,08:30,BLS release archive
+2024-10-17,retail_sales,08:30,Census MARTS release dates
+2024-10-18,opex,09:30,monthly; AM-settled index options settle at the open
+2024-10-30,GDP_advance,08:30,"Gross Domestic Product, Third Quarter 2024 (Advance Estimate)"
+2024-10-31,PCE,08:30,"Personal Income and Outlays, September 2024"
+2024-11-01,NFP,08:30,BLS release archive
+2024-11-07,FOMC,14:00,"scheduled meeting, statement 14:00"
+2024-11-13,CPI,08:30,BLS release archive
+2024-11-14,PPI,08:30,BLS release archive
+2024-11-15,opex,09:30,monthly; AM-settled index options settle at the open
+2024-11-15,retail_sales,08:30,Census MARTS release dates
+2024-11-27,PCE,08:30,"Personal Income and Outlays, October 2024"
+2024-11-28,early_close,13:00,exchange holiday: CME Globex-only session
+2024-11-29,early_close,13:15,NYSE half day
+2024-12-06,NFP,08:30,BLS release archive
+2024-12-11,CPI,08:30,BLS release archive
+2024-12-12,PPI,08:30,BLS release archive
+2024-12-17,retail_sales,08:30,Census MARTS release dates
+2024-12-18,FOMC,14:00,"scheduled meeting, statement 14:00"
+2024-12-20,PCE,08:30,"Personal Income and Outlays, November 2024"
+2024-12-20,opex,09:30,quad witching; AM-settled index options settle at the open
+2024-12-24,early_close,13:15,NYSE half day
+2025-01-10,NFP,08:30,BLS release archive
+2025-01-14,PPI,08:30,BLS release archive
+2025-01-15,CPI,08:30,BLS release archive
+2025-01-16,retail_sales,08:30,Census MARTS release dates
+2025-01-17,opex,09:30,monthly; AM-settled index options settle at the open
+2025-01-20,early_close,13:00,exchange holiday: CME Globex-only session
+2025-01-29,FOMC,14:00,"scheduled meeting, statement 14:00"
+2025-01-30,GDP_advance,08:30,"Gross Domestic Product, 4th Quarter and Year 2024 (Advance Estimate)"
+2025-01-31,PCE,08:30,"Personal Income and Outlays, December 2024"
+2025-02-07,NFP,08:30,BLS release archive
+2025-02-12,CPI,08:30,BLS release archive
+2025-02-13,PPI,08:30,BLS release archive
+2025-02-14,retail_sales,08:30,Census MARTS release dates
+2025-02-17,early_close,13:00,exchange holiday: CME Globex-only session
+2025-02-21,opex,09:30,monthly; AM-settled index options settle at the open
+2025-02-28,PCE,08:30,"Personal Income and Outlays, January 2025"
+2025-03-07,NFP,08:30,BLS release archive
+2025-03-12,CPI,08:30,BLS release archive
+2025-03-13,PPI,08:30,BLS release archive
+2025-03-17,retail_sales,08:30,Census MARTS release dates
+2025-03-19,FOMC,14:00,"scheduled meeting, statement 14:00"
+2025-03-21,opex,09:30,quad witching; AM-settled index options settle at the open
+2025-03-28,PCE,08:30,"Personal Income and Outlays, February 2025"
+2025-04-04,NFP,08:30,BLS release archive
+2025-04-10,CPI,08:30,BLS release archive
+2025-04-11,PPI,08:30,BLS release archive
+2025-04-16,retail_sales,08:30,Census MARTS release dates
+2025-04-17,opex,09:30,monthly; moved to Thursday (Good Friday); AM-settled index options settle at the open
+2025-04-30,GDP_advance,08:30,"Gross Domestic Product, 1st Quarter 2025 (Advance Estimate)"
+2025-04-30,PCE,08:30,"Personal Income and Outlays, March 2025"
+2025-05-02,NFP,08:30,BLS release archive
+2025-05-07,FOMC,14:00,"scheduled meeting, statement 14:00"
+2025-05-13,CPI,08:30,BLS release archive
+2025-05-15,PPI,08:30,BLS release archive
+2025-05-15,retail_sales,08:30,Census MARTS release dates
+2025-05-16,opex,09:30,monthly; AM-settled index options settle at the open
+2025-05-26,early_close,13:00,exchange holiday: CME Globex-only session
+2025-05-30,PCE,08:30,"Personal Income and Outlays, April 2025"
+2025-06-06,NFP,08:30,BLS release archive
+2025-06-11,CPI,08:30,BLS release archive
+2025-06-12,PPI,08:30,BLS release archive
+2025-06-17,retail_sales,08:30,Census MARTS release dates
+2025-06-18,FOMC,14:00,"scheduled meeting, statement 14:00"
+2025-06-19,early_close,13:00,exchange holiday: CME Globex-only session
+2025-06-20,opex,09:30,quad witching; AM-settled index options settle at the open
+2025-06-27,PCE,08:30,"Personal Income and Outlays, May 2025"
+2025-07-03,NFP,08:30,BLS release archive
+2025-07-03,early_close,13:15,NYSE half day
+2025-07-04,early_close,13:00,exchange holiday: CME Globex-only session
+2025-07-15,CPI,08:30,BLS release archive
+2025-07-16,PPI,08:30,BLS release archive
+2025-07-17,retail_sales,08:30,Census MARTS release dates
+2025-07-18,opex,09:30,monthly; AM-settled index options settle at the open
+2025-07-30,FOMC,14:00,"scheduled meeting, statement 14:00"
+2025-07-30,GDP_advance,08:30,"Gross Domestic Product, 2nd Quarter 2025 (Advance Estimate)"
+2025-07-31,PCE,08:30,"Personal Income and Outlays, June 2025"
+2025-08-01,NFP,08:30,BLS release archive
+2025-08-12,CPI,08:30,BLS release archive
+2025-08-14,PPI,08:30,BLS release archive
+2025-08-15,opex,09:30,monthly; AM-settled index options settle at the open
+2025-08-15,retail_sales,08:30,Census MARTS release dates
+2025-08-29,PCE,08:30,"Personal Income and Outlays, July 2025"
+2025-09-01,early_close,13:00,exchange holiday: CME Globex-only session
+2025-09-05,NFP,08:30,BLS release archive
+2025-09-10,PPI,08:30,BLS release archive
+2025-09-11,CPI,08:30,BLS release archive
+2025-09-16,retail_sales,08:30,Census MARTS release dates
+2025-09-17,FOMC,14:00,"scheduled meeting, statement 14:00"
+2025-09-19,opex,09:30,quad witching; AM-settled index options settle at the open
+2025-09-26,PCE,08:30,"Personal Income and Outlays, August 2025"
+2025-10-17,opex,09:30,monthly; AM-settled index options settle at the open
+2025-10-24,CPI,08:30,BLS release archive
+2025-10-29,FOMC,14:00,"scheduled meeting, statement 14:00"
+2025-11-20,NFP,08:30,BLS release archive
+2025-11-21,opex,09:30,monthly; AM-settled index options settle at the open
+2025-11-25,PPI,08:30,BLS release archive
+2025-11-25,retail_sales,08:30,Census MARTS release dates (shutdown-delayed)
+2025-11-27,early_close,13:00,exchange holiday: CME Globex-only session
+2025-11-28,early_close,13:15,NYSE half day
+2025-12-05,PCE,08:30,"Personal Income and Outlays, September 2025"
+2025-12-10,FOMC,14:00,"scheduled meeting, statement 14:00"
+2025-12-16,NFP,08:30,BLS release archive
+2025-12-16,retail_sales,08:30,Census MARTS release dates (shutdown-delayed)
+2025-12-18,CPI,08:30,BLS release archive
+2025-12-19,opex,09:30,quad witching; AM-settled index options settle at the open
+2025-12-24,early_close,13:15,NYSE half day
+2026-01-09,NFP,08:30,BLS release archive
+2026-01-13,CPI,08:30,BLS release archive
+2026-01-14,PPI,08:30,BLS release archive
+2026-01-14,retail_sales,08:30,Census MARTS release dates (shutdown-delayed)
+2026-01-16,opex,09:30,monthly; AM-settled index options settle at the open
+2026-01-19,early_close,13:00,exchange holiday: CME Globex-only session
+2026-01-22,PCE,10:00,"Personal Income and Outlays, October and November 2025"
+2026-01-28,FOMC,14:00,"scheduled meeting, statement 14:00"
+2026-01-30,PPI,08:30,BLS release archive
+2026-02-10,retail_sales,08:30,Census MARTS release dates (shutdown-delayed)
+2026-02-11,NFP,08:30,BLS release archive
+2026-02-13,CPI,08:30,BLS release archive
+2026-02-16,early_close,13:00,exchange holiday: CME Globex-only session
+2026-02-20,GDP_advance,08:30,"GDP (Advance Estimate), 4th Quarter and Year 2025"
+2026-02-20,PCE,08:30,"Personal Income and Outlays, December 2025"
+2026-02-20,opex,09:30,monthly; AM-settled index options settle at the open
+2026-02-27,PPI,08:30,BLS release archive
+2026-03-06,NFP,08:30,BLS release archive
+2026-03-06,retail_sales,08:30,Census MARTS release dates (shutdown-delayed)
+2026-03-11,CPI,08:30,BLS release archive
+2026-03-13,PCE,08:30,"Personal Income and Outlays, January 2026"
+2026-03-18,FOMC,14:00,"scheduled meeting, statement 14:00"
+2026-03-18,PPI,08:30,BLS release archive
+2026-03-20,opex,09:30,quad witching; AM-settled index options settle at the open
+2026-04-01,retail_sales,08:30,Census MARTS release dates (shutdown-delayed)
+2026-04-03,NFP,08:30,BLS release archive
+2026-04-09,PCE,08:30,"Personal Income and Outlays, February 2026"
+2026-04-10,CPI,08:30,BLS release archive
+2026-04-14,PPI,08:30,BLS release archive
+2026-04-17,opex,09:30,monthly; AM-settled index options settle at the open
+2026-04-21,retail_sales,08:30,Census MARTS release dates (shutdown-delayed)
+2026-04-29,FOMC,14:00,"scheduled meeting, statement 14:00"
+2026-04-30,GDP_advance,08:30,"GDP (Advance Estimate), 1st Quarter 2026"
+2026-04-30,PCE,08:30,"Personal Income and Outlays, March 2026"
+2026-05-08,NFP,08:30,BLS release archive
+2026-05-12,CPI,08:30,BLS release archive
+2026-05-13,PPI,08:30,BLS release archive
+2026-05-14,retail_sales,08:30,Census MARTS release dates
+2026-05-15,opex,09:30,monthly; AM-settled index options settle at the open
+2026-05-25,early_close,13:00,exchange holiday: CME Globex-only session
+2026-05-28,PCE,08:30,"Personal Income and Outlays, April 2026"
+2026-06-05,NFP,08:30,BLS release archive
+2026-06-10,CPI,08:30,BLS release archive
+2026-06-11,PPI,08:30,BLS release archive
+2026-06-17,FOMC,14:00,"scheduled meeting, statement 14:00"
+2026-06-17,retail_sales,08:30,Census MARTS release dates
+2026-06-18,opex,09:30,quad witching; moved to Thursday (Juneteenth); AM-settled index options settle at the open
+2026-06-19,early_close,13:00,exchange holiday: CME Globex-only session
+2026-06-25,PCE,08:30,"Personal Income and Outlays, May 2026"
+2026-07-02,NFP,08:30,BLS release archive
+2026-07-03,early_close,13:00,exchange holiday: CME Globex-only session
+2026-07-14,CPI,08:30,BLS release archive
+2026-07-15,PPI,08:30,BLS release archive
+2026-07-16,retail_sales,08:30,Census MARTS release dates
+2026-07-17,opex,09:30,monthly; AM-settled index options settle at the open
+2026-07-29,FOMC,14:00,"scheduled meeting, statement 14:00"
+2026-07-30,GDP_advance,08:30,"GDP (Advance Estimate), 2nd Quarter 2026"
+2026-07-30,PCE,08:30,"Personal Income and Outlays, June 2026"
+2026-08-07,NFP,08:30,BLS release archive
+2026-08-12,CPI,08:30,BLS release archive
+2026-08-13,PPI,08:30,BLS release archive
+2026-08-14,retail_sales,08:30,Census MARTS release dates
+2026-08-21,opex,09:30,monthly; AM-settled index options settle at the open
+2026-08-26,PCE,08:30,"Personal Income and Outlays, July 2026"
+2026-09-04,NFP,08:30,BLS release archive
+2026-09-07,early_close,13:00,exchange holiday: CME Globex-only session
+2026-09-16,FOMC,14:00,"scheduled meeting, statement 14:00"
+2026-09-16,retail_sales,08:30,Census MARTS release dates
+2026-09-18,opex,09:30,quad witching; AM-settled index options settle at the open

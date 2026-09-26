@@ -1,0 +1,264 @@
+//@version=5
+// =====================================================================================================
+//  VWAP Reversion on balance days  ·  v1  (strategy + chart drawings in one file)
+//
+//  The complement of the Opening Range Breakout: ORB trades the days whose opening range BREAKS the overnight
+//  range (trend days). This trades the days whose opening range stays INSIDE it (balance days), where ORB1
+//  showed breakouts lose, and fades a stretch to the VWAP sigma band back toward VWAP.
+//
+//  Rule (v1):
+//    1. Regime at the end of the opening range (09:45 NY): opening range inside the overnight (18:00-09:30) range.
+//    2. Session VWAP (anchored at the cash open by default) with bands at VWAP +/- k sigma, sigma = volume-weighted
+//       standard deviation of price from VWAP since the anchor.
+//    3. Setup: a 5-minute close BEYOND the outer band arms the side; the first close BACK INSIDE the band is the
+//       rejection and the entry, toward VWAP.
+//    4. Stop = extreme of the excursion +/- stopSig x sigma. Target = VWAP (or the inner band, or fixed R).
+//       Skip if reward:risk at entry is below minRR. One trade per side per day, flat at the end of the trade window.
+//
+//  Tag:  S|VWR|on:inside|sig:14.2|ext:0.6|risk:22|rr:1.4|dl:+|n:1|h:10|m:35|dow:3
+//    on  = opening range vs overnight range (inside / topBreak / botBreak / above / below)
+//    sig = one sigma in points   ext = how far beyond the band the excursion went, in sigmas
+//    dl  = sign of the cumulative session delta (1-minute up/down volume) at entry
+// =====================================================================================================
+strategy("VWAP Reversion [v1]", "VWR v1", overlay = true, pyramiding = 0,
+     default_qty_type = strategy.fixed, default_qty_value = 1, initial_capital = 25000,
+     commission_type = strategy.commission.cash_per_contract, commission_value = 1.0, slippage = 1,
+     calc_on_every_tick = false, process_orders_on_close = true, margin_long = 0, margin_short = 0,
+     max_lines_count = 500, max_labels_count = 500)
+
+// ================================ 1 · SESSIONS ================================
+grpP = "1 · Sessions"
+tz        = input.string("America/New_York", "Session timezone", options = ["America/New_York", "America/Chicago", "America/Los_Angeles", "UTC", "Europe/London"], group = grpP)
+onSess    = input.session("1800-0930", "Overnight session (regime reference)", group = grpP)
+orSess    = input.session("0930-0945", "Opening range (regime test)", group = grpP, tooltip = "The day qualifies as a balance day when this range stays inside the overnight range.")
+entrySess = input.session("1000-1500", "Entry window", group = grpP)
+tradeSess = input.session("0930-1600", "Trade window (hold until)", group = grpP, tooltip = "Positions are closed on the first bar after this window (comment 'time'). Per-day state resets at its start.")
+vwapAnch  = input.string("Cash open (09:30)", "VWAP anchor", options = ["Cash open (09:30)", "Overnight open (18:00)"], group = grpP)
+
+// ================================ 2 · SETUP ================================
+grpS = "2 · Setup"
+regime    = input.string("Balance days only", "Day filter", options = ["Balance days only", "Break days only", "Off"], group = grpS, tooltip = "Balance = opening range inside the overnight range (the days ORB skips). Break = the days ORB trades. Off = every day.")
+bandSig   = input.float(2.0, "Outer band (sigma)", minval = 0.5, step = 0.25, group = grpS, tooltip = "A close beyond VWAP +/- this many sigmas arms the fade.")
+entryMode = input.string("Close back inside the band", "Entry", options = ["Close back inside the band", "First close beyond the band"], group = grpS, tooltip = "Back inside: wait for the rejection (fewer trades, better odds). Beyond: fade immediately on the first close outside (more trades, catches the stretch earlier, more losers on trend days).")
+minSigTk  = input.int(8, "Min sigma (ticks)", minval = 1, group = grpS, tooltip = "Skip when the band is too narrow to pay for costs. 8 ticks = 2 NQ points.")
+maxExtSig = input.float(0.0, "Max excursion beyond the band (sigma, 0 = off)", minval = 0.0, step = 0.25, group = grpS, tooltip = "Skip if price went further than this beyond the band before coming back: a runaway rather than a stretch.")
+maxPerSide = input.int(1, "Max trades per side per day", minval = 1, maxval = 3, group = grpS)
+direction = input.string("Both", "Trade direction", options = ["Both", "Long only", "Short only"], group = grpS)
+
+// ================================ 3 · EXIT ================================
+grpX = "3 · Exit"
+stopSig   = input.float(0.5, "Stop beyond the excursion extreme (sigma)", minval = 0.0, step = 0.25, group = grpX)
+tpMode    = input.string("VWAP", "Target", options = ["VWAP", "Inner band (1 sigma)", "Fixed R"], group = grpX)
+fixedRR   = input.float(1.5, "  Fixed R multiple", minval = 0.25, step = 0.25, group = grpX)
+minRR     = input.float(1.0, "Min reward:risk at entry", minval = 0.0, step = 0.1, group = grpX)
+s_flat    = input.bool(true, "Flatten at the end of the trade window", group = grpX)
+
+// ================================ 4 · STRATEGY ================================
+grpB = "4 · Strategy (backtest only)"
+s_from   = input.time(timestamp("2020-01-01T00:00:00"), "Test window start", group = grpB)
+s_to     = input.time(timestamp("2030-01-01T00:00:00"), "Test window end", group = grpB)
+showDbg  = input.bool(true, "Show debug table", group = grpB)
+showDraw = input.bool(true, "Draw VWAP, bands and the regime levels", group = grpB)
+s_alerts = input.bool(true, "Fire alert() messages (regime, entries, flatten)", group = grpB)
+
+// ================================ SESSION STATE ================================
+bool inON    = not na(time(timeframe.period, onSess, tz))
+bool inOR    = not na(time(timeframe.period, orSess, tz))
+bool inEntry = not na(time(timeframe.period, entrySess, tz))
+bool inTrade = not na(time(timeframe.period, tradeSess, tz))
+bool onEnd      = (not inON) and inON[1]
+bool orEnd      = (not inOR) and inOR[1]
+bool tradeStart = inTrade and not inTrade[1]
+bool tradeEnd   = (not inTrade) and inTrade[1]
+// the overnight open: first bar at or after 18:00 (the CME day has no bar gap, so it comes from the clock)
+int mod = hour(time, tz) * 60 + minute(time, tz)
+bool onOpen = mod >= 1080 and (na(mod[1]) or mod[1] < 1080 or mod[1] > mod)
+bool vwReset = vwapAnch == "Cash open (09:30)" ? tradeStart : onOpen
+float tick = syminfo.mintick
+bool inWindow = time >= s_from and time <= s_to
+bool flat = strategy.position_size == 0
+
+// ================================ REGIME: overnight range vs opening range ================================
+var float onH = na
+var float onL = na
+var float ONH = na
+var float ONL = na
+var float orH = na
+var float orL = na
+var string openLoc = "-"
+if inON
+    onH := inON[1] ? math.max(onH, high) : high
+    onL := inON[1] ? math.min(onL, low) : low
+if onEnd
+    ONH := onH
+    ONL := onL
+if inOR
+    orH := inOR[1] ? math.max(orH, high) : high
+    orL := inOR[1] ? math.min(orL, low) : low
+if orEnd
+    openLoc := na(ONH) ? "-" : orL > ONH ? "above" : orH < ONL ? "below" : orH > ONH ? "topBreak" : orL < ONL ? "botBreak" : "inside"
+bool balanceDay = openLoc == "inside"
+bool dayOk = regime == "Off" ? openLoc != "-" : regime == "Balance days only" ? balanceDay : (openLoc != "-" and not balanceDay)
+
+// ================================ VWAP + SIGMA ================================
+var float sPV = 0.0
+var float sV = 0.0
+var float sPPV = 0.0
+if vwReset
+    sPV := 0.0
+    sV := 0.0
+    sPPV := 0.0
+sPV += hlc3 * volume
+sV += volume
+sPPV += hlc3 * hlc3 * volume
+float vwap = sV > 0 ? sPV / sV : na
+float sig = sV > 0 ? math.sqrt(math.max(sPPV / sV - vwap * vwap, 0.0)) : na
+float upBand = vwap + bandSig * sig
+float dnBand = vwap - bandSig * sig
+bool sigOk = not na(sig) and sig >= minSigTk * tick
+
+// ================================ SESSION DELTA (1-minute up/down volume) ================================
+[ltfO, ltfH, ltfL, ltfC, ltfV] = request.security_lower_tf(syminfo.tickerid, "1", [open, high, low, close, volume])
+float dV = 0.0
+if array.size(ltfV) > 0
+    for k = 0 to array.size(ltfV) - 1
+        float o = array.get(ltfO, k)
+        float c = array.get(ltfC, k)
+        float h = array.get(ltfH, k)
+        float l = array.get(ltfL, k)
+        float v = nz(array.get(ltfV, k))
+        dV += c > o ? v : c < o ? -v : (h > l ? v * (2 * (c - l) / (h - l) - 1) : 0.0)
+else
+    dV := close > open ? nz(volume) : close < open ? -nz(volume) : 0.0
+var float cumDelta = 0.0
+if tradeStart
+    cumDelta := 0.0
+cumDelta += dV
+
+// ================================ PER-DAY STATE ================================
+var int   armUp = 0            // 1 = price has closed above the upper band and not yet come back (short candidate)
+var int   armDn = 0
+var float extHi = na           // extreme of the current excursion
+var float extLo = na
+var int   longsToday = 0
+var int   shortsToday = 0
+var int   dayCount = 0
+var int   totSignals = 0
+var int   totSkipped = 0
+var string lastNote = "-"
+if tradeStart
+    armUp := 0
+    armDn := 0
+    extHi := na
+    extLo := na
+    longsToday := 0
+    shortsToday := 0
+    dayCount += 1
+if orEnd and s_alerts
+    alert("VWR " + syminfo.ticker + " regime: opening range " + openLoc + " the overnight range → " + (dayOk ? "fade the " + str.tostring(bandSig, "#.##") + "σ bands today" : "no reversion trades today"), alert.freq_once_per_bar)
+
+// ================================ SETUP ================================
+bool aboveBand = not na(upBand) and close > upBand
+bool belowBand = not na(dnBand) and close < dnBand
+bool okDirS = direction != "Long only"
+bool okDirL = direction != "Short only"
+bool canTrade = dayOk and inEntry and inTrade and inWindow and flat and sigOk
+
+f_tag(string side, float ext, float risk, float rr, int n) =>
+    side + "|VWR|on:" + openLoc + "|sig:" + str.tostring(sig, "#.#") + "|ext:" + str.tostring(ext, "#.##") + "|risk:" + str.tostring(risk, "#.##") + "|rr:" + str.tostring(rr, "#.#") + "|dl:" + (cumDelta >= 0 ? "+" : "-") + "|n:" + str.tostring(n) + "|h:" + str.tostring(hour(time, tz)) + "|m:" + str.tostring(minute(time, tz)) + "|dow:" + str.tostring(dayofweek(time, tz))
+
+bool immediate = entryMode == "First close beyond the band"
+bool sigS = false
+bool sigL = false
+// arm / track the excursion above the upper band
+if aboveBand
+    extHi := armUp == 1 ? math.max(extHi, high) : high
+    if armUp == 0
+        armUp := 1
+        if immediate
+            sigS := true
+else if armUp == 1
+    sigS := not immediate
+    armUp := 0
+// ... and below the lower band
+if belowBand
+    extLo := armDn == 1 ? math.min(extLo, low) : low
+    if armDn == 0
+        armDn := 1
+        if immediate
+            sigL := true
+else if armDn == 1
+    sigL := not immediate
+    armDn := 0
+
+// ================================ ENTRIES ================================
+if sigS and canTrade and okDirS and shortsToday < maxPerSide
+    float ext = (extHi - upBand) / sig
+    float stopPx = extHi + stopSig * sig
+    float risk = stopPx - close
+    float tpPx = tpMode == "VWAP" ? vwap : tpMode == "Inner band (1 sigma)" ? vwap + sig : close - risk * fixedRR
+    float rr = (close - tpPx) / risk
+    bool ok = risk > 0 and tpPx < close and rr >= minRR and (maxExtSig == 0 or ext <= maxExtSig)
+    shortsToday += 1
+    if ok
+        string tg = f_tag("S", ext, risk, rr, shortsToday + longsToday)
+        strategy.entry("S", strategy.short, qty = 1, comment = tg)
+        strategy.exit("xS", "S", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
+        totSignals += 1
+        lastNote := "SHORT " + tg
+        if s_alerts
+            alert("VWR " + syminfo.ticker + " SHORT rejection at +" + str.tostring(bandSig, "#.##") + "σ · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + str.tostring(tpPx, format.mintick) + " · risk " + str.tostring(risk, "#.##") + " pts · RR " + str.tostring(rr, "#.#"), alert.freq_once_per_bar)
+    else
+        totSkipped += 1
+        lastNote := "short skipped: rr " + str.tostring(rr, "#.#") + " ext " + str.tostring(ext, "#.##")
+
+if sigL and canTrade and okDirL and longsToday < maxPerSide
+    float ext = (dnBand - extLo) / sig
+    float stopPx = extLo - stopSig * sig
+    float risk = close - stopPx
+    float tpPx = tpMode == "VWAP" ? vwap : tpMode == "Inner band (1 sigma)" ? vwap - sig : close + risk * fixedRR
+    float rr = (tpPx - close) / risk
+    bool ok = risk > 0 and tpPx > close and rr >= minRR and (maxExtSig == 0 or ext <= maxExtSig)
+    longsToday += 1
+    if ok
+        string tg = f_tag("L", ext, risk, rr, shortsToday + longsToday)
+        strategy.entry("L", strategy.long, qty = 1, comment = tg)
+        strategy.exit("xL", "L", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
+        totSignals += 1
+        lastNote := "LONG " + tg
+        if s_alerts
+            alert("VWR " + syminfo.ticker + " LONG rejection at -" + str.tostring(bandSig, "#.##") + "σ · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + str.tostring(tpPx, format.mintick) + " · risk " + str.tostring(risk, "#.##") + " pts · RR " + str.tostring(rr, "#.#"), alert.freq_once_per_bar)
+    else
+        totSkipped += 1
+        lastNote := "long skipped: rr " + str.tostring(rr, "#.#") + " ext " + str.tostring(ext, "#.##")
+
+// ================================ FLATTEN ================================
+if s_flat and tradeEnd and strategy.position_size != 0
+    strategy.close_all(comment = "time")
+    if s_alerts
+        alert("VWR " + syminfo.ticker + " end of trade window: flatten at market", alert.freq_once_per_bar)
+
+// ================================ VISUALS ================================
+bool drawOn = showDraw and not vwReset
+plot(drawOn ? vwap : na, "VWAP", color.new(color.purple, 0), 2, plot.style_linebr)
+plot(drawOn ? upBand : na, "Upper band", color.new(color.purple, 40), 1, plot.style_linebr)
+plot(drawOn ? dnBand : na, "Lower band", color.new(color.purple, 40), 1, plot.style_linebr)
+plot(showDraw and not onEnd ? ONH : na, "OVN HIGH", color.new(color.white, 40), 1, plot.style_linebr)
+plot(showDraw and not onEnd ? ONL : na, "OVN LOW", color.new(color.white, 40), 1, plot.style_linebr)
+bgcolor(inTrade and openLoc != "-" ? (dayOk ? color.new(color.aqua, 94) : color.new(color.gray, 94)) : na)
+plotshape(sigS and canTrade, "short signal", shape.triangledown, location.abovebar, color.new(color.red, 30), size = size.tiny)
+plotshape(sigL and canTrade, "long signal", shape.triangleup, location.belowbar, color.new(color.lime, 30), size = size.tiny)
+
+// ================================ DEBUG ================================
+var table dbg = table.new(position.bottom_left, 2, 5, bgcolor = color.new(color.black, 20), border_width = 1)
+if showDbg and barstate.islast
+    table.cell(dbg, 0, 0, "Regime", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 0, "opening range " + openLoc + " the overnight range → " + (dayOk ? "TRADE" : "skip") + " · day " + str.tostring(dayCount), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 1, "VWAP", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 1, str.tostring(vwap, format.mintick) + " · σ " + str.tostring(sig, "#.##") + " · bands " + str.tostring(dnBand, format.mintick) + " / " + str.tostring(upBand, format.mintick) + " · delta " + str.tostring(cumDelta, "#"), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 2, "State", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 2, "armed " + (armUp == 1 ? "above" : armDn == 1 ? "below" : "none") + " · longs " + str.tostring(longsToday) + " · shorts " + str.tostring(shortsToday), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 3, "Last", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 3, lastNote, text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 4, "Totals", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 4, "signals " + str.tostring(totSignals) + " · skipped " + str.tostring(totSkipped) + " · closed " + str.tostring(strategy.closedtrades) + " · equity " + str.tostring(strategy.equity, "#.##"), text_color = color.white, text_size = size.small)
