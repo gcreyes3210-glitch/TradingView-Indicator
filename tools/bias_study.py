@@ -257,8 +257,13 @@ def score():
     tags = s.explode("reasons").dropna(subset=["reasons"])
     for t, g in tags[tags.hit.notna()].groupby("reasons"):
         print(f"    tag {t:<24} {int(g.hit.astype(bool).sum())} of {len(g)} right")
+    imp = {}
     if "--implied" in sys.argv:                          # 'none' rows whose reasons state a direction
         imp = dict(z.split(":") for z in opt("--implied", "").split(","))
+    if "implied_dir" in x.columns:                       # or the trader's implied_dir column (long / short; 'either' = no call)
+        imp.update({r.id: r.implied_dir.strip().lower() for r in x.itertuples()
+                    if r.bias.strip().lower() == "none" and r.implied_dir.strip().lower() in ("long", "short")})
+    if imp:
         v = s[s.id.isin(imp)].copy()
         v["bias"] = v.id.map(imp)
         v["hit"] = [None if m == 0 else bool((m > 0) == (b_ == "long")) for m, b_ in zip(v.move, v.bias)]
@@ -404,7 +409,7 @@ def features():
     calls = t[t.call.isin(["long", "short"])]
     for rule in ("R1", "R2", "R3", "R4"):
         same = (calls[rule] == calls.call).sum()
-        print(f"{rule}: matches {same} of {len(calls)} directional calls; on the 6 'none' rows it says "
+        print(f"{rule}: matches {same} of {len(calls)} directional calls; on the {int((~t.call.isin(['long', 'short'])).sum())} 'none' rows it says "
               f"{', '.join(t[~t.call.isin(['long', 'short'])][rule])}; right on the day {int((t[rule] == t.actual).sum())} of "
               f"{int((t[rule] != 'none').sum())} of its own calls")
     t.to_csv(OUT / f"features_block{blk}.csv", index=False)

@@ -19,23 +19,23 @@ id,bias,confidence,draw_level,draw_ref,reasons,tags,implied_dir
 970176,none,3,,none,between HTF FVGs so price can go either way,between-fvgs,
 976546,none,1,18360.25,PDH,do not like the setup; price seems to be turning bullish but equal lows on the 15m at ON low,turning-bull;equal-lows-onl,
 992014,short,3,28554.75,ON low,wait for a tap into the 1H or 15m FVG and a strong inversion off it,wait-fvg-tap;wait-inversion,
-108765,none,2,,ON low,4H and 1H seem bearish; 15m low-resistance liquidity down to ON low,4h-bear;1h-bear;lrl-below,short
-198420,long,1,,ON high,want a sweep of the low-resistance lows or a tap into the most recent 4H FVG then a strong inversion for longs,wait-sweep;4h-fvg;wait-inversion,
-339495,long,1,,PDH,want a re-sweep of ON lows and a strong inversion targeting PDH; PDH lines up with a 4H FVG; could also be a short day if PDH is swept into the 4H FVG and inverts toward ON low (LRL below),wait-onl-sweep;wait-inversion;pdh-in-4h-fvg;either-way;lrl-below,
-343736,long,1,,ON high,bullish on all timeframes; strong inversion off the most recent 15m FVG for longs; only one confluence so low confidence,all-bull;reject-15m-fvg;low-confluence,
-393292,none,1,,ON low,low-resistance liquidity down to ON low,lrl-below,short
-398680,none,1,,ON low,timeframes bearish but stuck between two daily FVGs and two 4H FVGs; price can go either way,tf-bear;between-fvgs,either
-446581,none,1,,ON high,all timeframes accumulating; price between two 1H FVGs,accumulating;between-fvgs,either
-542093,none,1,,ON low,"looks like a news day, price shot up ~100 points; no HTF FVG to manipulate off; 4H FVG too far",news-day;htf-fvg-far,either
-552345,none,1,,ON high,stuck between two 4H FVGs; expect ON high to be hit because a 1H and a 4H FVG sit above it,between-fvgs;fvg-above-draw,long
-564473,long,1,,ON high,break-even when price taps the most recent 1H FVG; want a sweep of ON low and a strong inversion; TP1 at the 04:15 candle,wait-onl-sweep;wait-inversion;1h-fvg,
-635183,long,1,,PDH,"want a re-sweep of ON lows with a strong inversion, or a strong inversion off the most recent 15m FVG",wait-onl-sweep;wait-inversion;reject-15m-fvg,
-657550,none,1,,ON low,"strong inversion off the most recent 15m FVG would send price to ON low, otherwise ON high",reject-15m-fvg;either-way,either
-717943,short,1,,ON low,strong inversion off the 1H FVG price is in would give a short to ON low; not confident because the open is the most volatile time,in-1h-fvg;wait-inversion;open-volatility,
-728264,none,1,,ON high,either way; 1H FVG with relatively equal highs inside it and relatively equal lows; expect a sweep of ON high and a strong inversion to short,equal-highs;equal-lows;wait-onh-sweep;wait-inversion,short
-802219,none,3,,ON low,news at 05:30 with a strong bearish move; do not expect a return to the data highs; expect ON low taken and a tap into the most recent 4H FVG,news-day;bear-impulse;4h-fvg-below,short
-877725,none,3,,ON low,"inside a daily, 4H and 1H FVG; expect a move lower because of the low-resistance liquidity below",in-daily-fvg;in-4h-fvg;in-1h-fvg;lrl-below,short
-915276,short,1,,ON low,no reachable targets higher; low-resistance liquidity below down to the 1H FVG; not confident because price is in a 15m FVG with no other reachable HTF FVG,lrl-below;1h-fvg-below;in-15m-fvg;no-target-above,
-920609,long,1,,ON low,expect a sweep of ON low and a strong inversion out of the 1H; no strong targets higher so not confident,wait-onl-sweep;wait-inversion;1h-fvg;no-target-above,
-989398,none,3,,PDL,no strong targets above; 1H FVG and unmitigated 15m FVG above are too far; price bearish so expect PDL to be hit,no-target-above;htf-fvg-far;bearish,short
-999250,short,2,,ON low,"strong inversion out of the daily, 4H and 1H FVG would give shorts toward ON low, maybe PDL, with low-resistance liquidity down to those levels",in-daily-fvg;in-4h-fvg;in-1h-fvg;wait-inversion;lrl-below,
+108765,none,2,14735.75,ON low,4H and 1H seem bearish; 15m low-resistance liquidity down to ON low,4h-bear;1h-bear;lrl-below,short
+198420,long,1,7895.50,ON high,want a sweep of the low-resistance lows or a tap into the most recent 4H FVG then a strong inversion for longs,wait-sweep;4h-fvg;wait-inversion,
+339495,long,1,11779.25,PDH,want a re-sweep of ON lows and a strong inversion targeting PDH; PDH lines up with a 4H FVG; could also be a short day if PDH is swept into the 4H FVG and inverts toward ON low (LRL below),wait-onl-sweep;wait-inversion;pdh-in-4h-fvg;either-way;lrl-below,
+343736,long,1,26812.50,ON high,bullish on all timeframes; strong inversion off the most recent 15m FVG for longs; only one confluence so low confidence,all-bull;reject-15m-fvg;low-confluence,
+393292,none,1,12395.25,ON low,low-resistance liquidity down to ON low,lrl-below,short
+398680,none,1,16658.50,ON low,timeframes bearish but stuck between two daily FVGs and two 4H FVGs; price can go either way,tf-bear;between-fvgs,either
+446581,none,1,7939.50,ON high,all timeframes accumulating; price between two 1H FVGs,accumulating;between-fvgs,either
+542093,none,1,20908.75,ON low,"looks like a news day, price shot up ~100 points; no HTF FVG to manipulate off; 4H FVG too far",news-day;htf-fvg-far,either
+552345,none,1,17468.75,ON high,stuck between two 4H FVGs; expect ON high to be hit because a 1H and a 4H FVG sit above it,between-fvgs;fvg-above-draw,long
+564473,long,1,13751.75,ON high,break-even when price taps the most recent 1H FVG; want a sweep of ON low and a strong inversion; TP1 at the 04:15 candle,wait-onl-sweep;wait-inversion;1h-fvg,
+635183,long,1,12882.50,PDH,"want a re-sweep of ON lows with a strong inversion, or a strong inversion off the most recent 15m FVG",wait-onl-sweep;wait-inversion;reject-15m-fvg,
+657550,none,1,18227.50,ON low,"strong inversion off the most recent 15m FVG would send price to ON low, otherwise ON high",reject-15m-fvg;either-way,either
+717943,short,1,27036.00,ON low,strong inversion off the 1H FVG price is in would give a short to ON low; not confident because the open is the most volatile time,in-1h-fvg;wait-inversion;open-volatility,
+728264,none,1,17426.00,ON high,either way; 1H FVG with relatively equal highs inside it and relatively equal lows; expect a sweep of ON high and a strong inversion to short,equal-highs;equal-lows;wait-onh-sweep;wait-inversion,short
+802219,none,3,12460.00,ON low,news at 05:30 with a strong bearish move; do not expect a return to the data highs; expect ON low taken and a tap into the most recent 4H FVG,news-day;bear-impulse;4h-fvg-below,short
+877725,none,3,21708.50,ON low,"inside a daily, 4H and 1H FVG; expect a move lower because of the low-resistance liquidity below",in-daily-fvg;in-4h-fvg;in-1h-fvg;lrl-below,short
+915276,short,1,11478.00,ON low,no reachable targets higher; low-resistance liquidity below down to the 1H FVG; not confident because price is in a 15m FVG with no other reachable HTF FVG,lrl-below;1h-fvg-below;in-15m-fvg;no-target-above,
+920609,long,1,13146.00,ON low,expect a sweep of ON low and a strong inversion out of the 1H; no strong targets higher so not confident,wait-onl-sweep;wait-inversion;1h-fvg;no-target-above,
+989398,none,3,13719.00,PDL,no strong targets above; 1H FVG and unmitigated 15m FVG above are too far; price bearish so expect PDL to be hit,no-target-above;htf-fvg-far;bearish,short
+999250,short,2,8399.50,ON low,"strong inversion out of the daily, 4H and 1H FVG would give shorts toward ON low, maybe PDL, with low-resistance liquidity down to those levels",in-daily-fvg;in-4h-fvg;in-1h-fvg;wait-inversion;lrl-below,

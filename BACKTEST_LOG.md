@@ -627,7 +627,7 @@ Shuffle check on the best split (split_check, side / zone / SMT type): level vs 
 **Verdict: IFVG-1m fails.** No exit or zone set gives positive R, and the neighbours agree in sign (negative). Z-high, the trader's named secondary, is no better than Z-all.
 **What the rule could not encode:** "strong move" as a feeling, the V-shape, the "stronger trade" comparison between overlapping signals, and whether a gap is visible beyond the 1-point minimum. The trader names the day's bias as the missing input; the forward bias log is the test of it.
 
-## BIAS study — pre-registered 2026-09-24; block 1 scored, block 2 released
+## BIAS study — pre-registered 2026-09-24; both blocks scored
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
 **Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:
 - a 09:30 bar;
@@ -684,6 +684,28 @@ Three rules were fixed in the tool's docstring before comparing them with the ca
 None of the fixed rules reproduces the calls. The trend reading (the `daily-bull` / `all-bull` / `all-bear` tags) matches no better than chance, and the LRL feature as defined fires both ways on 6 of 20 days, so it does not discriminate. Reading the feature table showed that the calls follow the daily FVGs: all 5 shorts had an unfilled daily FVG above price, and 8 of 9 longs had none. R4 is in-sample by construction (13 of 14 is the fit, not a result). **Block 2 is its first real test:** how often R4 matches the block-2 calls, and how often R4 is right on those days. Neither a rule nor a backtest runs unless the trader asks.
 
 **Block 2 released** 2026-09-24: 20 charts in `data/studies/bias/block2/`, and 20 empty rows appended to `answers.csv` (same columns as block 1, including `draw_ref` and `tags`). Block-2 scoring is the block-1 scoring above, plus two measures: how often R4 matches the block-2 calls, and R4's own hit rate on those 20 days.
+
+**Block 2 scored 2026-09-25** (`score --block 2`; the new `implied_dir` column gives the direction the trader's reasoning expected on "none" rows; "either" rows are not scored). Draw references were all named levels (ON high / low, PDH, PDL). Up days were 65 % of the 20 dates. Calls: 6 long, 3 short, 11 none (7 with an implied direction, 4 "either").
+- **Explicit calls:** 3 of 9 right (33 %), against 5.0 expected, p = 0.96.
+- **Confidence 3:** no explicit confidence-3 calls. The three confidence-3 rows are all "none".
+- **Draw level** reached on 10 of 20 days.
+- **Implied directions, scored separately:** 1 of 7 right, p = 0.97.
+- **Tags:** `wait-inversion` 2 of 7, `wait-onl-sweep` 1 of 4, `lrl-below` 1 of 3.
+- **R4 on these 20 days (its first real test):** matches 4 of 9 calls, and is right on 9 of 20 days (10.0 expected, p = 0.76).
+- **The block-1 rules on block 2:** R1 matches 1 of 9 calls, R2 0 of 9, R3 4 of 9.
+
+**Pooled 40 days** (`score --block all --implied 348227:short,808881:short,976546:long`):
+
+| Measure | Result | Expected from the base rate | One-sided p |
+|---|---|---|---|
+| Explicit calls | 13 of 23 (57 %) | 11.7 | 0.37 |
+| Explicit + implied directions | 14 of 33 (42 %) | 16.5 | 0.85 |
+| Confidence-3 explicit calls | 3 of 3 | 1.5 | 0.12 |
+| Draw level reached | 22 of 37 (59 %) | — | — |
+| R4 on all 40 days | 23 of 40 (57.5 %) | 20.0 | 0.21 |
+| R4 matching the trader's explicit calls | 17 of 23 | — | — |
+
+**Reading.** Block 1 (10 of 14) did not repeat on block 2 (3 of 9), and the implied directions were wrong on 9 of 10 across both blocks. Over 40 days the calls are indistinguishable from the base rate. R4 fitted the block-1 calls (13 of 14) but matched only 4 of 9 in block 2, and it was right on 9 of 20 there. The seven-year test below is run as pre-registered regardless.
 
 ### R4 seven-year test — pre-registered 2026-09-24, NOT to be run until the block-2 answers are scored
 **The rule, fixed now.** It is R4 as coded in `tools/bias_study.py features`. At 09:30 New York, take the MNQ daily chart used in the study: the last 60 completed trading days (18:00–17:00), plus today's bar up to 09:29. An FVG is a 3-bar gap on those bars that no later bar, including today's partial bar, has traded through at its far edge. If any such FVG has its bottom above the 09:29 close, the call is **short**; otherwise **long**. Every eligible day gets a call; there is no "none".
