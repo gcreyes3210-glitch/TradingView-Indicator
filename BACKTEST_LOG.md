@@ -118,7 +118,7 @@ Events: one pre-registered skip filter qualifies — ORB does not trade well on 
 ORB context check (pre-registered, no rule change): four of five splits pass the 6-of-8-years rule, but label shuffles pass it 26–50 % of the time and the best split is p ≈ 0.14, so v1.3 stays as it is. Watch in the forward test, don't trade on: days after the previous day's range is in its widest third, and days whose overnight range is wider than the previous day's; ORB has made ≈ 0 R on both.
 **The SMT + IFVG family is closed** on both the indicator's selection (IFVG7: Run I ported and calibrated to TradingView, 89 of 95 trades on the same bar; 773 trades, −0.112 R, 2 of 8 positive years) and the trader's own selection (IFVG-1m: agreement 7 of 10 on the check charts; 6 pre-registered 1m runs from −0.06 to −0.26 R, 1–3 positive years of 8). The trader names the day's bias as the missing input; the forward bias log tests it. The agreement audit is scored (6 of 20 same gap on the 5m).
 **Discretionary bias (BIAS study, 40 blind pre-open charts):** the trader's calls are 13 of 23 right over 40 days (p 0.37). Block 1 was 10 of 14, block 2 3 of 9, and the implied directions 1 of 10. R4 (unfilled daily FVG above → short), the rule that fitted the block-1 calls, is rejected over seven years: right on 52.3 % of 1,746 days against 52.0 % expected, and as an ORB side filter it would skip +3,581 (2019–22) and +8,627 (2023–26) of ORB's profit. ORB v1.4 stays unfiltered; the forward bias log continues as the live test of the day's bias. Blocks 3–12 (200 more days) are pre-registered and being answered one block at a time.
-**POWELL 10:00 model** (manipulation from the 10:00 open, then a close back through it; P1 / P4 × 3R / 5R / IL): all six runs fail. There are 71 trades in seven years, at most 4 positive years, and the 2019–2022 half is negative in every run.
+**POWELL 10:00 model** (manipulation from the 10:00 open, then a close back through it; P1 / P4 × 3R / 5R / IL): all six runs fail. The author's own guide (P2: limit at O, liquidity target, 1:5 stop, break-even, news / overnight / SMT filter; six runs) fails as well: from −0.07 to −0.92 R per trade, at most 3 positive years. There are 71 trades in seven years, at most 4 positive years, and the 2019–2022 half is negative in every run.
 Sizing (see "Sizing"): one MNQ ≈ 1.1% of a $25k account at the median stop; a repeat of the worst drawdown ≈ −17% at that size. The edge is in the top 5% of trades, so every qualifying trade is taken.
 Forward test: v1.4 on the TradingView MNQ 5m chart with one "Any alert() function call" alert; each week export the strategy's list of trades and run `python3 tools/calibrate_orb.py <export.csv>` (live window from 2026-09-23 by default): it matches the live trades against the engine, prints the ORB8 filters and the retail-sales flag for every live trade, and ends with the row for the "Forward test" table below. Shadow rules are tracked, not traded.
 
@@ -907,6 +907,28 @@ P1 above stays as the reading based on a summary of the model. P2 follows the au
 - observation only: R by whether the manipulation side matched the 09:30–10:00 direction, and by overnight-expansion tercile (overnight range ÷ its 20-day median).
 **Check charts:** 10 random base-run trades, cut at the fill.
 **Not encoded:** PDA confluence at the manipulation extreme, the range judgement, and re-entries.
+
+### POWELL P2 — results (run 2026-09-25)
+`python3 tools/powell2_engine.py all`; trade lists in `data/studies/powell2/`.
+
+| Run | n | Net | R/trade | Win % | PF | Positive years | R 2019–22 / 2023–26 | p | Neighbours 0.35 / 0.75 A, R/trade |
+|---|---|---|---|---|---|---|---|---|---|
+| base (limit at O, 2 closes, 1:5) | 109 | −960 | −0.152 | 18.3 | 0.71 | 3 of 8 | −0.235 / −0.033 | 0.78 | −0.203 / −0.159 |
+| S5 | 91 | −508 | −0.072 | 18.7 | 0.81 | 2 | −0.389 / +0.412 | 0.63 | −0.028 / +0.042 |
+| ET | 91 | −1,648 | −0.508 | 12.1 | 0.45 | 3 | −0.546 / −0.455 | 1.00 | −0.486 / −0.556 |
+| R3 (1:3) | 172 | −1,773 | −0.232 | 22.1 | 0.72 | 2 | −0.292 / −0.164 | 0.97 | −0.198 / −0.213 |
+| F (filtered) | 65 | −383 | −0.193 | 18.5 | 0.79 | 3 | −0.367 / +0.086 | 0.78 | −0.207 / −0.176 |
+| F+ET | 56 | −1,677 | −0.921 | 5.4 | 0.06 | 1 | −0.817 / −1.095 | 1.00 | −0.921 / −1.020 |
+
+**Funnel (base):** 1,885 days → 592 with a manipulation → 244 signals → 225 with a target → 124 affordable at 1:5 → 109 filled. With filter F, 993 days remain and 65 trades.
+**Exit mix (base):** 84 stops, 15 targets (+4.87 R each), 2 break-even exits, 8 time exits. Break-even rarely triggers because the nearest liquidity at least 1 × A away is usually the first fractal on that side.
+**Observation only:**
+- **Manipulation side vs the 09:30–10:00 direction (base):** same direction 96 trades −0.082 R; opposite 13 trades −0.664 R.
+- **Overnight-expansion terciles (base):** low +0.040 R, mid −0.118 R, high −0.346 R. The same order appears in S5, R3 and F, but no tercile is positive by a margin that matters on 36 trades.
+**Verdict: every P2 run fails.** None is positive over the seven years except by chance in single years. The best run (S5) has 2 positive years and p = 0.63. The author's own filter (F) does not help, and entering on the close (ET) is the worst variant.
+**Reading added while coding:** in the S5 variant the 5m close through O is looked for from the 1m signal onward.
+**Not encoded,** as pre-registered: PDA confluence at the manipulation extreme, the range judgement, and re-entries.
+**Check charts:** `data/studies/powell2_charts/powell2_01…10.png`, 10 random base trades cut at the fill bar. They show O, the manipulation extreme, the signal bar, the liquidity target, the break-even trigger if any, and the stop. The stop is target ÷ 5 and so usually sits inside the manipulation leg, not beyond its extreme. Answer template `answers.csv` (setup_is_right, target_is_right, note).
 
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
