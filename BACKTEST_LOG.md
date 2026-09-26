@@ -807,5 +807,33 @@ Blocks 1–2 enter the pool unchanged: their answers were given before this pre-
 
 **Result: nothing passes.** The smallest p is 0.059 (AMD1-1m `sweep_div`: ES flow relatively weaker than NQ's at the sweep, in the trade's direction, 187–183 trades per tercile), seven times the Bonferroni bar. In the two families the same measure often points opposite ways (e.g. `entry_delta` +0.25 R in AMD, −0.33 R in IFVG-1m). As with FLOW1, 1-minute delta, stacked imbalances and absorption add nothing here that survives the test. Observation only.
 
+## POWELL 10:00 model — pre-registered 2026-09-25 (written before the engine was run)
+MNQ 1m, 2019-06 → 2026-09-21, house fills (1 tick slippage on every fill, $1 per side, stop first on a bar touching both, a bar opening beyond a level fills at the open). Engine `tools/powell_engine.py`.
+**Reference** = the open of the 10:00 ET 1m bar. ATR = RMA(14) on 5m bars. The manipulation size uses the 5m bar that closed at 10:00; the stop cap uses the last 5m bar closed at the signal.
+**Manipulation.** From 10:00, price extends at least 0.5 × ATR on one side of the reference, while the other side is never exceeded by more than 2 ticks before the signal bar. If a bar before the signal exceeds the other side by more than 2 ticks, the day is void. If both sides are exceeded before either reaches 0.5 × ATR, the day is void.
+**Signal.** The first 1m close back through the reference on the opposite side: after an upside manipulation, a close below the reference means short; mirror for longs. It may come on the bar that completes the manipulation. Entry at that close.
+**Stop.** The manipulation extreme (the high or low from 10:00 through the signal bar) + 2 ticks. Skip if the stop distance exceeds 1.5 × ATR.
+**Variants.**
+- **P1:** the signal bar opens by 10:29.
+- **P4:** manipulation and signal inside the 10:00–13:59 4-hour candle, with the signal bar opening by 13:59.
+**Targets, one run each:**
+- 3 R;
+- 5 R;
+- **internal liquidity (IL):** the nearest 5m 3-bar fractal beyond the entry on the profit side (high > the bar before and ≥ the bar after, mirror for lows), formed since 09:30 and confirmed by the entry bar. Skip if there is none or it is under 2 R.
+**Trade management.** One trade per day. Flat at the close of the last 1m bar before 16:00. On early-close days, flat at the close of the bar opening 10 minutes before the halt; the halt is read from the bars, as in ORB v1.4.
+**Criterion.** Six runs (P1 / P4 × 3R / 5R / IL). A run passes only if all hold:
+- at least 6 of 8 positive calendar years;
+- at least +0.05 R per trade;
+- R per trade non-negative in both 2019–2022 and 2023–2026;
+- the neighbours (manipulation size 0.35 and 0.75 × ATR) have the same sign of R per trade;
+- mean R > 0 at one-sided p < 0.05 / 6 = 0.0083 (normal approximation to the t-test on per-trade R).
+**Reported per run:**
+- n, net, R per trade, win %, PF and drawdown;
+- by year, and long / short;
+- the funnel: days → manipulation → signal in the window → stop cap → IL target check → trades;
+- observation only: R per trade by whether the manipulation side matched the 09:30–10:00 direction (09:59 close vs 09:30 open).
+**Check charts:** 10 random P1 trades (3R run), 1m bars from 09:30 cut at the entry bar, outcome hidden.
+**Not encoded:** the model's HTF-PDA bias (which higher-timeframe array price is drawn to) and its 0.79 Fibonacci entry. Entry here is the close back through the 10:00 open.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
