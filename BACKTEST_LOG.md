@@ -117,6 +117,7 @@ VP2y (overnight value area 80 % rule), the earlier candidate: fails out of sampl
 Events: one pre-registered skip filter qualifies — ORB does not trade well on retail-sales release days (39 trades, −2,409, negative 8 of 8 years, p = 0.011); skipping them gives +23,652, PF 1.32, +0.147 R. Pending as v1.4 of the Pine script. FOMC afternoons have helped open positions. Engines now flatten on the last bar of an early-close session (ORB: 17 trades, +243).
 ORB context check (pre-registered, no rule change): four of five splits pass the 6-of-8-years rule, but label shuffles pass it 26–50 % of the time and the best split is p ≈ 0.14, so v1.3 stays as it is. Watch in the forward test, don't trade on: days after the previous day's range is in its widest third, and days whose overnight range is wider than the previous day's; ORB has made ≈ 0 R on both.
 **The SMT + IFVG family is closed** on both the indicator's selection (IFVG7: Run I ported and calibrated to TradingView, 89 of 95 trades on the same bar; 773 trades, −0.112 R, 2 of 8 positive years) and the trader's own selection (IFVG-1m: agreement 7 of 10 on the check charts; 6 pre-registered 1m runs from −0.06 to −0.26 R, 1–3 positive years of 8). The trader names the day's bias as the missing input; the forward bias log tests it. The agreement audit is scored (6 of 20 same gap on the 5m).
+**Discretionary bias (BIAS study, 40 blind pre-open charts):** the trader's calls are 13 of 23 right over 40 days (p 0.37). Block 1 was 10 of 14, block 2 3 of 9, and the implied directions 1 of 10. R4 (unfilled daily FVG above → short), the rule that fitted the block-1 calls, is rejected over seven years: right on 52.3 % of 1,746 days against 52.0 % expected, and as an ORB side filter it would skip +3,581 (2019–22) and +8,627 (2023–26) of ORB's profit. ORB v1.4 stays unfiltered; the forward bias log continues as the live test of the day's bias.
 Sizing (see "Sizing"): one MNQ ≈ 1.1% of a $25k account at the median stop; a repeat of the worst drawdown ≈ −17% at that size. The edge is in the top 5% of trades, so every qualifying trade is taken.
 Forward test: v1.4 on the TradingView MNQ 5m chart with one "Any alert() function call" alert; each week export the strategy's list of trades and run `python3 tools/calibrate_orb.py <export.csv>` (live window from 2026-09-23 by default): it matches the live trades against the engine, prints the ORB8 filters and the retail-sales flag for every live trade, and ends with the row for the "Forward test" table below. Shadow rules are tracked, not traded.
 
@@ -756,6 +757,15 @@ None of the fixed rules reproduces the calls. The trend reading (the `daily-bull
 - **Shuffle** (skip the same number at random within each year): p = 0.56.
 - **Neighbours:** the skipped trades are also net positive, 40 days +3,010.5 and 80 days +3,328.5.
 - **Stage 1 fails every condition:** the filter would skip trades that made money. R4 is not adopted.
+
+**Test 2, stage 2 — 2023–2026 (run after stage 1 was committed, `fe77f7a`).** 456 ORB trades, 223 skipped.
+- **Skipped trades:** net **+8,627**, +0.157 R per trade, positive in all 4 years (2023 +808, 2024 +1,529, 2025 +3,399, 2026 +2,891).
+- **Kept trades:** +0.148 R per trade, against +0.152 R for all trades.
+- **Shuffle:** p = 0.52.
+- **Neighbours:** the skipped trades are net positive, 40 days +7,665.5 and 80 days +8,948.
+- **Full-span filtered ORB:** 465 trades, +8,860, +0.115 R per trade, 6 of 8 positive years. Unfiltered it is 875 trades and +21,067.5 over the same span, so the filter would remove 58 % of the net.
+- It clears the full-span thresholds only because ORB itself does; every filter-specific condition fails.
+**Verdict: R4 is rejected** in both stages, on both neighbours, and on direction. It is not a shadow flag: it has no direction content (test 1), and the trades it would skip are ORB's normal, profitable trades. The daily-FVG reading that fitted the block-1 calls is a description of how the trader reads the chart, not a predictor of the day.
 
 ## FLOW2 — order flow around IFVG-1m and AMD1-1m trades (observation only)
 `python3 tools/flow2.py`; per-trade measures in `data/studies/flow2_trades.csv`.
