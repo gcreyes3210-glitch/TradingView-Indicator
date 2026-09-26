@@ -859,5 +859,54 @@ MNQ 1m, 2019-06 → 2026-09-21, house fills (1 tick slippage on every fill, $1 p
 **Not encoded,** as stated in the pre-registration: the model's HTF-PDA bias and its 0.79 Fibonacci entry.
 **Check charts:** `data/studies/powell_charts/powell_01…10.png`, 10 random P1 trades from the 3R run, 1m from 09:30 cut at the entry bar, outcome hidden. They show the 10:00 open, the 0.5 × ATR threshold, the manipulation extreme and the stop. Answer template `answers.csv` (manipulation_is_right, entry_is_right, note).
 
+### POWELL P2 — the author's guide, pre-registered 2026-09-25 (written before the engine was run)
+P1 above stays as the reading based on a summary of the model. P2 follows the author's own guide. MNQ 1m, with ES 1m for the filter, 2019-06 → 2026-09-21, house fills. Engine `tools/powell2_engine.py`.
+**Definitions.**
+- **O** = the open of the 10:00 ET 1m bar.
+- **A** = RMA(14) ATR of 5m bars, from the 5m bar that closed at 10:00. It is fixed for the day and used for every size below.
+- **Manipulation:** from 10:00, one side of O reaches 0.5 × A while the opposite side is never exceeded by more than 0.1 × A.
+  - The check covers every bar before the signal's first close.
+  - A day is void if the opposite side is exceeded first, or if both sides pass 0.1 × A before either reaches 0.5 × A.
+  - **Bias** is against the manipulation side.
+- **Signal:** two consecutive 1m closes through O on the bias side, the second coming by the bar opening 11:29.
+  - **S5 variant:** also a 5m candle that opens at 10:05 or later and closes through O on the bias side; the signal is whichever of the two comes later.
+- **Target:** the nearest unswept liquidity on the bias side at least 1.0 × A beyond O.
+  - Candidates are 5m 3-bar fractals (high > the bar before and ≥ the bar after; mirror for lows) and equal highs / lows (two such fractals within 0.1 × A; the level is the farther of the two).
+  - They must be formed since 18:00 the prior evening, confirmed by the signal, and not traded through between forming and the signal.
+  - No target means no trade.
+- **Stop:** target distance ÷ 5 from the entry (**R3 variant:** ÷ 3). If that is below 0.4 × A, the trade is skipped.
+- **Entry:**
+  - **Base:** a limit at O placed at the signal close, valid for bars opening up to 11:29. It fills when a bar trades to O (at the open if the bar opens beyond O); unfilled means no trade. The target and stop distances are measured from O.
+  - **ET variant:** the close of the first 1m bar after the signal that trades to O and closes back on the bias side, with distances measured from that close.
+- **Management:**
+  - **Break-even:** the stop moves to the entry price from the bar after price first reaches the nearest 5m fractal on the bias side that lies between the entry and the target (same candidate rules). If there is none, there is no break-even.
+  - Flat at the close of the last 1m bar before 16:00, or on an early-close day the bar opening 10 minutes before the halt.
+  - One trade per day.
+- **Fills:** 1 tick of slippage on every fill, including the limit entry. Stop first on a bar touching both levels. $1 per side.
+- **Filter F** skips these days:
+  - the overnight range (18:00–09:30) is above 1.5 × the median of the previous 20 trading days' overnight ranges;
+  - CPI, PPI or NFP days (`data/events.csv`);
+  - FOMC days;
+  - days where the 09:30–10:00 moves of MNQ and ES differ in sign (09:59 close vs 09:30 open).
+**Runs (six):**
+- **base:** limit entry, two closes, 1:5;
+- **S5;**
+- **ET;**
+- **R3;**
+- **F:** base plus the filter;
+- **F+ET.**
+**Criterion, per run:**
+- at least 6 of 8 positive years;
+- at least +0.05 R per trade;
+- R per trade non-negative in both 2019–2022 and 2023–2026;
+- neighbours at 0.35 and 0.75 × A manipulation size with the same sign;
+- mean R > 0 at one-sided p < 0.05 / 6 = 0.0083 (normal approximation).
+**Reported:**
+- the funnel: days → manipulation → signal → target found → 1:5 affordable → filled;
+- by year, long / short, and the exit mix including break-even exits;
+- observation only: R by whether the manipulation side matched the 09:30–10:00 direction, and by overnight-expansion tercile (overnight range ÷ its 20-day median).
+**Check charts:** 10 random base-run trades, cut at the fill.
+**Not encoded:** PDA confluence at the manipulation extreme, the range judgement, and re-entries.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
