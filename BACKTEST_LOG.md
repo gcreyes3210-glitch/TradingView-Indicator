@@ -731,6 +731,32 @@ None of the fixed rules reproduces the calls. The trend reading (the `daily-bull
 - **Adoption** requires stage 1 and stage 2 and the neighbours to pass, and the filter-adoption standard: one pre-specified hypothesis plus a stated mechanism (unfilled daily FVGs above act as overhead supply, which is the trader's own reading). If any part fails, R4 is not adopted and becomes at most a shadow flag in the weekly forward check.
 - If stage 1 fails, stage 2 is still run once and reported, but it cannot rescue adoption.
 
+### R4 seven-year test — results (run 2026-09-25, after block 2 was scored)
+`tools/r4_test.py`. The `check` step reproduces R4 from `bias_study.features` on all 40 study days (40 of 40 agree). 1,746 eligible days with the 60-day look-back, the 40 study days excluded.
+**Test 1 — direction by year (report only).** R4 is right on 914 of 1,746 days (52.3 %) against 907.7 expected from each year's base rate, p = 0.39.
+
+| Year | Days | Short calls | Up days | R4 right | Expected | p |
+|---|---|---|---|---|---|---|
+| 2019 | 84 | 11 % | 63 % | 57.1 % | 50.6 | 0.76 |
+| 2020 | 245 | 42 % | 62 % | 55.9 % | 127.6 | 0.12 |
+| 2021 | 247 | 44 % | 57 % | 51.8 % | 125.6 | 0.40 |
+| 2022 | 249 | 90 % | 45 % | 53.8 % | 135.2 | 0.59 |
+| 2023 | 247 | 48 % | 56 % | 47.8 % | 124.1 | 0.80 |
+| 2024 | 250 | 40 % | 59 % | 49.2 % | 129.4 | 0.81 |
+| 2025 | 247 | 47 % | 59 % | 55.1 % | 125.0 | 0.087 |
+| 2026 | 177 | 40 % | 55 % | 50.8 % | 90.2 | 0.54 |
+
+- **Calls by side:** long calls are right 58.5 % of the time and short calls 45.8 %. That is the up-day drift, not skill.
+- **Neighbours:** a 40-day look-back gives 53.2 % (p 0.23), 80 days gives 52.4 % (p 0.30).
+- R4 has no directional content beyond the base rate in any year.
+
+**Test 2, stage 1 — ORB v1.4 side filter, 2019–2022 (written before stage 2 was run).** 419 ORB trades. 187 are against R4 and would be skipped; 44 have no R4 call (before the 61st trading day, roll days or study days) and are kept.
+- **Skipped trades:** net **+3,581**, +0.127 R per trade. By year: 2019 −22, 2020 −577, 2021 +1,944, 2022 +2,235, so negative in 2 of 4 years.
+- **Kept trades:** +0.081 R per trade, against +0.102 R for all trades.
+- **Shuffle** (skip the same number at random within each year): p = 0.56.
+- **Neighbours:** the skipped trades are also net positive, 40 days +3,010.5 and 80 days +3,328.5.
+- **Stage 1 fails every condition:** the filter would skip trades that made money. R4 is not adopted.
+
 ## FLOW2 — order flow around IFVG-1m and AMD1-1m trades (observation only)
 `python3 tools/flow2.py`; per-trade measures in `data/studies/flow2_trades.csv`.
 **Day-coverage caveat.** The order-flow data covers only the 876 ORB v1.4 trade days, 09:30–11:35. Those are days whose opening range broke the overnight range, not a random sample of days.
