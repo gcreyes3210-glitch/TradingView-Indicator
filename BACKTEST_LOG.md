@@ -767,6 +767,19 @@ None of the fixed rules reproduces the calls. The trend reading (the `daily-bull
 - It clears the full-span thresholds only because ORB itself does; every filter-specific condition fails.
 **Verdict: R4 is rejected** in both stages, on both neighbours, and on direction. It is not a shadow flag: it has no direction content (test 1), and the trades it would skip are ORB's normal, profitable trades. The daily-FVG reading that fitted the block-1 calls is a description of how the trader reads the chart, not a predictor of the day.
 
+### BIAS blocks 3–12 — pre-registered 2026-09-25, nothing concluded until all 12 blocks are answered
+**Days.** 200 more days (`python3 tools/bias_study.py make_more`, `default_rng(2509)`), 25 per calendar year 2019–2026. Eligibility is the same as for blocks 1–2 (a 09:30 bar, at least 60 earlier trading days, no contract roll between the previous cash close and the day's cash close), and none of the 40 days already used is repeated. The 200 days are shuffled into blocks 3–12 of 20 each, so the order within a block is random.
+**Charts and release.** Same four-panel charts cut at 09:30, in `data/studies/bias/block3 … block12/`. The key is appended to `key.csv` (all 240 dates are distinct; never printed). Blocks are pushed one at a time on request: `release N` appends block N's 20 rows to `answers.csv`, with the same columns plus `implied_dir`.
+**Scoring, fixed now, pooled over all 240 days** (`score --block all`):
+1. **Explicit calls:** hit rate against the base rate over the same dates, one-sided Poisson-binomial. **Significant only at p < 0.05.**
+2. **Confidence-3 explicit calls alone,** with the same test.
+3. **implied_dir** ("none" rows with long / short) scored separately; "either" is not scored.
+4. **Draw level** reached between 09:30 and 15:59.
+5. **Hit rate per tag.**
+6. **Fatigue:** explicit-call hit rate by position 1–20 within the block, and by positions 1–5 / 6–10 / 11–15 / 16–20. The position is the row's place in its block in `answers.csv`, which is the chart's place in the block folder sorted by name.
+7. **answered_at:** each row's git author time from the commit that last changed it, recorded per block.
+Blocks 1–2 enter the pool unchanged: their answers were given before this pre-registration. **No conclusion is drawn and no per-block result is interpreted until all 12 blocks are answered.**
+
 ## FLOW2 — order flow around IFVG-1m and AMD1-1m trades (observation only)
 `python3 tools/flow2.py`; per-trade measures in `data/studies/flow2_trades.csv`.
 **Day-coverage caveat.** The order-flow data covers only the 876 ORB v1.4 trade days, 09:30–11:35. Those are days whose opening range broke the overnight range, not a random sample of days.

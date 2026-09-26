@@ -3,6 +3,8 @@
 
     python3 tools/bias_study.py make  [--seed 2409] [--out data/studies/bias]
     python3 tools/bias_study.py release2                   append the block 2 rows to answers.csv
+    python3 tools/bias_study.py make_more [--seed 2509]    blocks 3-12 (200 more days, 25 per year, none reused)
+    python3 tools/bias_study.py release N                  append block N's rows to answers.csv
     python3 tools/bias_study.py resolve                    fill draw_level from draw_ref (printed)
     python3 tools/bias_study.py score [--out data/studies/bias] [--block 1|2|all]
     python3 tools/bias_study.py features [--block 1]         computable features from the tags vs the calls
@@ -217,8 +219,15 @@ def score():
     cc = cash_close(one)
     key = pd.read_csv(OUT / "key.csv", dtype={"id": str})
     blk = opt("--block", "all")
-    blocks = [1, 2] if blk == "all" else [int(blk)]
+    blocks = sorted(key.block.unique()) if blk == "all" else \
+        list(range(int(blk.split("-")[0]), int(blk.split("-")[1]) + 1)) if "-" in blk else [int(blk)]
     ans = pd.read_csv(OUT / "answers.csv", dtype=str).fillna("")
+    # answered_at = git author time of the commit that last changed the answer row; position = the row's place
+    # (1-20) within its block in answers.csv, i.e. the chart's place in the block folder sorted by name
+    from bias_log import blame_times
+    bt = blame_times(str(OUT / "answers.csv"))
+    ans["answered_at"] = [bt.get(k + 2) for k in range(len(ans))]
+    key["position"] = key.sort_values("id").groupby("block").cumcount() + 1
     x = key[key.block.isin(blocks)].merge(ans, on="id")
     x = x[x.bias.str.strip() != ""]
     rows = []
@@ -233,7 +242,8 @@ def score():
             lv = float(r.draw_level)
             reach = bool(day.high.max() >= lv) if lv >= px else bool(day.low.min() <= lv)
         b = r.bias.strip().lower()
-        rows.append(dict(id=r.id, bias=b, conf=r.confidence.strip(), up=move > 0, move=move,
+        rows.append(dict(id=r.id, block=r.block, position=r.position, answered_at=r.answered_at,
+                         bias=b, conf=r.confidence.strip(), up=move > 0, move=move,
                          hit=None if b not in ("long", "short") or move == 0 else bool((move > 0) == (b == "long")),
                          reach=reach, reasons=[t.strip().lower() for t in (getattr(r, "tags", "") or r.reasons).split(";") if t.strip()]))
     s = pd.DataFrame(rows)
@@ -270,6 +280,13 @@ def score():
         print("  directional 'none' rows, scored separately: " + ", ".join(f"{r.id} {r.bias} -> {'right' if r.hit else 'wrong'}" for r in v.itertuples()))
         test(v, "those rows alone")
         test(pd.concat([s[s.hit.notna()], v]), "calls + those rows")
+    if s.block.nunique() > 2:                            # fatigue: explicit-call hit rate by position within block
+        c = s[s.hit.notna()]
+        print("  hit rate by position within block (explicit calls): " + "  ".join(
+            f"{p}: {int(g.hit.astype(bool).sum())}/{len(g)}" for p, g in c.groupby("position")))
+        for q, g in c.groupby(pd.cut(c.position, [0, 5, 10, 15, 20], labels=["1-5", "6-10", "11-15", "16-20"]), observed=True):
+            print(f"    positions {q}: {int(g.hit.astype(bool).sum())} of {len(g)} right")
+        print("  answered_at by block: " + "; ".join(f"{b_}: {g.answered_at.min()} -> {g.answered_at.max()}" for b_, g in s.groupby("block")))
     s.drop(columns=["reasons"]).to_csv(OUT / f"scored_block{blk}.csv", index=False)
 
 
@@ -415,6 +432,41 @@ def features():
     t.to_csv(OUT / f"features_block{blk}.csv", index=False)
 
 
+def make_more():
+    """Blocks 3-12: 200 more days, 25 per calendar year 2019-2026, same eligibility, none of the days already in
+    key.csv, shuffled into ten blocks of 20 (default_rng(seed)); charts in <out>/block3 .. block12."""
+    rng = np.random.default_rng(opt("--seed", 2509))
+    one = one_min()
+    key = pd.read_csv(OUT / "key.csv", dtype={"id": str})
+    used = set(pd.to_datetime(key.date))
+    el = pd.DatetimeIndex([d for d in eligible(one) if d not in used])
+    picks = []
+    for y in range(2019, 2027):
+        pool = el[el.year == y]
+        picks += list(pool[np.sort(rng.choice(len(pool), size=25, replace=False))])
+    order = rng.permutation(len(picks))
+    taken = set(key.id.astype(int))
+    ids = [i for i in rng.choice(np.arange(100000, 1000000), size=len(picks) + 100, replace=False) if i not in taken][:len(picks)]
+    new = []
+    for pos, k in enumerate(order):
+        d = picks[k]
+        block = 3 + pos // 20
+        ident = str(ids[pos])
+        (OUT / f"block{block}").mkdir(exist_ok=True)
+        render(one, d, OUT / f"block{block}" / f"{ident}.png", ident)
+        new.append(dict(id=ident, block=block, date=d.date()))
+    pd.concat([key, pd.DataFrame(new)]).to_csv(OUT / "key.csv", index=False)
+    print(f"{len(new)} charts in blocks 3-12")
+
+
+def release(block):
+    k = pd.read_csv(OUT / "key.csv", dtype={"id": str})
+    a = pd.read_csv(OUT / "answers.csv", dtype=str).fillna("")
+    kb = k[(k.block == block) & ~k.id.isin(a.id)].sort_values("id")
+    pd.concat([a, pd.DataFrame(dict(id=kb.id))]).fillna("").to_csv(OUT / "answers.csv", index=False)
+    print(f"block {block}: {len(kb)} rows appended")
+
+
 def release2():
     k = pd.read_csv(OUT / "key.csv", dtype={"id": str})
     a = pd.read_csv(OUT / "answers.csv", dtype=str).fillna("")
@@ -424,4 +476,8 @@ def release2():
 
 
 if __name__ == "__main__":
-    {"make": make, "score": score, "release2": release2, "resolve": resolve, "features": features}[sys.argv[1]]()
+    if sys.argv[1] == "release":
+        release(int(sys.argv[2]))
+    else:
+        {"make": make, "make_more": make_more, "score": score, "release2": release2, "resolve": resolve,
+         "features": features}[sys.argv[1]]()
