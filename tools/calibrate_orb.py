@@ -84,7 +84,9 @@ def shadow_flags(bars, events="data/events.csv"):
         return f
     ev = pd.read_csv(events)
     retail = set(pd.to_datetime(ev[ev.type == "retail_sales"].date).dt.date)
-    ev_end = pd.to_datetime(ev.date).max().date()
+    cov = events.replace("events.csv", "events_coverage.csv")     # per-type reach of the sources, if built
+    cv = pd.read_csv(cov).set_index("type").covered_through if __import__("os").path.exists(cov) else {}
+    ev_end = pd.Timestamp(cv["retail_sales"]).date() if "retail_sales" in cv else pd.to_datetime(ev.date).max().date()
     f["retail"] = [(d in retail) if d <= ev_end else np.nan for d in sessions]
     return f
 

@@ -448,12 +448,13 @@ Shadow rules — marked on every live trade, never traded:
 
 | Week | Live trades (v1.4) | Net | Shadow ORB8 | Shadow retail-sales |
 |---|---|---|---|---|
-| week to 2026-10-06 | 3 | -295 | taken 3, ORB8 would skip 2, net of skipped -90 | taken 3, retail-sales would skip 0, net of skipped +0 (3 n/a) |
+| week to 2026-10-06 | 3 | -295 | taken 3, ORB8 would skip 2, net of skipped -90 | taken 3, retail-sales would skip 0, net of skipped +0 |
 
 **Check of 2026-10-08** (export `data/tradingview/ORB_live_2026-10-08.csv`, 30 trades 2026-06-29 → 2026-10-06, Databento MNQ bars to 2026-10-08 09:33 ET):
 - **Calibration, all 30 trades:** 30 TradingView / 30 engine, 30 matched on day and side, 0 unmatched. All 30 agree on entry bar, entry price, exit reason, exit price, PnL (within $1) and opening-range width. The tag's h:m (New York) equals the chart time (Los Angeles) converted to New York on all 30. Both sides: net +150, win 50.0 %, PF 1.03, DD −1,954, 9 stops / 21 time exits. **The chart's strategy matches v1.4.**
 - **Live trades:** 2026-09-23 S time +231.0 (F3 → ORB8 skip) · 2026-09-30 L SL −321.5 (F2 → ORB8 skip) · 2026-10-06 L time −204.5 (no flag). ORB8 by filter: F1 0, F2 1 trade −322, F3 1 trade +231.
-- **Retail-sales flag n/a** on all three: `data/events.csv` ends 2026-09-18 (the last retail-sales date in it is 2026-09-16). It needs the Census calendar rebuilt (`tools/build_events.py`) to score.
+- **Retail-sales flag:** no live trade fell on a release day (Census releases 2026-09-16 and 2026-10-15). The first run printed n/a because `data/events.csv` ended 2026-09-18; it was rebuilt the same day (below) and the row's retail-sales column updated.
+- **`data/events.csv` rebuilt through 2027-12-31** (`python3 tools/build_events.py RAW --hi 2027-12-31`), sources refetched 2026-10-08: Fed FOMC calendar (lists 2027), BLS release archives via the Internet Archive plus the BLS CPI / PPI / Employment Situation schedules, the Census MARTS xls (to Dec 2026) and the Census economic-indicator calendar (advance retail sales through 2027-12-15). **What each type's sources reach** is now written to `data/events_coverage.csv`. The flag tools treat a date after it as unknown (n/a), not as a non-event day, and `calibrate_orb.py` reads the retail-sales coverage from it. Coverage: FOMC, opex 2027-12-31 · retail sales 2027-12-15 · **CPI 2026-12-10, PPI 2026-12-15, NFP 2026-12-04**: BLS has not published (or the Archive does not hold) its 2027 schedule; rebuild once it is out · GDP_advance, PCE 2026-09-22 (BEA sources not refetched, rows carried over unchanged) · early_close 2026-10-07 (from the bars). 2027 opex: June quad witching moves to Thursday 2027-06-17 (Juneteenth observed Friday 06-18). **Check against the old file:** every row to 2026-09-22 is identical in date, time and note. Two rows were added that the old pages predated: PPI 2026-09-10 and CPI 2026-09-11.
 - **Forward bias log:** `data/forward/bias_log.csv` has 0 rows; nothing to score.
 
 ## Walk-forward

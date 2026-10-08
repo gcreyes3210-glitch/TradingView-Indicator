@@ -669,6 +669,57 @@ date,type,time_ny,note
 2026-08-26,PCE,08:30,"Personal Income and Outlays, July 2026"
 2026-09-04,NFP,08:30,BLS release archive
 2026-09-07,early_close,13:00,exchange holiday: CME Globex-only session
+2026-09-10,PPI,08:30,BLS PPI release schedule
+2026-09-11,CPI,08:30,BLS release archive
 2026-09-16,FOMC,14:00,"scheduled meeting, statement 14:00"
 2026-09-16,retail_sales,08:30,Census MARTS release dates
 2026-09-18,opex,09:30,quad witching; AM-settled index options settle at the open
+2026-10-02,NFP,08:30,BLS release archive
+2026-10-14,CPI,08:30,BLS CPI release schedule
+2026-10-15,PPI,08:30,BLS PPI release schedule
+2026-10-15,retail_sales,08:30,Census MARTS release dates
+2026-10-16,opex,09:30,monthly; AM-settled index options settle at the open
+2026-10-28,FOMC,14:00,"scheduled meeting, statement 14:00"
+2026-11-06,NFP,08:30,BLS NFP release schedule
+2026-11-10,CPI,08:30,BLS CPI release schedule
+2026-11-13,PPI,08:30,BLS PPI release schedule
+2026-11-17,retail_sales,08:30,Census MARTS release dates
+2026-11-20,opex,09:30,monthly; AM-settled index options settle at the open
+2026-12-04,NFP,08:30,BLS NFP release schedule
+2026-12-09,FOMC,14:00,"scheduled meeting, statement 14:00"
+2026-12-10,CPI,08:30,BLS CPI release schedule
+2026-12-15,PPI,08:30,BLS PPI release schedule
+2026-12-16,retail_sales,08:30,Census MARTS release dates
+2026-12-18,opex,09:30,quad witching; AM-settled index options settle at the open
+2027-01-15,opex,09:30,monthly; AM-settled index options settle at the open
+2027-01-15,retail_sales,08:30,Census economic indicator calendar
+2027-01-27,FOMC,14:00,"scheduled meeting, statement 14:00"
+2027-02-17,retail_sales,08:30,Census economic indicator calendar
+2027-02-19,opex,09:30,monthly; AM-settled index options settle at the open
+2027-03-16,retail_sales,08:30,Census economic indicator calendar
+2027-03-17,FOMC,14:00,"scheduled meeting, statement 14:00"
+2027-03-19,opex,09:30,quad witching; AM-settled index options settle at the open
+2027-04-16,opex,09:30,monthly; AM-settled index options settle at the open
+2027-04-16,retail_sales,08:30,Census economic indicator calendar
+2027-04-28,FOMC,14:00,"scheduled meeting, statement 14:00"
+2027-05-14,retail_sales,08:30,Census economic indicator calendar
+2027-05-21,opex,09:30,monthly; AM-settled index options settle at the open
+2027-06-09,FOMC,14:00,"scheduled meeting, statement 14:00"
+2027-06-16,retail_sales,08:30,Census economic indicator calendar
+2027-06-17,opex,09:30,quad witching; moved to Thursday (Juneteenth observed); AM-settled index options settle at the open
+2027-07-16,opex,09:30,monthly; AM-settled index options settle at the open
+2027-07-16,retail_sales,08:30,Census economic indicator calendar
+2027-07-28,FOMC,14:00,"scheduled meeting, statement 14:00"
+2027-08-16,retail_sales,08:30,Census economic indicator calendar
+2027-08-20,opex,09:30,monthly; AM-settled index options settle at the open
+2027-09-15,FOMC,14:00,"scheduled meeting, statement 14:00"
+2027-09-16,retail_sales,08:30,Census economic indicator calendar
+2027-09-17,opex,09:30,quad witching; AM-settled index options settle at the open
+2027-10-15,opex,09:30,monthly; AM-settled index options settle at the open
+2027-10-15,retail_sales,08:30,Census economic indicator calendar
+2027-10-27,FOMC,14:00,"scheduled meeting, statement 14:00"
+2027-11-16,retail_sales,08:30,Census economic indicator calendar
+2027-11-19,opex,09:30,monthly; AM-settled index options settle at the open
+2027-12-08,FOMC,14:00,"scheduled meeting, statement 14:00"
+2027-12-15,retail_sales,08:30,Census economic indicator calendar
+2027-12-17,opex,09:30,quad witching; AM-settled index options settle at the open
