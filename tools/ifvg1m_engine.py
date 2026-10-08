@@ -209,8 +209,9 @@ def fractals_since(j, open_i, sess, high):
     return out
 
 
-def signals(fresh=5, min_gap=1.0, cap=2.0, zset=ZONES_ALL, session="ny"):
-    """Every signal (inversion + live setup + zone + stop cap) and the funnel counts."""
+def signals(fresh=5, min_gap=1.0, cap=2.0, zset=ZONES_ALL, session="ny", zone_req=True):
+    """Every signal (inversion + live setup + zone + stop cap) and the funnel counts. zone_req=False drops the HTF-zone
+    requirement (the zone is still recorded when there is one)."""
     load(); setups = sweeps()
     O, H, L, C, tod, ts = S["O"], S["H"], S["L"], S["C"], S["tod"], S["ts"]
     starts, ends = S["starts"], S["ends"]
@@ -299,7 +300,7 @@ def signals(fresh=5, min_gap=1.0, cap=2.0, zset=ZONES_ALL, session="ny"):
                     x["inv"] = True; funnel["3 fresh inversion"] += 1; funnel["3 fresh inversion [" + ("pivot" if x["kind"] == "pivot" else "level") + "]"] += 1
                 ext = x["ext"]
                 m = (zz[0] <= j) & (zz[1] > j) & (((zz[2] >= bot) & (zz[3] <= top)) | ((zz[3] <= ext) & (zz[2] >= ext)))
-                if not m.any():
+                if zone_req and not m.any():
                     continue
                 if inwin and not x["zone"]:
                     x["zone"] = True; funnel["4 HTF zone"] += 1; funnel["4 HTF zone [" + ("pivot" if x["kind"] == "pivot" else "level") + "]"] += 1
@@ -319,8 +320,8 @@ def signals(fresh=5, min_gap=1.0, cap=2.0, zset=ZONES_ALL, session="ny"):
                 sigs.append(dict(sess=s, j=j, entry_time=ts[j], side=d, stop=stop, risk=risk, close=C[j], smt=x["kind"],
                                  smt_type="pivot" if x["kind"] == "pivot" else "level", sweep_j=x["sweep"], ext=ext,
                                  lvl=x["lvl"], lvlB=x["lvlB"], gap_i=i, gap_top=top, gap_bot=bot, inwin=inwin,
-                                 zone=max(tfs, key=lambda z: ("15m", "NDOG", "1H", "4H", "1D").index(z)),
-                                 zones="+".join(sorted(tfs))))
+                                 zone=max(tfs, key=lambda z: ("15m", "NDOG", "1H", "4H", "1D").index(z)) if tfs else "none",
+                                 zones="+".join(sorted(tfs)) or "none"))
             # new gap completed on this bar (its three candles in the session)
             if j - 2 >= a1:
                 if L[j] - H[j - 2] >= min_gap and L[j] > H[j - 2]:
@@ -466,7 +467,7 @@ def run_all(outdir):
     print(pd.DataFrame(rows).to_string(index=False))
 
 
-def charts(n=10, seed=11, out="data/studies/ifvg1m_charts"):
+def charts(n=10, seed=11, out="data/studies/ifvg1m_charts", prefix="ifvg1m"):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -523,13 +524,13 @@ def charts(n=10, seed=11, out="data/studies/ifvg1m_charts"):
         ticks = [k for k in range(nv) if ts[s0 + k].minute % 5 == 0]
         bx.set_xticks(ticks, [ts[s0 + k].strftime("%H:%M") for k in ticks], fontsize=7, rotation=90)
         ax.set_xlim(-1, nv + 16)
-        ax.set_title(f"ifvg1m_{c:02d} · {ts[j]:%Y-%m-%d %a} · {'LONG' if r.side == 'L' else 'SHORT'} · SMT {r.smt} · zone {r.zones} · "
+        ax.set_title(f"{prefix}_{c:02d} · {ts[j]:%Y-%m-%d %a} · {'LONG' if r.side == 'L' else 'SHORT'} · SMT {r.smt} · zone {r.zones} · "
                      f"MNQ 1m, cut at the entry bar · outcome hidden", fontsize=10)
         ax.grid(alpha=0.2); bx.grid(alpha=0.2)
         fig.tight_layout()
-        fig.savefig(out / f"ifvg1m_{c:02d}.png", dpi=95)
+        fig.savefig(out / f"{prefix}_{c:02d}.png", dpi=95)
         plt.close(fig)
-        key.append(dict(id=f"ifvg1m_{c:02d}", entry_time=ts[j], side=r.side, smt=r.smt, gap_mid=ts[gi - 1], sweep=ts[r.sweep_j]))
+        key.append(dict(id=f"{prefix}_{c:02d}", entry_time=ts[j], side=r.side, smt=r.smt, gap_mid=ts[gi - 1], sweep=ts[r.sweep_j]))
     pd.DataFrame(key).to_csv(out / "charts_key.csv", index=False)
     pd.DataFrame(dict(id=[k["id"] for k in key], gap_is_mine="", entry_is_mine="", note="")).to_csv(out / "answers.csv", index=False)
     print(f"{len(key)} charts in {out}")

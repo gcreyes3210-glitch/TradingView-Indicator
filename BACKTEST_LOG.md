@@ -663,6 +663,55 @@ The IFVG-1m rule (`data/studies/audit/IFVG1m_spec.md`, `tools/ifvg1m_engine.py`)
 **Criterion per run (the usual one):** ≥ 6 of 8 calendar years positive, ≥ +0.05 R per trade, both halves (2019–2022, 2023–2026) non-negative, and the sign holding on the neighbours (freshness 3 and 8 bars). **Two comparisons:** a run counts only if, in addition, the best split's within-year shuffle p (`split_check.py`, side and level type) is < 0.05 / 2 = 0.025.
 **Reported per run:** n, net, R per trade, win %, PF, DD, by year, long / short, **by level type swept**, exit mix, and the funnel (sweep+SMT → gap alive → fresh inversion → HTF zone → stop cap → signals → trades after the 1-per-day limit). **Check charts:** 10 random L7 trades, 1m bars cut at the entry bar with the ES panel, outcome hidden.
 
+### IFVG-L7 results — run 2026-10-08 (`python3 tools/ifvg_l7.py all`, 51 s; CSVs in `data/studies/ifvg_l7/`)
+**Before the run.**
+- **HTF-zone cache rebuilt** for the bars extended to 2026-10-08. With it, IFVG-1m's primary run reproduces exactly: 490 trades, −2,038 to 2026-09-21, the same 490 entries.
+- **Engine changes, both off by default:** `ifvg1m_engine.signals()` gained `zone_req` for the noHTF variant, and `charts()` gained a file prefix. IFVG-1m's output is unchanged.
+**Levels check against Aceflw's own briefs (32 same-contract days, 2026-08-17 → 10-07).**
+- **Overnight high / low** reproduce Aceflw's: median |difference| 0.75 / 0.50 pts, all within 6 pts.
+- **The overnight value area does not:** median |difference| VAH 8.6, POC 34.8, VAL 7.1 pts; within 2 pts on only 16–22 % of days; maxima 202 / 320 / 117 pts.
+- **Diagnostic only, no re-run:** profiles of the previous cash session, of the previous cash session plus overnight, and of the overnight to 08:00 all match worse. Aceflw's value area likely differs in source (NQ volume rather than MNQ), row size or method.
+- **So the value levels tested here are `Aceflw_Levels.pine`'s, not the ones Aceflw publishes.** The overnight high / low, PDH / PDL and VWAP rows are not affected by this.
+**Not included:** gamma walls, put walls, call walls and the vol trigger cannot be reproduced without options data.
+
+| Run | n | Net | R/trade | Win % | PF | DD | Positive years | R 2019–22 / 2023–26 | Neighbours R/trade (fresh 3 / 8) | Best split, shuffle p | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **L7** | 421 | +1,886 | +0.075 | 32.8 | 1.10 | −1,432 | 6 of 8 | **−0.003** / +0.142 | +0.057 / +0.057 (5 of 8 years each) | zone 1D vs 15m, 6 of 8 years, p = 0.52 (side 0.99, level type 0.85) | **fails**: first half negative; shuffle p ≥ 0.025 |
+| L7-noHTF | 1,471 | −5,770 | −0.037 | 28.8 | 0.91 | −5,806 | 3 of 8 | −0.068 / −0.008 | −0.052 / −0.039 | level type PDH vs ONH, 8 of 8 years, p = 0.07 (side 0.92) | **fails** every criterion |
+
+**L7 detail:**
+- **By year, R:** 2019 +0.60 (19 trades) / 2020 +0.05 / 2021 −0.24 / 2022 −0.05 / 2023 +0.02 / 2024 +0.23 / 2025 +0.12 / 2026 (to Oct 7) +0.18.
+- **Side:** long 214 trades +1,469, +0.092 R; short 207 trades +417, +0.057 R.
+- **Exits:** 273 stops, 88 targets, 60 flat at 12:00.
+- **Zone:** 1D +0.344 R (53), 1H +0.165 (102), 4H +0.014 (136), 15m −0.011 (126), NDOG −1.04 (4).
+
+**By level type swept (L7: n · net · R/trade; L7-noHTF the same):**
+
+| Level | L7 | L7-noHTF |
+|---|---|---|
+| PDH | 12 · +981 · +1.117 | 37 · +1,318 · +0.397 |
+| PDL | 16 · −150 · −0.074 | 43 · +124 · +0.010 |
+| ONH | 37 · −668 · −0.114 | 150 · −1,958 · −0.307 |
+| ONL | 45 · +48 · −0.100 | 148 · −1,314 · −0.105 |
+| VAH | 39 · −1,743 · −0.786 | 152 · −726 · −0.008 |
+| POC | 40 · +730 · +0.355 | 142 · +1,211 · +0.202 |
+| VAL | 56 · +392 · +0.319 | 142 · −2,275 · −0.179 |
+| VWAP | 58 · −1,038 · −0.165 | 167 · −1,648 · −0.104 |
+| VWAP +1σ | 26 · +468 · +0.186 | 125 · −980 · +0.038 |
+| VWAP −1σ | 26 · +1,257 · +0.549 | 103 · +1,234 · +0.120 |
+| VWAP +2σ | 32 · +356 · −0.050 | 159 · +175 · −0.001 |
+| VWAP −2σ | 34 · +1,254 · +0.549 | 103 · −930 · −0.093 |
+
+No level type is consistent between the two runs except PDH (positive) and ONH, ONL and VWAP (negative). Every L7 bucket has fewer than 60 trades. The noHTF PDH-vs-ONH split beats in 8 of 8 years at p = 0.07: above 0.025, and one of 12 level types picked after the fact.
+
+**Funnel:**
+- **L7:** sweep + SMT live in the window 8,028 → gap alive 7,226 → fresh inversion 2,692 → HTF zone 620 → stop cap 477 → signals 477 → **421 trades** (1 per day).
+- **L7-noHTF:** 8,010 → 7,210 → 2,688 → (no zone step) → stop cap 2,145 → **1,471 trades**.
+- **Setups by level, all hours (sweep + SMT):** VWAP 1,221, VWAP +1σ 1,171, VAH 1,120, POC 1,081, VAL 1,044, VWAP −1σ 1,044, VWAP +2σ 881, VWAP −2σ 801, ONH 693, ONL 662, PDH 592, PDL 434.
+
+**Verdict: neither run passes.** L7 is the closest any IFVG run has come: +0.075 R, 6 of 8 years, neighbours positive. It misses on the 2019–2022 half (−0.003 R), and the best split is nowhere near the Bonferroni level. The HTF zone does the work: without it the same sweeps lose (−0.037 R, 3 of 8 years). IFVG-1m's fractal levels made −0.058 R with the zone. **Three things changed at once, so the gain cannot be put on the levels alone:** the level set, the 1-per-day limit and the same-bar SMT window. Nothing adopted; not a shadow flag.
+**Check charts:** `data/studies/ifvg_l7_charts/l7_01…10.png`, 10 random L7 trades (seed 11), cut at the entry bar, with the ES panel and outcome hidden. Answer template `answers.csv`; key `charts_key.csv`. For VWAP levels the drawn line is the level's value on the sweep bar; the level itself moves.
+
 ## BIAS study — pre-registered 2026-09-24; both blocks scored
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
 **Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:
