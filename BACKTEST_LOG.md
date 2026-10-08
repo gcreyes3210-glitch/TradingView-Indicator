@@ -1265,5 +1265,43 @@ Three strategies from published work on MNQ, Databento 1m bars, **2019-06-01 →
 - **ORB9-c beats ORB9-a in-sample** (+0.245 against +0.101) and goes to the out-of-sample test as registered.
 - **NR7 and ID already fail ORB8 condition (1):** the trades they would skip are **net positive** in-sample (+2,636 / +2,818). Their kept trades average more R. Random-removal shares in-sample: NR7 0.158, ID 0.008.
 
+### Literature — walk-forward step 2 and full results, 2019-06-01 → 2026-10-07 (`python3 tools/lit1.py full`, 11 s; `data/studies/lit1/`)
+**Checks:**
+- The in-sample part of IM1-c and ORB9-c equals the step-1 runs trade for trade (asserted).
+- Hand-checked on the 1m bars: IM1-a 2021-03-10 (fills and P&L) and ORB9-a 2020-08-24 (first bar, minimum-risk floor, stop exit).
+- **Coding fix:** the exact binomial sum overflowed at n ≈ 1,800 and is now computed in logs. It agrees with the exact sum on a small case.
+
+| Run | n | Net | R/trade | Win % | PF | DD | Positive years | R 2019–22 / 2023–26 | Neighbours R | Run's p (< 0.00625) | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IM1-a | 1,819 | −8,012 | −0.105 | 47.3 | 0.88 | −13,664 | 2 | −0.162 / −0.051 | −0.073 / −0.078 (09:45 / 10:15) | hit 49.4 %, p 0.70 | fails |
+| IM1-b | 1,814 | −9,595 | −0.110 | 45.6 | 0.86 | −11,017 | 2 | −0.099 / −0.121 | −0.018 / −0.106 | hit 48.3 %, p 0.92 | fails |
+| IM1-c | 917 | −4,724 | −0.126 | 47.5 | 0.87 | −8,214 | 3 | −0.181 / −0.075 | −0.122 / −0.148 | hit 50.3 %, p 0.45 | fails (worse than IM1-a IS and OOS: −0.181 / −0.075 vs −0.162 / −0.051) |
+| ORB9-a | 1,876 | +6,926 | +0.070 | 25.9 | 1.05 | −7,363 | 5 | +0.101 / +0.042 | +0.073 / +0.047 (floor 0.05 / 0.2) | bootstrap 0.087 | fails (5 years, p) |
+| ORB9-b | 1,876 | +3,856 | +0.055 | 25.9 | 1.03 | −7,363 | 5 | +0.108 / +0.006 | +0.050 / +0.047 | 0.133 | fails (5 years, p) |
+| **ORB9-c** | 710 | +12,292 | **+0.194** | 28.5 | 1.25 | −2,805 | **6** | +0.245 / +0.150 | +0.175 / +0.174 | **0.011** | **fails on the Bonferroni level only**; beats ORB9-a IS (+0.245 vs +0.101) and OOS (+0.150 vs +0.042) |
+| NR7 | 129 kept / 750 skipped | kept +7,076, skipped **+13,824** | kept +0.263 (all +0.127) | 51.9 | 1.76 | −1,294 | 6 | +0.241 / +0.286 | — | random 0.084 | fails ORB8 test (1) and (3) |
+| ID | 98 kept / 781 skipped | kept +3,971, skipped **+16,929** | kept +0.253 | 53.1 | 1.53 | −1,452 | 5 | +0.488 / +0.070 | — | random 0.135 | fails ORB8 test (1) and (3) |
+
+**IM1 — no intraday momentum in MNQ 2019–2026.**
+- **The signal does not predict:** the 10:00 signal calls the last half hour right 49.4 % of the time (899 of 1,819; up last-half-hours 49.9 %). IM1-b gets 48.3 % and IM1-c 50.3 %.
+- **Every variant loses** in both halves, longs and shorts alike. IM1-a by year: −0.19 / +0.03 / −0.33 / −0.17 / −0.14 / −0.05 / −0.04 / +0.05 R. The −0.10 R per trade is about the round-trip cost: 1 tick each way plus $2 on a 30-minute hold.
+- **IM1-c's filter on large signal moves** does not help in either half.
+**ORB9 — the Zarattini–Aziz 5-minute ORB.**
+- **ORB9-a is barely positive:** +0.070 R and +6,926 over 1,876 trades, 5 of 8 years. 72 % of trades end at the stop. The minimum-risk floor sets the stop on 631 trades.
+- **The 10 R target hurts** (ORB9-b): only 17 targets are hit, and they cut the few long runners.
+- **ORB9-c** adds ORB v1.4's overnight-break filter. It gets +0.194 R in 710 trades, 6 of 8 years (2020 −0.20 and 2025 −0.05), both halves positive and both neighbours positive. It improves on ORB9-a in-sample and out-of-sample. **Its bootstrap p is 0.011, which does not clear 0.05 / 8 = 0.00625, so it does not count.**
+- **ORB9-c mostly re-trades v1.4's days.** 617 of its 710 days are v1.4 trading days. On those it makes +17,053; on its 93 other days it loses −4,761. Its daily P&L correlates +0.49 with v1.4's on shared days.
+**ORB9-a next to ORB v1.4 (same span, 2019-06-01 → 2026-10-06).**
+- **v1.4 alone:** 879 trades, +20,900, +0.127 R, PF 1.26, DD −3,883, 6 of 8 years.
+- **Trading days:** ORB9-a 1,876, v1.4 879, both 870, either 1,885, so ORB9-a trades on 99.0 % of v1.4's days.
+- **Daily P&L correlation:** +0.348 over all 1,898 cash days (0 = no trade), +0.490 on the days both traded. Same direction on 59.2 % of the shared days.
+- ORB9-a trades about twice as often for a third of v1.4's net.
+**NR7 / ID — not filters for v1.4.**
+- **The skipped trades make money,** in-sample and out-of-sample: NR7 skips +2,636 / +11,188, ID skips +2,818 / +14,112. That is condition (1), the first ORB8 condition, failing.
+- **The kept trades do average more R** (NR7 +0.263, ID +0.253 against +0.127), but random removals of the same count reach that R 8.4 % and 13.5 % of the time.
+- **Neither is near the Bonferroni level.** As with ORB8: removing that many trades leaves a higher average by chance, and costs most of the dollars.
+**Tests:** 8 runs, Bonferroni α = 0.00625; no run's p clears it (lowest ORB9-c 0.011). Mechanism for the near-miss: ORB9-c is ORB v1.4's day filter on a 5-minute range, not a new effect. **Nothing adopted; no shadow flag** (ORB9-c's good days are v1.4's).
+**Check charts:** `data/studies/lit1_charts/im1_01…10.png` (5m bars 09:30 → the 15:30 entry: prior close, 10:00 close, entry) and `orb9_01…10.png` (1m bars 08:30 → the 09:35 entry: first 5m bar, stop, overnight high / low, noted at the bottom when off the chart). Seed 11, outcome hidden; key `charts_key.csv`, answers `answers.csv`.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.

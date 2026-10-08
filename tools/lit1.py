@@ -192,7 +192,8 @@ def by(t, label):
 
 
 def binom_p(k, n, p0=0.5):
-    return sum(math.comb(n, i) * p0 ** i * (1 - p0) ** (n - i) for i in range(k, n + 1))
+    lp = lambda i: math.lgamma(n + 1) - math.lgamma(i + 1) - math.lgamma(n - i + 1) + i * math.log(p0) + (n - i) * math.log(1 - p0)
+    return float(sum(math.exp(lp(i)) for i in range(k, n + 1)))
 
 
 def boot_p(R, n=10000, seed=1):
@@ -371,14 +372,22 @@ def charts(n=10, seed=11):
         candles(ax, x)
         k0 = len(x) - 5
         ax.add_patch(Rectangle((k0 - 0.5, r.fl), 5, r.fh - r.fl, color="#ffb300", alpha=0.25))
-        ax.text(k0 - 0.5, r.fh, " first 5m bar 09:30-09:35", fontsize=8, color="#e65100", va="bottom")
+        ax.text(k0 - 6, r.fl, "first 5m bar 09:30-09:35 ", fontsize=8, color="#e65100", va="top", ha="right")
+        lo, hi = min(x.low.min(), r.stop), max(x.high.max(), r.stop)
+        lo, hi = lo - 0.08 * (hi - lo), hi + 0.08 * (hi - lo)
+        ax.set_ylim(lo, hi)
+        off = []
         for lv, lab in ((r.on_h, "overnight high"), (r.on_l, "overnight low")):
-            ax.axhline(lv, color="#546e7a", ls="--", lw=0.8); ax.text(0, lv, f" {lab} {lv:,.2f}", fontsize=8, color="#546e7a", va="bottom")
-        ax.axhline(r.stop, color="#c62828", lw=1.2); ax.text(len(x) + 0.5, r.stop, f" stop {r.stop:,.2f}", color="#c62828", fontsize=8, va="center")
+            if lo <= lv <= hi:
+                ax.axhline(lv, color="#546e7a", ls="--", lw=0.8); ax.text(0, lv, f" {lab} {lv:,.2f}", fontsize=8, color="#546e7a", va="bottom")
+            else:
+                off.append(f"{lab} {lv:,.2f} (off chart)")
+        if off:
+            ax.text(0.01, 0.02, " · ".join(off), transform=ax.transAxes, fontsize=8, color="#546e7a")
+        ax.axhline(r.stop, color="#c62828", lw=1.2)
+        ax.text(len(x) + 0.5, r.stop, f" stop {r.stop:,.2f}", color="#c62828", fontsize=8, va="top" if r.side == "S" else "bottom")
         ax.plot(len(x), r.entry, ">" if r.side == "L" else "<", color="black", ms=11)
         ax.text(len(x) + 0.5, r.entry, f" entry {'LONG' if r.side == 'L' else 'SHORT'} at the 09:35 open {r.entry:,.2f}", fontsize=8, va="center")
-        lo, hi = min(x.low.min(), r.stop), max(x.high.max(), r.stop)
-        ax.set_ylim(lo - 0.05 * (hi - lo), hi + 0.05 * (hi - lo))
         ax.set_xticks(range(0, len(x), 5), [ts.strftime("%H:%M") for ts in x.index[::5]], fontsize=7)
         ax.set_xlim(-1, len(x) + 16)
         ax.set_title(f"orb9_{c:02d} · {e:%Y-%m-%d %a} · ORB9-a {'LONG' if r.side == 'L' else 'SHORT'} · MNQ 1m, cut at entry · outcome hidden", fontsize=10)
