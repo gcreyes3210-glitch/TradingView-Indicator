@@ -4,6 +4,8 @@
 
     python3 tools/ifvg_l7.py all            L7 and L7-noHTF with neighbours (freshness 3 / 8), CSVs to data/studies/ifvg_l7/
     python3 tools/ifvg_l7.py charts         10 random L7 trades cut at the entry bar (data/studies/ifvg_l7_charts/)
+    python3 tools/ifvg_l7.py attrib         A1 / A2 / A3: one of L7's three changes each, next to IFVG-1m and L7
+    python3 tools/ifvg_l7.py shadow [--from 2026-10-08]   the L7 shadow forward test (also run by calibrate_orb.py)
 
 Only two things differ from IFVG-1m: the setup list (sweeps of the levels below, SMT against ES's own level of the
 same type on the same 5m bar, no pivot SMTs) and the trade limit (the first trade of each session only).
@@ -65,7 +67,7 @@ def vwap_bands(h, l, c, v, tdi):
     return vw, sd
 
 
-def setups():
+def setups(smt_win="same"):
     S = E.load()
     H, L, C, HB, LB, tdi, tod, k5 = S["H"], S["L"], S["C"], S["HB"], S["LB"], S["tdi"], S["tod"], S["k5"]
     first5, last5 = S["first5"], S["last5"]
@@ -76,6 +78,7 @@ def setups():
     CB = es.close.ffill().to_numpy()
     starts = np.r_[0, np.flatnonzero(np.diff(tdi)) + 1]
     ends = np.r_[starts[1:], n]
+    tdi_s = np.repeat(np.arange(len(starts)), ends - starts)        # session number per 1m bar
     vw, sd = vwap_bands(H, L, C, V, tdi)
     vwB, sdB = vwap_bands(HB, LB, CB, VB, tdi)
     mov = {"VWAP": (vw, vwB)}
@@ -85,10 +88,17 @@ def setups():
     dHB = pd.Series(HB).groupby(tdi).max().to_numpy(); dLB = pd.Series(LB).groupby(tdi).min().to_numpy()
     out, lv_rows = [], []
 
+    sess5 = S["sess5"]
+
     def es_check(j, lvB_at, high):
-        """SMT as known at each minute over the sweep's 5m bar: ('no', None) or ('ok', minute ES takes it later)."""
+        """SMT as known at each minute over the window: ('no', None) or ('ok', minute ES takes it later). Window: the
+        sweep's 5m bar (L7), or with smt_win="pm1" the 5m bar before, of and after it (IFVG-1m's)."""
         k = k5[j]
-        for m in range(first5[k], last5[k] + 1):
+        a, b = first5[k], last5[k]
+        if smt_win == "pm1":
+            a = first5[k - 1] if k - 1 >= 0 and sess5[k - 1] == sess5[k] else starts[tdi_s[j]]
+            b = last5[k + 1] if k + 1 < len(sess5) and sess5[k + 1] == sess5[k] else last5[k]
+        for m in range(a, b + 1):
             x = (HB[m] > lvB_at(m) + TOL) if high else (LB[m] < lvB_at(m) - TOL)
             if x:
                 return ("no", None) if m <= j else ("ok", m)
@@ -189,10 +199,88 @@ def run_all():
     print(pd.DataFrame(rows).to_string(index=False))
 
 
+def fmt_run(name, t, fun):
+    s = E.summary(t)
+    y = t.entry_time.dt.year
+    print(f"\n==== {name}: " + "  ".join(f"{k} {v}" for k, v in s.items()))
+    print("  R by year: " + " ".join(f"{k} {g.R.mean():+.3f} ({len(g)})" for k, g in t.groupby(y)))
+    print("  funnel: " + " -> ".join(f"{k[2:]} {v}" for k, v in sorted(fun.items()) if "[" not in k) + f" -> trades {len(t)}")
+    return dict(run=name, **s, **{f"R_{k}": round(g.R.mean(), 3) for k, g in t.groupby(y)},
+                **{f"f{k[0]}": v for k, v in sorted(fun.items()) if "[" not in k}, trades=len(t))
+
+
+def attrib():
+    OUT.mkdir(parents=True, exist_ok=True)
+    E.load()
+    rows = []
+    runs = (("IFVG-1m (fractals, ±1 bar, up to 3/day)", lambda: E.sweeps("pm1"), _trades),
+            ("A1 Aceflw levels only", lambda: setups("pm1"), _trades),
+            ("A2 one trade per day only", lambda: E.sweeps("pm1"), None),
+            ("A3 same-5m-bar SMT only", lambda: E.sweeps("same"), _trades),
+            ("L7 (all three)", lambda: setups("same"), None))
+    for name, build, mgmt in runs:
+        build()
+        sig, fun = E.signals(**E.PRIMARY, zset=E.ZONES_ALL)
+        t = mgmt(sig, "T3")[0] if mgmt else one_per_day(sig)
+        t.to_csv(OUT / f"attrib_{name.split()[0]}.csv", index=False)
+        rows.append(fmt_run(name, t, fun))
+    d = pd.DataFrame(rows)
+    d.to_csv(OUT / "attribution.csv", index=False)
+    print(d.to_string(index=False))
+
+
+SHADOW_START = "2026-10-08"
+
+
+def shadow(start=SHADOW_START, quiet=False):
+    """L7 as run, on every session from `start` in the bars on disk. Returns (trades, weekly table)."""
+    S = E.load()
+    setups("same")
+    sig, _ = E.signals(**E.PRIMARY, zset=E.ZONES_ALL)
+    t = one_per_day(sig)
+    t = t[t.entry_time >= pd.Timestamp(start, tz=E.TZ)].copy()
+    last = S["ts"][-1]
+    if t.empty:
+        print(f"\n==== L7 shadow (from {start}; bars to {last:%Y-%m-%d %H:%M}): no signals yet")
+        return t, pd.DataFrame()
+    # a time exit before 11:59 means the bars ended mid-session: the trade is still open
+    fb = np.array([E.flat_bar(j, "ny") for j in t.j])
+    t["open"] = (t.reason == "time") & (S["tod"][fb] != 11 * 60 + 59)
+    t["day"] = t.entry_time.dt.date
+    t["week_to"] = [d + pd.Timedelta(days=4 - d.weekday()) for d in pd.to_datetime(t.day)]
+    print(f"\n==== L7 shadow (from {start}; bars to {last:%Y-%m-%d %H:%M}; nothing traded) ====")
+    print(f"{'date':<11}{'side':<5}{'level':<9}{'zone':<6}{'entry':>10}{'stop':>10}{'exit':>7}{'net':>9}{'R':>7}")
+    for r in t.itertuples():
+        print(f"{str(r.day):<11}{r.side:<5}{r.smt:<9}{r.zone:<6}{r.close:>10.2f}{r.stop:>10.2f}"
+              f"{'open' if r.open else r.reason:>7}{'' if r.open else f'{r.pnl:+.1f}':>9}{'' if r.open else f'{r.R:+.2f}':>7}")
+    c = t[~t.open]
+    wk = []
+    run_n, run_R, run_net = 0, 0.0, 0.0
+    for w, g in t.groupby("week_to"):
+        gc = g[~g.open]
+        run_n += len(gc); run_R += gc.R.sum(); run_net += gc.pnl.sum()
+        wk.append(dict(week_to=w.date(), trades=len(gc), open=int(g.open.sum()), net=gc.pnl.sum(), R=gc.R.sum(),
+                       run_n=run_n, run_net=run_net, run_R_per_trade=run_R / run_n if run_n else np.nan))
+    W = pd.DataFrame(wk)
+    print(W.to_string(index=False, float_format=lambda v: f"{v:+.2f}"))
+    flag = "REACHED: reconsider adoption" if len(c) >= 60 and c.R.mean() >= 0.05 else \
+        f"{len(c)} of 60 trades" + (f", R/trade {c.R.mean():+.3f}" if len(c) else "")
+    r = W.iloc[-1]
+    print(f"adoption check (60 trades, R/trade >= +0.05): {flag}")
+    print(f"\nL7 shadow log row: | week to {r.week_to} | {r.trades}" + (f" (+{r.open} open)" if r.open else "") +
+          f" | {r.net:+,.0f} | {r.R:+.2f} | {r.run_n} | {r.run_net:+,.0f} | "
+          + ("n/a" if not r.run_n else f"{r.run_R_per_trade:+.3f}") + " |")
+    return t, W
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "all"
     if cmd == "all":
         run_all()
+    elif cmd == "attrib":
+        attrib()
+    elif cmd == "shadow":
+        shadow(sys.argv[sys.argv.index("--from") + 1] if "--from" in sys.argv else SHADOW_START)
     elif cmd == "charts":
         setups()
         E.trades = lambda sig, ex="T3", session="ny": (one_per_day(sig), {})

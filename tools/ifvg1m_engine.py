@@ -102,7 +102,9 @@ def rma_atr_n(h, l, c, n):
 
 
 def zones():
-    if CACHE.exists():
+    stamp = f"{len(S['ts'])} {S['ts'][-1]}"            # the cache is only valid for the bars it was built on
+    tag = CACHE.with_suffix(".stamp")
+    if CACHE.exists() and tag.exists() and tag.read_text() == stamp:
         return pd.read_parquet(CACHE)
     one = S["a"]
     book = ZoneBook(one, S["ts"], S["O"], S["H"], S["L"], S["C"], rma_atr(S["H"], S["L"], S["C"]), P5["htf"],
@@ -112,13 +114,16 @@ def zones():
         book.post(i)
     w = book.windows().drop(columns=["t1"])
     w.to_parquet(CACHE)
+    tag.write_text(stamp)
     return w
 
 
-def sweeps():
-    """All SMT setups: dict(dir, kind, sweep, active, dies, lvl, sess)."""
-    if "setups" in S:
+def sweeps(smt_win=None):
+    """All SMT setups: dict(dir, kind, sweep, active, dies, lvl, sess). smt_win: "pm1" (the spec: the 5m bar before, of
+    and after the sweep) or "same" (the sweep's 5m bar only). None returns the setups already built (any engine's)."""
+    if smt_win is None and "setups" in S:
         return S["setups"]
+    smt_win = smt_win or "pm1"
     H, L, HB, LB = S["H"], S["L"], S["HB"], S["LB"]
     H5, L5, HB5, LB5, first5, last5, sess5 = S["H5"], S["L5"], S["HB5"], S["LB5"], S["first5"], S["last5"], S["sess5"]
     tdi, n = S["tdi"], len(H)
@@ -134,8 +139,11 @@ def sweeps():
     def es_check(j, lvlB, high, s):
         """None = no SMT; else the 1m bar at which ES takes its level inside the window (or None if it never does)."""
         k = S["k5"][j]
-        a = first5[k - 1] if k - 1 >= 0 and sess5[k - 1] == sess5[k] else starts[s]
-        b = last5[k + 1] if k + 1 < len(sess5) and sess5[k + 1] == sess5[k] else last5[k]
+        if smt_win == "same":
+            a, b = first5[k], last5[k]
+        else:
+            a = first5[k - 1] if k - 1 >= 0 and sess5[k - 1] == sess5[k] else starts[s]
+            b = last5[k + 1] if k + 1 < len(sess5) and sess5[k + 1] == sess5[k] else last5[k]
         x = (HB[a:b + 1] > lvlB + TOL) if high else (LB[a:b + 1] < lvlB - TOL)
         hit = np.flatnonzero(x)
         if len(hit) == 0:

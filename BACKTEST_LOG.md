@@ -457,6 +457,16 @@ Shadow rules — marked on every live trade, never traded:
 - **`data/events.csv` rebuilt through 2027-12-31** (`python3 tools/build_events.py RAW --hi 2027-12-31`), sources refetched 2026-10-08: Fed FOMC calendar (lists 2027), BLS release archives via the Internet Archive plus the BLS CPI / PPI / Employment Situation schedules, the Census MARTS xls (to Dec 2026) and the Census economic-indicator calendar (advance retail sales through 2027-12-15). **What each type's sources reach** is now written to `data/events_coverage.csv`. The flag tools treat a date after it as unknown (n/a), not as a non-event day, and `calibrate_orb.py` reads the retail-sales coverage from it. Coverage: FOMC, opex 2027-12-31 · retail sales 2027-12-15 · **CPI 2026-12-10, PPI 2026-12-15, NFP 2026-12-04**: BLS has not published (or the Archive does not hold) its 2027 schedule; rebuild once it is out · GDP_advance, PCE 2026-09-22 (BEA sources not refetched, rows carried over unchanged) · early_close 2026-10-07 (from the bars). 2027 opex: June quad witching moves to Thursday 2027-06-17 (Juneteenth observed Friday 06-18). **Check against the old file:** every row to 2026-09-22 is identical in date, time and note. Two rows were added that the old pages predated: PPI 2026-09-10 and CPI 2026-09-11.
 - **Forward bias log:** `data/forward/bias_log.csv` has 0 rows; nothing to score.
 
+### L7 shadow (pre-registered under "IFVG-L7 follow-ups"; nothing traded)
+L7 exactly as run (HTF zone, 1 trade per day, T3, NY AM) is simulated on the Databento bars from **2026-10-08**.
+- **Weekly:** extend the bars (`python3 tools/extend_bars.py --end <date>`), then run the same `calibrate_orb.py` check, which ends with the L7 shadow. It lists each trade (open trades separately, left out of the totals), the weekly table and the row for this table.
+- **Adoption is reconsidered only if the shadow reaches 60 trades with R per trade ≥ +0.05.**
+- At L7's backtest rate (about 58 trades a year) that is about a year.
+
+| Week | Trades closed | Net | R | Running trades | Running net | Running R/trade |
+|---|---|---|---|---|---|---|
+| week to 2026-10-09 | 0 (bars end 2026-10-08 09:33; no signal) | +0 | +0.00 | 0 | +0 | n/a |
+
 ## Walk-forward
 Pre-registered (user, 2026-09-23): a parameter search on the ORB engine only, run as a script. In-sample 2019-06-01 → 2022-12-31; out-of-sample 2023-01-01 → 2026-09-21, never read by the search (`tools/wf1.py` hands the search a copy of the bars cut at 2022-12-31 23:59 and asserts it). Rank in sample by the worst calendar year's total R, then the median year's; take the top five; run them and v1.4 once each out of sample. **Rule: adopt nothing unless a setting beats v1.4 out of sample in both net and R per trade with at least 3 of 4 positive years; otherwise log it as confirmation that v1.4 sits on a plateau.**
 
@@ -726,6 +736,24 @@ No level type is consistent between the two runs except PDH (positive) and ONH, 
 - **Log:** each check appends a row to a new **"L7 shadow"** table in the Forward test section.
 - **Nothing is traded. Adoption is reconsidered only if the shadow reaches 60 trades with R per trade ≥ +0.05.**
 - **Check on the code:** the shadow pass, started at 2026-01-01, must give exactly L7's 2026 trades from `data/studies/ifvg_l7/L7.csv`.
+
+### IFVG-L7 attribution — results (`python3 tools/ifvg_l7.py attrib`, 93 s; `data/studies/ifvg_l7/attribution.csv` and `attrib_*.csv`)
+2019-06 → 2026-10-07, T3, Z-all. IFVG-1m on this span is 496 trades / −0.064 R; its logged −0.058 R was on 490 trades to 2026-09-21. The rebuilt run reproduces both, and L7's 421.
+
+| Run | Change from IFVG-1m | n | Net | R/trade | Win % | PF | DD | Positive years | R 2019–22 / 2023–26 | R by year 2019 → 2026 | Funnel: sweep+SMT → gap → fresh inversion → zone → stop cap → trades |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IFVG-1m | — | 496 | −2,320 | −0.064 | 29.2 | 0.90 | −3,216 | 2 | −0.212 / +0.050 | +0.04 −0.11 −0.21 −0.42 +0.13 +0.29 −0.13 −0.15 | 16,520 → 14,851 → 3,151 → 751 → 543 → 496 |
+| **A1** | Aceflw level set only | 377 | +54 | **+0.015** | 31.3 | 1.00 | −2,536 | 5 | −0.024 / +0.049 | +0.71 +0.17 −0.26 −0.18 −0.02 −0.06 +0.12 +0.19 | 6,967 → 6,315 → 2,236 → 500 → 388 → 377 |
+| A2 | one trade per day only | 434 | −1,730 | −0.061 | 29.3 | 0.91 | −3,022 | 3 | −0.220 / +0.063 | +0.04 −0.11 −0.15 −0.50 +0.13 +0.37 −0.24 −0.03 | 16,520 → 14,851 → 3,151 → 751 → 543 → 434 |
+| A3 | same-5m-bar SMT only | 568 | −1,340 | −0.025 | 30.3 | 0.95 | −2,816 | 4 | −0.080 / +0.017 | +0.07 −0.00 −0.07 −0.22 +0.06 +0.26 −0.14 −0.17 | 18,061 → 16,412 → 3,615 → 867 → 627 → 568 |
+| L7 | all three | 421 | +1,886 | +0.075 | 32.8 | 1.10 | −1,432 | 6 | −0.003 / +0.142 | +0.60 +0.05 −0.24 −0.05 +0.02 +0.23 +0.12 +0.18 | 8,028 → 7,226 → 2,692 → 620 → 477 → 421 |
+
+**Which change carries the gain: the level set (A1).** It is the only single change above 0 R: +0.079 R over IFVG-1m, against +0.039 for the same-bar SMT window (A3) and +0.003 for one trade per day (A2).
+- The three single gains add to +0.121 R; L7's is +0.139 R. The rest comes from combining them.
+- The same-bar window adds trades rather than removing them: a shorter ES check means fewer ES takes, so 9 % more sweep + SMT setups.
+- One trade per day changes almost nothing. IFVG-1m's own management already stopped after the first winner.
+- **A1 alone is weak:** +0.015 R, 5 of 8 years, first half −0.024. Without the narrower SMT window and the daily limit, the levels do not reach L7's numbers.
+Attribution only; nothing adopted.
 
 ## BIAS study — pre-registered 2026-09-24; both blocks scored
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.

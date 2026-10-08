@@ -17,7 +17,9 @@ whether each ORB8 filter would have skipped it, and the retail-sales flag — sh
     ORB8 skip = F1 or F2 or F3        retail = Census advance retail-sales release day (data/events.csv)
 Then the running shadow lines (trades taken, trades ORB8 / retail would have skipped, net of the skipped trades) and a
 ready-to-paste row for the "Forward test" table in BACKTEST_LOG.md. Flags need bars (and events.csv) that reach the
-trade date; otherwise they print as n/a. Last, the forward bias log score (tools/bias_log.py, data/forward/bias_log.csv).
+trade date; otherwise they print as n/a. Then the forward bias log score (tools/bias_log.py, data/forward/bias_log.csv).
+Last, the L7 shadow (tools/ifvg_l7.py shadow): IFVG-L7's signals and simulated outcomes on the bars on disk from
+2026-10-08, per week, with the row for the "L7 shadow" table. About 1-2 minutes; --no-l7 skips it.
 """
 import sys, collections
 import numpy as np
@@ -168,3 +170,6 @@ if __name__ == "__main__":
     shadow_report(tv, shadow_flags(bars), since)
     import bias_log
     bias_log.report()
+    if "--no-l7" not in sys.argv:
+        import ifvg_l7
+        ifvg_l7.shadow()
