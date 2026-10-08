@@ -1545,5 +1545,26 @@ v1.4: 879 trades, +20,900, +0.127 R. Median opening correlation 0.815; 4 days ha
 - the overnight hold is where the index's drift sits.
 Either would need its own pre-registration.
 
+## ES-diverge: shadow flag and the tiered-sizing test — pre-registered 2026-10-08 (written before any of this code was run)
+**Shadow flag (forward test).** `calibrate_orb.py --live` marks every live v1.4 trade ES-diverge or ES-confirm, alongside ORB8 and retail sales.
+- **Definition:** exactly as in "ES filters on ORB v1.4". ES's 09:30–09:44 range is not closed beyond on the trade's side by a 1m ES close from 09:45 through the last minute of the trade's 5m entry bar.
+- **Data:** Databento ES 1m bars on the MNQ minutes. A trade the bars do not yet reach is n/a.
+- **Tracked, in a new "Shadow ES-diverge" column of the Forward test table:** both nets, ES-diverge trades and ES-confirm trades. Nothing is traded on it.
+**Baseline for the forward test:** from the 879 backtest trades (`data/studies/es_filters/v14_es.csv`): the share of trades flagged ES-diverge, their hit rate (net > 0) and R per trade by year, and the same for ES-confirm.
+**Tiered-sizing test (walk-forward).** ORB v1.4 trades (`orb_engine.run`, from 2019-06-01) with:
+- **Tiered:** 2 contracts on ES-diverge trades, 1 on the others.
+- **(a)** 1 contract on every trade.
+- **(b)** 2 contracts on every trade.
+**Measures:**
+- **Return-to-drawdown ratio in R** = Σ (contracts × the trade's R) ÷ |max drawdown of that cumulative sum|.
+- **The same in dollars** = Σ (contracts × net) ÷ |max dollar drawdown|.
+- Each is computed separately on 2019–2022 and on 2023–2026.
+- **Note:** (a) and (b) have the same ratio by construction, because scaling every trade by 2 scales the return and the drawdown alike. They are reported side by side to show that a ratio gain cannot come from leverage alone.
+**Adoption rule:** the tiered book is adopted only if its ratio beats **both** (a) and (b) **in R and in dollars, in 2019–2022 and in 2023–2026**.
+**Walk-forward:**
+- **Step 1:** v1.4 and the ES flag on MNQ and ES bars cut at 2022-12-31 23:59 (asserted). The 2019–2022 result is written here and committed before step 2 runs.
+- **Step 2:** the full span, asserting that the 2019–2022 trades and flags equal step 1, then the 2023–2026 result.
+- Engine `python3 tools/es_filters.py tier --phase is|full`.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
