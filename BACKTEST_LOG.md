@@ -1442,5 +1442,56 @@ v1.4: 879 trades, +20,900, +0.127 R. Median opening correlation 0.815; 4 days ha
 - **Correlation does not order the trades monotonically:** the middle tercile is best (+0.259) and the top tercile worst (+0.005). That shape suggests noise, not a mechanism.
 - **Possible next step, not done:** the forward-test practice for a split like this is a **shadow flag** (mark each live v1.4 trade ES-diverge or not and track the two nets), as for ORB8 and retail sales. That would be a separate, pre-registered addition to `calibrate_orb.py`.
 
+## SIX — six pre-registered tests on MNQ 2019-06 → 2026-10 (written 2026-10-08 before any SIX code was run)
+**Common.** Databento MNQ 1m / 5m and ES 1m bars, 2019-06-01 → 2026-10-07. House fills: 1 tick on every fill, $1 per side per contract, MNQ $2 / pt, MES $5 / pt, stop first, a bar opening beyond a level fills at its open. Engine `tools/six.py` (LRB through `tools/lrb_engine.py`).
+- **Usual criterion** (tests 1–4): ≥ 6 of 8 calendar years positive (net), ≥ +0.05 R per trade, both halves (2019–2022, 2023–2026) non-negative in R per trade, the sign of R per trade holding on both neighbours, and the test's p < **0.05 / 6 = 0.0083**. p = one-sided bootstrap of mean R > 0 (10,000 resamples of the trades, seed 1) unless stated.
+- **Walk-forward for anything adopted:** a test that passes is logged as a candidate only. It is then re-run on bars cut at 2022-12-31 (asserted), with that in-sample result logged before the 2023–2026 part is looked at again, as a separate step. Nothing is adopted here.
+**(1) ORB-rev — stop and reverse.**
+- On every ORB v1.4 trade that exits at its stop (`orb_engine.run`, from 2019-06-01; reason SL), enter the opposite side at v1.4's stop fill price (the reversal shares the fill), on the 1m bar where v1.4's stop was first touched.
+- **Stop:** the cash session's extreme on the new trade's losing side (09:30 through that 1m bar) + 2 ticks. Above the day's high for a short reversal, below the low for a long.
+- **Exit:** no target, live from the next 1m bar, exit at the 16:00 close − 1 tick (early-close days: the bar 10 minutes before the halt, as v1.4).
+- **R** = net ÷ (|fill − stop| × $2).
+- **Neighbours:** stop buffer 0 and 4 ticks.
+**(2) ORB-add — a second contract.** ORB v1.4 unchanged, plus a second contract.
+- **Condition:** the v1.4 trade is still open at 12:00 and its open profit on the 11:55 5m bar's close is ≥ +1 R (R = v1.4's risk).
+- **Pullback:** from the 12:00 bar on, price must pull back ≥ 0.5 R from the trade's best price since entry (a bar's low ≤ best − 0.5 R for a long).
+- **Entry and exit:** the add enters at the close of the first later 5m bar that closes in the trade's direction (close > open for a long) + 1 tick. It has the same stop and the same exit as v1.4. No add if v1.4 exits first.
+- **Reported:** the add contract alone (its R = net ÷ (|add fill − stop| × $2); the usual criterion applies to it); v1.4 per contract; combined (both contracts) with drawdown in R (v1.4 risk units).
+- **Neighbours:** add threshold +0.75 R and +1.25 R.
+**(3) LRB — lunch-range breakout, as asked.** This is the logged LRB1d (LRB1 with no 0.15 × width rule; −0.001 R on 1,363 trades to 2026-09-21), re-run on the current bars with `lrb_engine.py --min-brk 0`.
+- **Rule:** range = the 12:00–13:25 5m bars. Entry = the first 5m close between 13:30 and 14:55 more than 2 ticks beyond the range. Stop at the other side ∓ 2 ticks, as the engine and v1.4 place it. Hold to the 16:00 close; one trade a day.
+- **Variant (reported, not a separate test):** v1.4's overnight-range filter (break days only), `--days break`.
+- **Neighbours:** range 12:00–13:00 with entries 13:00–15:00, and range 12:00–14:00 with entries 14:00–15:00.
+**(4) RV — NQ / ES ratio relative value.**
+- **Signal:** z = (log(MNQ close / ES close) − mean) ÷ sd, the mean and sd over the 1m values of the previous 5 trading days (the current day not included). Entry at a 1m close in 09:30–14:59 when |z| ≥ 2.
+- **Trade:** z ≥ 2 → short 1 MNQ, long 1 MES; z ≤ −2 → long 1 MNQ, short 1 MES. One position at a time; re-entry allowed after an exit.
+- **Exit:** at the first 1m close with z back through 0, or at the 15:59 close. Both legs pay 1 tick per fill and $1 per side.
+- **Roll days:** no trade on a day whose 5-day window or the day itself contains a contract roll in either market (an instrument_id change). Otherwise the ratio jumps at the roll.
+- **R unit (no stop):** sd of the log ratio (the same 5-day window) × MNQ notional at entry (price × $2). That is the dollar size of a 1-sd move on the NQ leg.
+- **Noted, not changed:** one MNQ against one MES is not dollar-neutral (about $2 × NQ against $5 × ES), so the pair carries net index exposure.
+- **Neighbours:** entry at |z| ≥ 1.5 and ≥ 2.5.
+**(5) ORB-vol — risk-based sizing on ORB v1.4.**
+- **Sizing:** contracts = round($250 ÷ (v1.4's stop distance × $2)), capped at 10. A trade that rounds to 0 is not taken.
+- **Comparison:** a constant size equal to the average contracts (fractional) on the same trades.
+- **Return-to-drawdown** = net ÷ |max drawdown|, computed on each half.
+- **Passes if:** risk sizing has the higher return-to-drawdown in **both halves**, ≥ 6 of 8 years net positive, the same sign of the difference on both neighbours (cap 5 and 20 contracts), and p < 0.0083. Here p = the share of 10,000 paired bootstrap resamples of the trades (seed 1; sequence kept by sorting the drawn indices) in which risk sizing's full-span return-to-drawdown is ≤ the constant size's.
+**(6) ML1 — one gradient-boosted classifier** (scikit-learn `GradientBoostingClassifier`, installed for this run).
+- **Features known at 09:45, distances as a fraction of the 09:44 close:**
+  - opening-range width (09:30–09:44)
+  - (opening-range high − overnight high) and (opening-range low − overnight low), with overnight = 18:00–09:29
+  - gap (09:30 open − previous cash close)
+  - previous cash-session range
+  - overnight return (18:00 open → 09:29 close)
+  - day of week (0–4)
+  - 20-day realised volatility (sd of the previous 20 cash-close log returns)
+- **Target:** sign of the 15:59 close − the 09:44 close; 1 = up, flat counts as down.
+- **Training:** 2019-06 → 2022-12 only. Hyperparameters by 5-fold CV inside 2019–2022, folds contiguous and unshuffled, scoring accuracy, over n_estimators {50, 100, 200} × max_depth {1, 2, 3} × learning_rate {0.01, 0.05, 0.1}, subsample 0.8, random_state 1. Then refit on all of 2019–2022.
+- **Trade:** long if the model predicts up, else short, at the 09:44 close + 1 tick, exit at the 15:59 close − 1 tick, every day with all features (early-close days skipped).
+- **R unit** = the opening-range width × $2.
+- **Exactly one evaluation on 2023–2026; no second model.**
+- **Reported:** CV accuracy and in-sample (training) accuracy and R; out-of-sample accuracy, R per trade, by year, long / short.
+- **Passes if,** out of sample: R per trade ≥ +0.05, ≥ 3 of 4 years net positive, and accuracy above the always-long accuracy (the share of up days) with one-sided binomial p < 0.0083.
+**Observation only:** buy at the 15:59 close + 1 tick, sell at the next session's 09:30 open − 1 tick, every cash day (early-close days skipped), net and per trade by year.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
