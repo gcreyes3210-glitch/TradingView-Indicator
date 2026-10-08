@@ -1610,5 +1610,84 @@ The 2019–2022 trades and flags equal step 1 (asserted).
 
 About 1 v1.4 trade in 5 is ES-diverge, roughly 2 a month at v1.4's rate. **Expect about 25 ES-diverge trades a year in the forward test,** so the shadow needs a year or more before its R can be compared with +0.348.
 
+## MECH — the Andrew Macre "mech model" — pre-registered 2026-10-08 (written before any MECH code was run)
+> **Interpretation caveat (read first).** The author says this method cannot be automated and must be tested by hand in bar replay. Its core objects come from a paid indicator whose logic is not disclosed. Every number below tests **one coded reading** of `data/studies/mech/mech_model_backtest_spec.md`, not the method as he trades it. His discretionary sizing, trims and skips are absent unless a stage adds a coded stand-in. His own P&L claims are unverified bar-replay figures.
+
+**Pre-registration = the spec's §3 definitions, §6 defaults and §7 build order, with the user's fixes:**
+- pointer Reading A; SWING_N 3 (5m fractal half-width)
+- tap adjacency: the pointer bar or the bar before it
+- correlation tolerance ±1 five-minute bar; entry timeframes 3 / 4 / 5 / 6m
+- bars anchored to the 18:00 session open
+- costs $1 per side + 1 tick per fill
+- window 09:35–15:50; news lockout from `data/events.csv` per §4.2
+
+Signals are read on **MNQ 1m** and **ES 1m** (Databento). MNQ prints the same prices as NQ but is a different contract: the spec says the author reads the minis (NQ / ES) and that micros can print pointers the minis don't. Execution is MNQ. Engine `tools/mech.py`.
+**Readings this file had to fix (the spec leaves them open):**
+1. **Bars:** 1m bars bucketed into N-minute bars counted from the 18:00 open of the trading day (so a 4m bar straddles 09:30 as 09:28–09:32). A bar is known at the close of its last minute.
+   - **ES missing minutes:** an ES minute missing on the MNQ clock is a flat bar at the last ES close, not a copy of the previous bar.
+2. **Swings:**
+   - **Detection:** 5m fractal with SWING_N = 3: a high above the 3 bars before it and not below the 3 after it (mirror for lows), confirmed at the close of the 3rd bar after.
+   - **Sweep-type:** a swing low below the previous confirmed swing low (high above the previous swing high).
+   - **Lifetime:** swings and zones live across sessions but die at a contract roll (instrument change) and after 5 trading days.
+3. **FFVG set:** for each sweep-type swing, on each of the 1 / 2 / 3 / 4 / 5m charts, the first FVG in the leaving direction whose first candle is at or after the bar holding the swing extreme. Its third candle must close before the next opposing 5m swing extreme bar closes, and within 2 hours.
+   - **When a zone exists:** from the later of its third candle's close and the swing's confirmation (no look-ahead).
+4. **Tap, inversion, IFFVG:**
+   - **Tap:** an FFVG's tap is the first 1m bar after it forms that trades into it.
+   - **Inversion:** a close on the zone's own timeframe beyond the far edge inverts it into an IFFVG. The IFFVG acts for the other side and is **untapped** until price trades back into it.
+   - **Removal:** a second close back through removes it.
+   - **Untapped-reaction pointer:** counts only a tap of a zone that was already known when it was tapped. An FFVG that formed and was tapped before its swing confirmed is never untapped.
+   - **Not encoded:** "ignore news-spike IFFVGs", beyond the news lockout.
+5. **Pointer (Reading A):** bullish = close above the previous bar's body top and at or below the previous bar's high (bearish mirror), on 3 / 4 / 5 / 6m bars.
+   - **Swept pointer:** the bar's high is above the previous bar's high (long; mirror for short).
+   - **Untapped-reaction pointer:** a pointer whose index (its own zones) has a demand zone (bull FFVG or inverted bear) first tapped during the pointer bar or the bar before it, for a bullish pointer. Mirror with supply zones for bearish.
+   - **Time window:** the pointer bar must open at or after 09:35 (the 9:30 candle is never used) and close by 15:50.
+6. **Grades:**
+   - **Correlated:** the other index prints a same-direction untapped-reaction pointer on any 3–6m bar closing within ±5 minutes.
+   - **SMT:** only one index prints it.
+   - **Swept:** the pointer itself is swept.
+   - **The ±1 bar window uses up to 5 minutes after entry.** It is used only as a **label for reporting**. Any sizing (V2) uses only what was known at the entry close.
+7. **News lockout:** for events in the window (in `events.csv` that is essentially the 14:00 FOMC statement).
+   - **Releases:** T−5 to T+10.
+   - **FOMC:** treated as statement plus press conference, T−10 to T+90.
+   - No entry inside a lockout; an open trade is closed at the lockout's start.
+   - **Known gap:** `events.csv` has no 10:00 releases (ISM, JOLTS and the like) and no speeches, which he would avoid.
+   - **Early-close days are skipped.**
+8. **V1:**
+   - **Entry:** every untapped-reaction pointer (either index) is a signal, entered at the pointer bar's close on MNQ (+1 tick), 1 contract, away from the zone.
+   - **Same-direction signals** while in a trade are ignored.
+   - **Opposite signal:** an opposite untapped-reaction pointer on either index closes the trade at that bar's MNQ close (−1 tick) and, being a signal itself, opens the reverse trade.
+   - **Flat** at the 15:49 bar's close (15:50).
+   - **R unit (V1 has no stop) = 60 NQ points × $2 = $120,** the catastrophic-stop distance. Used for both V1 runs.
+   - **Catastrophic-stop variant:** stop at entry ∓ 60 points; a bar opening beyond fills at its open.
+   - **MAE:** points against the entry fill on 1m highs / lows while open.
+   - **Neighbours:** SWING_N 2 and 4.
+   - **Usual criterion:** ≥ 6 of 8 years, ≥ +0.05 R, both halves ≥ 0, neighbours same sign, and bootstrap p (mean R > 0) below **0.05 ÷ (number of P&L stages run)**: 2 if V2 / V3 are not run, 4 if they are.
+9. **Claim 1:** after an untapped-reaction pointer (index X, direction d, entry price = X's close), measured on X's own prices.
+   - **Target:** the nearest **untapped** zone ahead acting against d (supply above a long). **Clear path:** no other live zone lies between the entry and the target's near edge, on X and, in its own prices, on the other index.
+   - **Success:** X touches the target's near edge before trading through the entry price, by 15:50. Touching both in one 1m bar is a failure. Reaching neither is counted separately.
+   - **Rule fixed now:** if the success rate is **below 60 %**, the log says the additive-trim risk model does not hold. V1 runs either way.
+10. **Claim 2:**
+    - **Reversal:** a confirmed MNQ 5m swing (SWING_N = 3) in the window, followed by a move away of ≥ 1 × 5m ATR(14) (Wilder; ATR at the extreme) before the next opposing swing extreme.
+    - **The "prior 3 bars":** the 3 five-minute bars before and including the bar whose close first reaches 1 × ATR from the extreme.
+    - **Measured:** the share of reversals with **no** untapped-reaction pointer in the reversal's direction on either index closing in those bars. Reported overall and outside news lockouts.
+11. **V2 and V3 run only if V1's R per trade is ≥ −0.05** (within 0.05 R of zero or better).
+    - **V2 sizing:** 10 MNQ correlated plain, 5 otherwise (SMT, swept, or after an untapped-to-untapped travel). Correlated is judged on what had printed by the entry close.
+    - **V2 swept pointers:** 5 at the close, +5 when price trades through the pointer bar's extreme before an exit.
+    - **V2 skips:**
+      - a swept pointer whose path to the next opposing untapped zone holds that zone within 20 points, or holds more than 2 live zones;
+      - the other index's path not clear;
+      - the other index's latest untapped-reaction pointer pointing the other way (PROCs disjointed);
+      - more than 85 points to the nearest opposing untapped zone;
+      - MNQ above its prior all-time high.
+    - **V3:** V2 plus the PO3 counter. PO3 is on after 3 untapped-reaction pointers in alternating directions (either index) whose span is less than 1 × 5m ATR × 3. While on, no entries, except a pointer reacting to a zone outside the PO3 range or one with a clear path to its next untapped zone. It resets at the session start or when price closes beyond the range and reaches the next untapped zone.
+    - **Reported:** V2 against V3, and the share of V2's losses taken inside PO3.
+12. **Prop-firm simulation** (best P&L stage):
+    - **Account:** $50,000 with a $2,000 trailing drawdown. The trail follows the equity peak including open P&L (each trade's worst point = its MAE) and stops trailing once the floor reaches $50,000.
+    - **Sizing:** 10 MNQ on correlated plain signals, 5 otherwise.
+    - **Runs:** one simulated account started on each trading day from 2019 on.
+    - **Reported:** the share that hit the drawdown within 20, 60 and 250 trading days, and the median days to death.
+
+**Check charts:** 5m NQ and ES charts for 2026-03-02 → 03-06 (his Episode 12 week) with zones and pointers marked; 10 random V1 trades cut at entry.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
