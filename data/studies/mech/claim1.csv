@@ -1,0 +1,2416 @@
+idx,tf,dir,t,dist,res,res_proc,lock
+ES,6,1,5138,3.5,through entry first,target first,False
+NQ,5,1,6535,5.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,7955,2.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,13332,11.5,through entry first,neither by 15:50,False
+ES,3,-1,13340,1.25,through entry first,neither by 15:50,False
+ES,3,-1,15066,4.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,15069,4.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,15070,3.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,15158,4.5,through entry first,target first,False
+ES,4,-1,15162,4.25,through entry first,target first,False
+NQ,3,-1,17785,4.75,through entry first,beyond pointer extreme first,False
+ES,6,1,19155,2.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,21677,6.25,through entry first,target first,False
+ES,3,-1,21677,1.0,target first,target first,False
+ES,3,-1,24689,0.5,through entry first,target first,False
+NQ,3,-1,27275,15.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,28553,9.25,target first,target first,False
+NQ,4,1,31986,3.75,through entry first,target first,False
+NQ,3,1,31992,3.25,target first,target first,False
+ES,3,1,31992,1.5,through entry first,target first,False
+ES,4,1,31994,1.5,through entry first,target first,False
+NQ,5,1,31994,2.75,through entry first,target first,False
+NQ,3,1,31995,2.25,target first,target first,False
+NQ,4,-1,32050,1.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,32061,5.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,32062,5.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,32064,5.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,37489,1.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,37489,1.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,39834,0.75,target first,target first,False
+NQ,5,1,41371,8.25,target first,target first,False
+ES,3,-1,41515,3.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,41518,2.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,42550,4.5,through entry first,target first,False
+NQ,6,-1,42554,9.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,42554,5.5,through entry first,target first,False
+ES,4,-1,43884,1.5,through entry first,beyond pointer extreme first,False
+ES,5,1,44232,4.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,45398,8.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,45416,17.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,50660,15.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,50660,4.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,50835,4.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,54980,12.5,through entry first,target first,False
+ES,5,-1,55000,9.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,56090,7.25,through entry first,beyond pointer extreme first,True
+ES,4,-1,58878,4.0,through entry first,target first,False
+ES,5,1,59039,2.25,through entry first,target first,False
+NQ,5,1,60482,16.5,through entry first,beyond pointer extreme first,False
+ES,5,1,60482,10.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,61832,4.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,62867,85.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,64356,6.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,64369,8.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,64370,8.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,64371,8.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,65943,9.5,through entry first,beyond pointer extreme first,False
+ES,6,1,65949,1.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,71121,10.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,71122,9.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,71126,10.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,71130,9.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,74073,1.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,74079,1.0,through entry first,beyond pointer extreme first,False
+ES,4,1,77898,12.25,through entry first,beyond pointer extreme first,False
+ES,6,1,77920,13.25,through entry first,target first,False
+ES,3,1,77932,6.5,through entry first,beyond pointer extreme first,False
+ES,4,1,77934,7.25,through entry first,beyond pointer extreme first,False
+ES,6,1,77938,5.75,through entry first,beyond pointer extreme first,False
+ES,5,1,77939,6.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,80592,27.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,80597,22.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,83282,14.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,83283,21.5,through entry first,beyond pointer extreme first,False
+ES,6,1,84932,1.25,through entry first,beyond pointer extreme first,False
+ES,3,1,86304,0.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,91283,11.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,91285,33.0,through entry first,neither by 15:50,False
+ES,6,-1,91289,10.75,through entry first,neither by 15:50,False
+NQ,3,-1,91301,25.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,91304,8.25,through entry first,neither by 15:50,False
+ES,4,-1,91357,7.75,through entry first,beyond pointer extreme first,False
+ES,3,1,108947,16.25,through entry first,beyond pointer extreme first,False
+ES,4,1,108950,16.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,110211,23.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,110214,24.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,110304,15.25,through entry first,target first,False
+ES,3,1,110304,5.5,through entry first,target first,False
+NQ,4,1,110306,14.75,through entry first,target first,False
+ES,4,1,110306,5.5,through entry first,target first,False
+ES,5,1,110307,5.5,through entry first,target first,False
+NQ,4,1,110310,14.25,through entry first,beyond pointer extreme first,False
+ES,5,1,110312,5.25,through entry first,target first,False
+NQ,3,1,110313,11.0,through entry first,target first,False
+ES,3,1,110313,4.75,target first,target first,False
+NQ,4,1,110314,10.0,through entry first,target first,False
+ES,4,1,110314,4.25,through entry first,target first,False
+NQ,3,-1,118287,24.75,through entry first,beyond pointer extreme first,False
+ES,5,1,119745,1.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,119819,10.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,119822,12.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,119823,12.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,119825,9.5,through entry first,beyond pointer extreme first,False
+ES,5,1,119835,1.5,target first,target first,False
+ES,3,1,119837,1.25,target first,target first,False
+NQ,3,-1,122316,29.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,122318,24.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,122319,28.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,122322,29.0,through entry first,target first,False
+NQ,5,-1,122324,22.0,through entry first,target first,False
+NQ,6,1,125052,8.5,target first,target first,False
+NQ,3,-1,125088,27.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,125094,25.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,126472,25.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,126475,28.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,127838,4.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,133387,1.5,through entry first,target first,False
+NQ,5,-1,133515,29.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,136067,2.25,through entry first,target first,False
+ES,3,-1,137302,0.75,through entry first,target first,False
+ES,5,-1,137382,3.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,137383,3.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,137412,2.25,through entry first,target first,False
+ES,6,-1,137413,1.75,through entry first,target first,False
+ES,5,1,137442,2.0,through entry first,target first,False
+ES,6,1,137443,2.0,through entry first,target first,False
+ES,4,-1,138976,5.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,138980,5.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,140131,41.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,140131,8.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,140148,10.0,through entry first,neither by 15:50,False
+NQ,5,-1,140338,48.75,through entry first,neither by 15:50,False
+NQ,5,-1,140343,46.25,neither by 15:50,neither by 15:50,False
+ES,6,1,144170,1.0,target first,target first,True
+ES,4,-1,144302,0.75,target first,target first,True
+ES,4,-1,144338,2.25,through entry first,beyond pointer extreme first,True
+ES,3,1,150808,1.25,target first,target first,False
+NQ,3,1,150943,3.75,through entry first,target first,False
+NQ,3,-1,153574,1.5,target first,target first,False
+ES,6,1,157755,0.5,through entry first,target first,False
+ES,6,1,157821,1.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,159215,1.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,159227,1.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,160482,2.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,160516,5.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,160518,5.75,through entry first,beyond pointer extreme first,False
+ES,4,1,163169,1.0,through entry first,target first,False
+NQ,6,1,165882,7.0,through entry first,target first,False
+ES,3,1,167281,3.5,through entry first,target first,False
+ES,4,1,167285,3.25,target first,target first,False
+ES,5,1,167290,2.75,through entry first,target first,False
+ES,3,1,167308,0.5,through entry first,target first,False
+ES,4,1,167309,0.75,through entry first,target first,False
+NQ,5,1,167310,3.25,through entry first,target first,False
+ES,5,1,167310,0.5,through entry first,target first,False
+ES,6,1,167311,0.25,through entry first,target first,False
+ES,3,1,177798,1.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,177933,1.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,180312,28.5,through entry first,neither by 15:50,False
+NQ,5,1,180315,26.75,through entry first,neither by 15:50,False
+ES,4,-1,181684,0.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,183380,5.0,through entry first,target first,False
+ES,5,-1,183385,4.5,through entry first,target first,False
+NQ,3,-1,185809,62.0,through entry first,target first,False
+NQ,3,-1,185812,60.25,through entry first,target first,False
+NQ,4,-1,185813,59.5,through entry first,target first,False
+ES,6,-1,185839,18.5,through entry first,target first,False
+NQ,3,1,189823,4.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,200397,0.5,through entry first,target first,False
+NQ,5,1,201814,1.5,target first,target first,False
+NQ,5,-1,212777,8.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,222228,1.5,through entry first,target first,False
+ES,3,-1,222255,0.75,target first,target first,False
+NQ,5,1,224808,43.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,224812,43.25,through entry first,beyond pointer extreme first,False
+ES,5,1,224813,13.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,227437,3.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,227438,3.5,through entry first,beyond pointer extreme first,False
+ES,3,1,228772,6.0,target first,target first,True
+ES,4,1,228773,5.0,through entry first,target first,True
+ES,4,1,228777,4.75,through entry first,target first,True
+ES,6,1,230128,2.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,230408,3.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,239853,3.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,239858,2.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,247843,29.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,247945,12.25,through entry first,neither by 15:50,False
+ES,5,-1,247948,12.75,through entry first,neither by 15:50,False
+ES,3,1,250480,2.25,through entry first,target first,False
+ES,5,1,250603,6.0,through entry first,target first,False
+ES,5,-1,250633,2.75,through entry first,target first,False
+ES,3,1,254557,10.75,through entry first,beyond pointer extreme first,False
+ES,5,1,254558,9.5,through entry first,beyond pointer extreme first,False
+ES,4,1,254559,9.5,through entry first,beyond pointer extreme first,False
+ES,5,1,255948,42.5,through entry first,beyond pointer extreme first,False
+ES,6,1,255958,37.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,260139,146.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,260139,21.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,261526,10.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,261552,53.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,263998,52.5,through entry first,target first,False
+NQ,4,-1,271823,10.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,271823,4.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,271995,52.25,through entry first,target first,False
+ES,4,1,272610,8.75,through entry first,target first,False
+ES,5,-1,273424,15.75,through entry first,beyond pointer extreme first,False
+ES,6,1,277113,22.25,through entry first,beyond pointer extreme first,False
+ES,4,1,277177,22.25,through entry first,beyond pointer extreme first,False
+ES,6,1,277179,23.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,277269,59.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,277269,8.25,through entry first,target first,False
+NQ,3,1,278311,333.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,278338,186.75,through entry first,beyond pointer extreme first,False
+ES,6,1,278338,85.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,279887,26.75,through entry first,beyond pointer extreme first,False
+ES,6,1,279929,16.0,through entry first,target first,False
+NQ,5,1,281076,79.75,through entry first,beyond pointer extreme first,False
+ES,5,1,281081,14.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,281088,70.0,through entry first,target first,False
+ES,4,1,281088,12.25,through entry first,target first,False
+ES,6,1,289518,6.0,through entry first,target first,False
+ES,4,1,293386,22.0,through entry first,beyond pointer extreme first,False
+ES,6,1,293392,18.25,through entry first,target first,False
+ES,5,1,293401,11.25,through entry first,target first,False
+NQ,3,1,293410,76.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,293411,76.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,293414,73.75,through entry first,target first,False
+ES,3,1,299101,1.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,301696,73.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,301700,72.0,through entry first,beyond pointer extreme first,False
+ES,4,1,301700,18.5,through entry first,beyond pointer extreme first,False
+ES,3,1,301702,18.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,301702,70.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,303091,3.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,303163,22.75,through entry first,target first,False
+NQ,4,1,303165,21.75,through entry first,target first,False
+NQ,4,1,308533,10.0,through entry first,beyond pointer extreme first,False
+ES,4,1,308533,3.25,through entry first,beyond pointer extreme first,False
+ES,6,1,308671,6.25,through entry first,beyond pointer extreme first,False
+ES,3,1,309844,2.25,through entry first,beyond pointer extreme first,False
+ES,4,1,309846,2.25,through entry first,beyond pointer extreme first,False
+ES,6,1,309952,4.5,through entry first,target first,False
+NQ,4,1,309982,12.25,through entry first,target first,False
+ES,4,1,311155,6.75,through entry first,target first,False
+ES,5,1,311156,6.75,target first,target first,False
+ES,4,-1,312416,1.75,through entry first,target first,False
+ES,3,1,312499,4.5,through entry first,target first,False
+ES,3,1,312643,19.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,312644,27.25,through entry first,beyond pointer extreme first,False
+ES,6,1,312646,19.75,through entry first,beyond pointer extreme first,False
+ES,3,1,312649,18.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,316678,12.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,318139,18.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,320606,4.5,through entry first,target first,False
+ES,4,1,320922,2.25,through entry first,beyond pointer extreme first,False
+ES,4,1,324789,8.75,through entry first,beyond pointer extreme first,False
+ES,5,1,324791,9.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,326418,1.75,through entry first,target first,False
+ES,3,1,327433,10.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,329065,12.75,through entry first,target first,False
+NQ,6,1,330337,34.0,through entry first,target first,False
+ES,4,1,330377,5.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,335818,18.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,335821,17.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,335821,5.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,335845,19.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,335848,18.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,335849,17.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,339659,47.5,through entry first,beyond pointer extreme first,False
+ES,4,1,339659,1.25,through entry first,target first,False
+ES,5,1,339661,1.0,through entry first,target first,False
+ES,3,1,340930,3.0,through entry first,target first,False
+ES,3,1,340948,4.75,through entry first,beyond pointer extreme first,False
+ES,6,1,340954,4.5,through entry first,target first,False
+ES,5,-1,342521,4.5,through entry first,target first,False
+NQ,3,1,343876,22.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,343915,49.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,349300,48.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,349301,49.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,360326,4.75,through entry first,target first,False
+NQ,3,1,361352,7.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,361595,3.0,through entry first,target first,False
+NQ,4,1,361597,2.0,through entry first,target first,False
+ES,6,-1,367151,7.75,through entry first,neither by 15:50,False
+NQ,5,1,370949,83.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,373646,13.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,373757,6.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,376357,0.25,through entry first,target first,False
+ES,6,-1,381655,6.5,through entry first,beyond pointer extreme first,False
+ES,4,1,381693,3.0,through entry first,target first,False
+ES,5,1,386941,2.0,through entry first,target first,False
+NQ,3,1,388345,70.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,388346,72.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,388348,70.75,through entry first,beyond pointer extreme first,False
+ES,3,1,392440,3.0,through entry first,beyond pointer extreme first,False
+ES,4,1,392441,3.0,through entry first,beyond pointer extreme first,False
+ES,3,1,392443,2.5,through entry first,beyond pointer extreme first,False
+ES,4,1,392445,2.75,through entry first,beyond pointer extreme first,False
+ES,5,1,392496,3.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,393746,7.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,393748,6.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,393750,73.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,393751,55.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,393754,70.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,393810,2.25,through entry first,beyond pointer extreme first,False
+ES,3,1,395197,1.75,through entry first,beyond pointer extreme first,False
+ES,4,1,395199,2.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,396715,41.25,through entry first,target first,False
+ES,3,-1,396715,9.25,through entry first,target first,False
+NQ,4,-1,401984,7.5,through entry first,beyond pointer extreme first,True
+ES,3,-1,402082,2.75,through entry first,target first,True
+NQ,6,1,402268,7.5,through entry first,target first,True
+NQ,5,-1,403366,9.5,through entry first,target first,False
+NQ,6,1,403393,17.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,403567,29.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,403571,29.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,404668,5.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,406183,4.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,407698,12.5,target first,target first,False
+NQ,4,-1,412956,8.25,through entry first,target first,False
+NQ,3,-1,412957,4.0,through entry first,target first,False
+ES,4,-1,421174,9.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,421176,9.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,422746,3.25,through entry first,target first,False
+ES,3,-1,429574,22.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,436111,25.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,436186,8.5,through entry first,target first,False
+ES,4,-1,436229,2.0,through entry first,beyond pointer extreme first,False
+ES,5,1,442780,19.25,through entry first,target first,False
+ES,5,1,442785,18.75,through entry first,target first,False
+NQ,6,1,442794,13.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,442809,4.0,through entry first,target first,False
+NQ,3,1,443010,7.0,through entry first,beyond pointer extreme first,False
+ES,6,1,444339,73.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,444341,47.0,through entry first,beyond pointer extreme first,False
+ES,4,1,444341,70.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,444342,33.0,through entry first,beyond pointer extreme first,False
+ES,3,1,446982,9.75,through entry first,beyond pointer extreme first,False
+ES,4,1,446995,10.75,through entry first,beyond pointer extreme first,False
+ES,6,1,447021,4.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,449595,11.0,through entry first,beyond pointer extreme first,True
+ES,6,-1,449599,11.75,through entry first,beyond pointer extreme first,True
+NQ,4,1,449803,16.5,through entry first,target first,True
+ES,4,-1,450948,10.0,through entry first,target first,False
+ES,5,1,451018,23.0,through entry first,neither by 15:50,False
+NQ,6,1,451018,88.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,451120,18.25,through entry first,beyond pointer extreme first,False
+ES,4,1,452229,4.0,through entry first,target first,False
+ES,5,1,452233,2.25,through entry first,target first,False
+ES,6,1,453808,4.5,through entry first,beyond pointer extreme first,False
+ES,5,1,453818,1.75,through entry first,beyond pointer extreme first,False
+ES,4,1,454943,6.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,462043,6.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,462118,15.75,through entry first,target first,False
+NQ,6,-1,462124,13.0,through entry first,target first,False
+NQ,3,-1,463468,64.75,through entry first,target first,False
+ES,5,-1,466033,8.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,466078,6.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,466079,7.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,467536,5.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,467538,5.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,470063,29.75,through entry first,beyond pointer extreme first,False
+ES,6,1,470086,8.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,476863,13.75,through entry first,beyond pointer extreme first,False
+ES,4,1,476967,3.5,through entry first,target first,False
+ES,5,1,476968,5.0,through entry first,target first,False
+NQ,4,1,478216,8.5,through entry first,target first,False
+ES,6,1,478486,1.25,through entry first,target first,False
+NQ,3,1,479653,55.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,479722,60.75,through entry first,beyond pointer extreme first,False
+ES,3,1,479749,10.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,479767,42.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,479781,50.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,479782,49.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,479783,52.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,479785,48.75,through entry first,beyond pointer extreme first,False
+ES,4,1,479801,8.25,through entry first,beyond pointer extreme first,False
+ES,5,1,479803,7.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,482523,11.5,through entry first,beyond pointer extreme first,False
+ES,3,1,486346,1.75,through entry first,beyond pointer extreme first,False
+ES,5,1,491903,7.5,through entry first,beyond pointer extreme first,False
+ES,5,1,491918,11.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,492037,5.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,492118,15.25,through entry first,beyond pointer extreme first,False
+ES,3,1,493222,14.0,through entry first,beyond pointer extreme first,False
+ES,5,1,493223,15.25,through entry first,beyond pointer extreme first,False
+ES,5,1,498992,4.75,neither by 15:50,neither by 15:50,False
+ES,5,1,500052,6.0,through entry first,target first,False
+NQ,4,1,504105,46.0,through entry first,target first,False
+NQ,3,1,504116,19.25,through entry first,target first,False
+NQ,6,1,504119,20.0,through entry first,target first,False
+ES,3,1,512525,3.25,through entry first,beyond pointer extreme first,False
+ES,4,1,512527,3.25,through entry first,beyond pointer extreme first,False
+ES,6,1,512537,3.0,through entry first,target first,False
+ES,4,1,512539,2.5,through entry first,beyond pointer extreme first,False
+ES,6,1,512543,2.5,through entry first,beyond pointer extreme first,False
+ES,6,1,512579,9.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,515072,44.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,515321,30.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,517973,4.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,521492,25.0,through entry first,beyond pointer extreme first,False
+ES,4,1,523100,7.0,through entry first,neither by 15:50,False
+ES,5,1,523101,6.0,through entry first,neither by 15:50,False
+ES,4,1,524409,5.0,through entry first,target first,False
+NQ,6,1,528452,1.5,through entry first,beyond pointer extreme first,False
+ES,3,1,529613,0.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,532666,3.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,532667,3.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,533966,16.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,533996,16.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,533996,4.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,535410,14.75,neither by 15:50,neither by 15:50,False
+ES,4,-1,537810,3.75,through entry first,beyond pointer extreme first,True
+NQ,3,-1,537814,33.0,through entry first,beyond pointer extreme first,True
+ES,6,-1,537814,2.75,through entry first,beyond pointer extreme first,True
+ES,3,-1,538102,1.0,through entry first,beyond pointer extreme first,True
+ES,5,-1,539160,1.75,through entry first,target first,False
+ES,6,-1,539161,1.75,through entry first,target first,False
+NQ,5,-1,539165,12.75,through entry first,target first,False
+NQ,5,-1,539170,2.75,through entry first,target first,False
+NQ,4,-1,541869,54.75,through entry first,target first,False
+NQ,3,-1,541885,19.0,through entry first,target first,False
+ES,6,-1,542209,11.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,543230,20.75,through entry first,target first,False
+NQ,4,1,543238,11.75,target first,target first,False
+ES,5,-1,547210,1.0,through entry first,target first,False
+ES,3,-1,551263,1.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,551266,1.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,551270,1.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,554077,6.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,554100,84.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,554104,80.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,554105,83.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,554130,77.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,554131,76.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,554134,77.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,555589,80.75,through entry first,target first,False
+NQ,4,-1,558311,23.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,565084,12.25,through entry first,target first,False
+ES,6,-1,567583,4.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,567600,8.25,through entry first,beyond pointer extreme first,False
+ES,3,1,570190,1.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,572977,6.5,through entry first,target first,False
+NQ,3,-1,572989,42.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,572989,4.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,572990,27.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,572995,3.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,574192,24.0,target first,target first,False
+ES,3,-1,575650,14.75,target first,target first,True
+ES,4,-1,575651,14.5,through entry first,target first,True
+ES,3,1,576961,6.0,through entry first,beyond pointer extreme first,False
+ES,4,1,582508,1.75,through entry first,target first,False
+NQ,3,-1,583750,34.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,586603,15.25,through entry first,target first,False
+NQ,5,1,587970,21.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,594549,2.75,target first,target first,False
+NQ,5,1,597524,17.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,597525,7.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,597529,12.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,600009,53.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,600015,52.0,through entry first,beyond pointer extreme first,False
+ES,3,1,600015,3.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,600039,19.75,through entry first,target first,False
+ES,4,-1,600183,3.75,through entry first,beyond pointer extreme first,False
+NQ,6,-1,600183,45.0,through entry first,target first,False
+NQ,5,-1,602904,44.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,602905,3.75,through entry first,beyond pointer extreme first,False
+NQ,6,-1,602907,50.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,602907,4.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,602922,5.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,602925,5.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,603996,1.75,through entry first,target first,False
+NQ,6,1,605385,12.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,605614,85.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,605614,10.25,through entry first,beyond pointer extreme first,False
+ES,3,1,608370,3.25,through entry first,target first,False
+NQ,3,-1,610992,12.75,target first,target first,False
+ES,3,-1,610992,2.5,target first,target first,False
+NQ,3,-1,612330,15.75,through entry first,target first,False
+NQ,4,-1,612332,13.5,through entry first,target first,False
+ES,6,1,613815,7.0,through entry first,target first,False
+ES,4,-1,617648,5.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,617652,5.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,626117,26.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,626117,8.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,626118,8.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,626178,24.25,through entry first,beyond pointer extreme first,False
+ES,6,1,627284,4.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,627286,8.25,through entry first,target first,False
+ES,5,1,627288,4.75,through entry first,beyond pointer extreme first,False
+ES,3,1,627344,1.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,630020,6.5,through entry first,target first,False
+ES,5,-1,630023,6.0,through entry first,target first,False
+NQ,6,-1,630026,22.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,630040,18.75,through entry first,target first,False
+NQ,3,-1,631325,40.5,through entry first,target first,False
+ES,6,-1,631637,3.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,632801,3.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,632806,3.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,632912,39.75,through entry first,beyond pointer extreme first,False
+ES,5,1,634293,0.75,through entry first,beyond pointer extreme first,False
+ES,5,1,647513,4.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,651393,8.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,652718,1.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,654108,2.75,through entry first,target first,False
+ES,5,1,655673,10.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,655775,33.5,through entry first,neither by 15:50,False
+ES,5,-1,656953,2.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,656962,36.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,656966,2.75,through entry first,beyond pointer extreme first,False
+ES,4,1,657118,3.25,through entry first,target first,False
+ES,3,-1,659711,0.75,through entry first,target first,False
+ES,3,-1,660905,0.75,through entry first,beyond pointer extreme first,False
+ES,4,1,666613,4.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,666689,4.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,666693,3.75,target first,target first,False
+NQ,4,1,669231,165.25,through entry first,beyond pointer extreme first,False
+ES,3,1,669257,19.0,through entry first,beyond pointer extreme first,False
+ES,4,1,669259,21.25,through entry first,beyond pointer extreme first,False
+ES,3,1,669269,19.5,neither by 15:50,neither by 15:50,False
+ES,3,1,669272,17.0,through entry first,neither by 15:50,False
+ES,5,1,669273,17.0,through entry first,neither by 15:50,False
+ES,6,1,669275,17.25,through entry first,neither by 15:50,False
+ES,3,1,669359,10.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,669363,136.75,through entry first,beyond pointer extreme first,False
+ES,5,1,669363,10.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,669367,132.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,669368,134.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,671885,3.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,671888,3.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,671945,130.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,674645,76.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,678638,11.25,through entry first,target first,False
+ES,4,1,680135,1.75,through entry first,target first,False
+NQ,4,1,680143,3.25,through entry first,target first,False
+ES,6,1,680225,6.75,through entry first,target first,False
+ES,5,1,680228,7.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,680239,8.75,through entry first,target first,False
+NQ,3,1,680240,9.75,through entry first,target first,False
+NQ,3,1,680243,8.5,through entry first,beyond pointer extreme first,False
+ES,5,1,680243,6.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,680247,6.5,through entry first,target first,False
+NQ,5,1,680248,6.5,through entry first,target first,False
+ES,5,1,680248,6.5,target first,target first,False
+NQ,6,1,680249,6.75,through entry first,target first,False
+ES,6,1,680249,5.75,through entry first,target first,False
+NQ,5,-1,682823,25.5,through entry first,target first,False
+ES,3,-1,683045,2.0,through entry first,target first,False
+NQ,3,1,685643,23.25,through entry first,target first,False
+NQ,5,1,685648,20.25,through entry first,target first,False
+NQ,4,1,696202,16.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,696236,1.5,through entry first,target first,False
+ES,6,1,696260,14.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,696403,2.5,through entry first,target first,False
+NQ,3,1,696425,16.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,696430,18.0,through entry first,target first,False
+ES,3,1,697520,13.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,697553,33.75,through entry first,beyond pointer extreme first,False
+ES,3,1,697571,10.0,through entry first,beyond pointer extreme first,False
+ES,4,1,697635,7.75,through entry first,beyond pointer extreme first,False
+ES,5,1,699068,0.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,703023,4.0,through entry first,beyond pointer extreme first,False
+ES,6,1,708739,3.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,714085,60.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,715276,8.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,715492,14.5,target first,target first,False
+ES,4,1,715492,0.25,through entry first,target first,False
+ES,6,1,719623,0.75,through entry first,target first,False
+NQ,3,1,723688,1.25,through entry first,target first,False
+ES,6,1,726211,2.75,through entry first,target first,False
+NQ,4,1,726213,25.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,726214,26.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,726217,17.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,734328,5.5,target first,target first,False
+ES,3,-1,738405,10.75,through entry first,target first,False
+ES,4,1,739956,1.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,739980,39.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,744184,18.75,through entry first,beyond pointer extreme first,False
+ES,3,1,744189,0.75,through entry first,beyond pointer extreme first,False
+ES,6,1,744198,1.0,target first,target first,False
+ES,5,1,750917,4.75,through entry first,beyond pointer extreme first,False
+ES,4,1,751123,2.75,through entry first,target first,False
+NQ,3,1,753758,5.75,through entry first,target first,False
+ES,4,1,755131,4.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,767422,2.25,through entry first,beyond pointer extreme first,False
+ES,4,1,770146,2.75,through entry first,beyond pointer extreme first,False
+ES,3,1,771601,2.5,through entry first,target first,False
+NQ,4,1,771602,24.0,through entry first,beyond pointer extreme first,False
+ES,4,1,771602,3.5,through entry first,target first,False
+NQ,6,1,771604,23.5,through entry first,beyond pointer extreme first,False
+ES,6,1,771604,3.5,target first,target first,False
+ES,4,-1,777218,3.0,through entry first,beyond pointer extreme first,False
+ES,4,1,777270,3.0,through entry first,target first,False
+NQ,4,1,777282,2.25,through entry first,beyond pointer extreme first,False
+ES,4,1,779858,1.75,through entry first,target first,False
+ES,3,-1,781441,1.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,785571,2.5,through entry first,target first,False
+ES,5,-1,785571,0.5,through entry first,target first,False
+NQ,6,1,788236,22.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,788301,7.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,789490,9.0,through entry first,target first,False
+NQ,3,-1,789493,5.25,through entry first,target first,False
+NQ,3,1,789499,19.5,through entry first,beyond pointer extreme first,False
+ES,3,1,789511,6.25,through entry first,target first,False
+NQ,3,1,789517,30.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,792069,6.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,797800,1.5,through entry first,target first,False
+NQ,5,-1,797845,32.0,through entry first,neither by 15:50,False
+ES,3,1,803177,9.5,through entry first,beyond pointer extreme first,False
+ES,6,1,803180,8.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,803213,1.5,through entry first,target first,False
+NQ,5,-1,803214,18.5,through entry first,target first,False
+NQ,6,1,805916,34.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,806054,6.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,806054,34.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,807176,2.75,through entry first,target first,True
+NQ,5,1,807224,18.75,target first,target first,True
+NQ,6,1,807380,22.75,through entry first,beyond pointer extreme first,True
+ES,6,1,807380,18.25,through entry first,beyond pointer extreme first,True
+ES,4,-1,808604,4.75,through entry first,target first,False
+ES,3,-1,811643,6.25,through entry first,neither by 15:50,False
+NQ,3,-1,815639,18.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,816815,17.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,821064,9.0,through entry first,target first,False
+NQ,6,1,821066,11.75,through entry first,target first,False
+NQ,3,1,821075,11.25,through entry first,target first,False
+NQ,3,-1,823958,2.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,826667,38.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,828017,0.75,through entry first,target first,False
+NQ,3,1,837839,13.0,through entry first,target first,False
+NQ,4,1,837840,10.5,target first,target first,False
+NQ,6,1,850292,42.0,through entry first,neither by 15:50,False
+NQ,4,-1,851332,3.5,through entry first,target first,False
+NQ,4,-1,851600,13.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,852779,5.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,852780,5.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,857009,16.0,through entry first,beyond pointer extreme first,False
+ES,4,1,857096,3.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,858219,25.5,through entry first,target first,False
+NQ,6,1,858224,35.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,861002,12.25,through entry first,target first,False
+ES,6,-1,861002,5.25,through entry first,target first,False
+NQ,6,1,862550,20.75,through entry first,beyond pointer extreme first,False
+ES,5,1,862574,2.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,862649,40.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,864059,29.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,864060,29.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,864064,28.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,866555,14.25,through entry first,target first,False
+ES,4,-1,866556,13.5,through entry first,target first,False
+ES,3,-1,866558,14.0,through entry first,target first,False
+ES,5,-1,866559,13.25,through entry first,target first,False
+ES,4,-1,866560,13.0,through entry first,target first,False
+ES,3,1,867878,2.75,through entry first,target first,False
+NQ,3,1,869585,10.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,875690,38.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,875723,5.25,through entry first,target first,False
+NQ,4,1,877103,40.5,through entry first,target first,False
+NQ,3,-1,877175,39.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,877289,4.75,through entry first,target first,False
+NQ,3,1,880013,29.5,through entry first,target first,False
+ES,5,1,889504,8.25,through entry first,target first,True
+ES,3,1,889505,7.0,through entry first,beyond pointer extreme first,True
+ES,4,-1,889547,3.75,through entry first,target first,True
+ES,3,1,890912,15.5,through entry first,beyond pointer extreme first,False
+ES,5,1,890914,15.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,891223,47.75,through entry first,target first,False
+ES,4,-1,891223,13.75,through entry first,neither by 15:50,False
+NQ,5,1,892494,24.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,895136,104.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,896702,0.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,896717,36.5,through entry first,beyond pointer extreme first,False
+ES,6,1,907625,0.75,through entry first,target first,False
+NQ,3,1,910178,118.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,910179,114.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,910181,125.5,through entry first,beyond pointer extreme first,False
+ES,5,1,910184,4.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,910247,104.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,910259,10.75,through entry first,beyond pointer extreme first,False
+ES,3,1,910277,10.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,910409,9.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,910411,9.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,910475,42.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,910535,5.75,through entry first,neither by 15:50,False
+ES,5,-1,913084,4.0,through entry first,target first,False
+NQ,3,-1,913103,7.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,914639,10.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,921014,42.5,through entry first,target first,False
+NQ,4,-1,923839,41.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,923888,15.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,929357,5.25,through entry first,target first,True
+ES,3,1,929591,19.25,through entry first,beyond pointer extreme first,True
+NQ,4,1,929591,72.25,through entry first,beyond pointer extreme first,True
+NQ,4,1,930823,95.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,939029,57.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,939031,46.0,through entry first,target first,False
+NQ,3,1,940346,10.5,through entry first,target first,False
+NQ,4,-1,940519,29.0,through entry first,beyond pointer extreme first,False
+ES,5,1,941769,13.75,through entry first,target first,False
+NQ,5,-1,943354,22.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,943355,22.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,943367,2.25,through entry first,target first,False
+ES,5,-1,944474,40.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,944531,123.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,944531,32.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,944630,44.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,944634,14.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,946103,19.75,through entry first,target first,False
+ES,4,-1,948603,19.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,948604,20.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,948605,20.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,948623,94.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,948624,88.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,948626,83.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,948740,101.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,948819,3.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,948821,3.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,948842,26.75,through entry first,target first,False
+ES,4,1,953079,14.25,through entry first,target first,False
+NQ,4,-1,955343,149.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,955344,158.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,955349,152.5,through entry first,target first,False
+ES,3,-1,955400,13.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,955403,14.75,through entry first,target first,False
+ES,5,-1,955404,12.0,through entry first,target first,False
+NQ,3,-1,955409,113.25,through entry first,target first,False
+NQ,4,-1,955411,114.5,through entry first,target first,False
+NQ,6,-1,955415,110.75,through entry first,target first,False
+ES,3,-1,955559,12.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,955598,16.25,through entry first,target first,False
+ES,6,-1,955601,16.5,target first,target first,False
+ES,3,1,962228,6.5,through entry first,target first,False
+ES,3,1,965234,20.75,through entry first,beyond pointer extreme first,False
+ES,4,1,965235,20.0,through entry first,beyond pointer extreme first,False
+ES,3,1,967673,21.25,through entry first,beyond pointer extreme first,False
+ES,5,1,967674,17.25,through entry first,beyond pointer extreme first,False
+ES,3,1,967685,29.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,967687,96.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,967689,104.0,through entry first,beyond pointer extreme first,False
+ES,5,1,967689,26.5,through entry first,beyond pointer extreme first,False
+ES,6,1,967757,42.0,through entry first,beyond pointer extreme first,False
+ES,5,1,967759,41.75,through entry first,beyond pointer extreme first,False
+ES,3,1,967760,40.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,969309,208.25,through entry first,beyond pointer extreme first,False
+ES,5,1,969309,55.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,970463,145.5,through entry first,beyond pointer extreme first,False
+ES,6,1,970463,51.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,970464,139.5,through entry first,beyond pointer extreme first,False
+ES,5,1,970464,49.5,through entry first,beyond pointer extreme first,False
+ES,6,1,970541,40.5,through entry first,neither by 15:50,False
+ES,5,1,970544,40.25,through entry first,neither by 15:50,False
+NQ,3,1,970574,107.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,971919,115.0,through entry first,target first,False
+NQ,6,1,971921,113.75,through entry first,target first,False
+ES,5,1,971989,2.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,973343,5.0,through entry first,beyond pointer extreme first,False
+ES,6,1,973343,1.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,978983,10.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,978983,35.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,980083,35.75,through entry first,target first,False
+ES,6,1,980087,7.75,target first,target first,False
+ES,5,-1,980149,18.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,980153,20.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,981479,23.75,through entry first,target first,False
+ES,3,-1,981479,1.75,through entry first,target first,False
+ES,3,-1,981725,8.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,981727,10.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,981773,96.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,981799,79.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,981799,14.75,through entry first,beyond pointer extreme first,False
+ES,3,1,985712,2.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,993979,73.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,993983,62.5,through entry first,target first,False
+NQ,5,-1,993984,68.0,through entry first,target first,False
+ES,3,1,994007,2.25,through entry first,target first,False
+ES,3,1,994226,0.75,through entry first,target first,False
+ES,4,1,994227,1.75,through entry first,target first,False
+ES,4,1,995471,13.0,through entry first,target first,False
+ES,3,1,995474,12.5,through entry first,target first,False
+ES,6,1,995477,12.25,target first,target first,False
+NQ,5,1,995494,8.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,995495,9.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,998324,55.0,through entry first,target first,False
+ES,3,1,998324,8.0,through entry first,target first,False
+NQ,4,1,998327,62.5,through entry first,beyond pointer extreme first,False
+ES,4,1,998327,8.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,998333,55.75,through entry first,target first,False
+ES,6,1,998333,6.25,target first,target first,False
+NQ,4,-1,1005063,43.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1009095,1.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1010603,7.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1010744,5.5,through entry first,target first,False
+ES,6,1,1012067,3.25,target first,target first,False
+NQ,6,-1,1015967,34.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1016169,10.75,through entry first,target first,False
+NQ,5,-1,1017414,36.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1017482,52.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,1017482,21.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1017701,16.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1021835,56.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1021847,6.75,through entry first,neither by 15:50,False
+ES,4,-1,1028383,11.0,through entry first,target first,False
+ES,4,-1,1029839,12.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1029839,24.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1035279,55.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,1035281,69.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1035350,62.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1035350,4.5,through entry first,target first,False
+NQ,6,-1,1036865,4.0,through entry first,beyond pointer extreme first,False
+ES,6,1,1038101,4.25,through entry first,target first,False
+NQ,3,1,1038323,60.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1038323,17.5,through entry first,beyond pointer extreme first,False
+ES,3,1,1038326,17.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,1038327,56.25,through entry first,beyond pointer extreme first,False
+ES,4,1,1038327,14.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,1038329,58.5,through entry first,beyond pointer extreme first,False
+ES,5,1,1038329,14.75,through entry first,beyond pointer extreme first,False
+ES,4,1,1040995,10.5,through entry first,beyond pointer extreme first,False
+ES,3,1,1040996,8.25,through entry first,beyond pointer extreme first,False
+ES,6,1,1040999,11.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,1041043,134.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,1041044,134.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1041083,12.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,1041083,7.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1041086,9.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1045232,2.0,through entry first,beyond pointer extreme first,False
+ES,5,1,1045234,6.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1045235,6.0,through entry first,beyond pointer extreme first,False
+ES,6,1,1045259,72.75,through entry first,beyond pointer extreme first,False
+ES,4,1,1050387,1.25,through entry first,target first,False
+NQ,4,-1,1051695,14.0,through entry first,target first,False
+ES,4,-1,1051695,12.25,through entry first,target first,False
+ES,4,-1,1051699,10.75,target first,target first,False
+ES,3,-1,1051700,8.5,through entry first,target first,False
+NQ,4,1,1051939,64.25,through entry first,beyond pointer extreme first,False
+ES,4,1,1051939,11.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1053113,30.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1053164,31.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,1055843,64.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,1055849,58.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1055858,62.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1058519,2.25,through entry first,target first,False
+ES,4,-1,1058795,17.25,through entry first,beyond pointer extreme first,False
+ES,6,1,1059995,4.75,through entry first,target first,False
+ES,5,1,1059999,6.0,target first,target first,False
+ES,4,1,1062963,4.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1065734,68.5,through entry first,beyond pointer extreme first,True
+ES,5,-1,1065734,19.5,through entry first,beyond pointer extreme first,True
+ES,6,-1,1065737,18.5,through entry first,beyond pointer extreme first,True
+ES,3,-1,1068185,5.5,through entry first,target first,False
+ES,4,-1,1068187,3.0,through entry first,target first,False
+ES,3,-1,1068188,4.5,through entry first,target first,False
+NQ,6,-1,1068383,29.0,through entry first,target first,False
+NQ,3,-1,1070804,95.75,through entry first,neither by 15:50,False
+NQ,3,-1,1070807,90.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,1070861,20.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1072070,94.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1073623,10.0,through entry first,target first,False
+ES,3,1,1076561,2.0,through entry first,target first,False
+NQ,4,1,1077867,20.5,through entry first,beyond pointer extreme first,False
+ES,4,1,1077867,8.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,1077869,17.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1077869,8.25,through entry first,beyond pointer extreme first,False
+ES,6,1,1078985,10.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,1078991,20.5,through entry first,beyond pointer extreme first,False
+ES,6,1,1078991,8.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1079132,10.5,through entry first,target first,False
+ES,4,1,1079271,5.5,through entry first,beyond pointer extreme first,False
+ES,5,1,1079274,5.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,1080701,12.0,through entry first,neither by 15:50,False
+ES,3,1,1081763,6.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1081824,17.75,through entry first,target first,False
+NQ,5,-1,1085644,47.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,1085693,9.0,through entry first,target first,False
+ES,4,-1,1085695,7.5,through entry first,beyond pointer extreme first,False
+ES,6,1,1090121,19.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,1091171,106.25,through entry first,target first,False
+NQ,4,1,1091387,11.25,through entry first,target first,False
+ES,4,1,1091387,2.5,through entry first,target first,False
+ES,3,1,1092527,7.0,through entry first,target first,False
+ES,3,1,1092575,15.5,through entry first,beyond pointer extreme first,False
+ES,5,1,1092579,16.0,through entry first,target first,False
+ES,6,1,1092581,13.0,through entry first,target first,False
+NQ,6,1,1093937,45.0,through entry first,target first,False
+ES,4,-1,1100887,15.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,1100927,27.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1102217,9.5,through entry first,beyond pointer extreme first,False
+ES,4,1,1102219,2.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1102219,8.5,through entry first,beyond pointer extreme first,False
+ES,6,1,1102463,4.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1102469,4.0,through entry first,beyond pointer extreme first,False
+ES,5,1,1106574,3.0,through entry first,beyond pointer extreme first,True
+ES,4,1,1106575,4.0,through entry first,beyond pointer extreme first,True
+ES,3,-1,1107788,1.0,through entry first,target first,False
+NQ,4,1,1109191,54.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1109192,63.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1110695,26.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1110704,18.0,target first,target first,False
+ES,5,-1,1110704,8.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,1111940,1.5,through entry first,target first,False
+ES,3,1,1118762,2.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1121831,6.25,through entry first,target first,False
+NQ,3,1,1128569,3.75,through entry first,target first,False
+ES,4,1,1134179,13.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1138259,12.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,1139633,31.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,1140851,3.25,through entry first,target first,False
+ES,4,-1,1142463,9.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1149119,70.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,1149185,19.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1149188,17.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1149209,3.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1153067,49.75,through entry first,target first,False
+ES,5,1,1157254,10.75,through entry first,beyond pointer extreme first,False
+ES,4,1,1157255,12.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1157276,23.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1157335,10.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1157335,3.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1158530,21.75,through entry first,target first,False
+NQ,4,-1,1160175,7.0,through entry first,target first,False
+ES,5,-1,1165774,3.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1168239,26.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,1168239,12.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1169642,27.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,1172323,21.75,through entry first,target first,False
+NQ,5,1,1172324,20.0,through entry first,target first,False
+ES,5,1,1172324,9.5,through entry first,target first,False
+ES,6,1,1172639,21.25,through entry first,beyond pointer extreme first,False
+ES,6,1,1172645,21.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1172648,20.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1173749,29.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1175324,7.75,through entry first,target first,False
+ES,3,-1,1178009,15.75,through entry first,target first,False
+NQ,3,1,1179506,29.5,through entry first,target first,False
+NQ,4,1,1179507,32.25,through entry first,target first,False
+NQ,5,1,1179509,26.5,through entry first,target first,False
+NQ,6,1,1180961,109.5,through entry first,neither by 15:50,False
+ES,3,1,1180964,31.5,through entry first,neither by 15:50,False
+ES,6,1,1180967,32.75,through entry first,neither by 15:50,False
+NQ,5,-1,1181989,29.5,through entry first,target first,False
+ES,5,-1,1181989,6.0,through entry first,target first,False
+NQ,4,-1,1181991,27.5,through entry first,target first,False
+NQ,4,1,1183435,121.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1183444,112.75,through entry first,target first,False
+NQ,6,1,1183445,97.0,through entry first,target first,False
+ES,4,-1,1184871,90.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,1184873,89.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,1184939,84.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1185079,194.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1185079,69.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1186247,11.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1186277,35.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1186279,29.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1186283,34.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1186324,7.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1187639,26.25,through entry first,beyond pointer extreme first,False
+ES,5,1,1187639,12.0,through entry first,beyond pointer extreme first,False
+ES,5,1,1187644,11.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1187720,10.0,through entry first,target first,False
+NQ,3,-1,1193081,26.0,through entry first,target first,False
+NQ,6,1,1200131,21.25,through entry first,target first,False
+NQ,3,1,1200134,17.25,through entry first,target first,False
+NQ,4,1,1200135,15.5,through entry first,target first,False
+NQ,3,1,1202975,16.25,through entry first,beyond pointer extreme first,True
+NQ,4,1,1202999,38.5,through entry first,target first,True
+ES,4,1,1202999,10.5,through entry first,target first,True
+ES,5,-1,1204279,4.5,through entry first,target first,False
+NQ,4,-1,1206871,32.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1206872,33.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1206874,38.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1206874,5.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1206875,44.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,1206875,5.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,1206965,8.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1208489,11.0,through entry first,target first,False
+NQ,4,1,1209779,39.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1209818,26.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1209818,7.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1209821,19.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1209829,19.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1218203,7.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1218209,8.5,through entry first,target first,False
+NQ,6,-1,1220891,21.75,through entry first,target first,False
+ES,6,1,1223585,2.0,through entry first,target first,False
+ES,4,1,1228582,2.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,1228748,17.5,through entry first,target first,False
+ES,6,1,1228748,7.0,through entry first,target first,False
+ES,4,-1,1230118,23.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1230122,19.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,1230122,22.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,1232597,83.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1232597,17.25,through entry first,beyond pointer extreme first,False
+ES,4,1,1232602,17.25,through entry first,target first,False
+ES,5,1,1232604,15.75,through entry first,target first,False
+ES,6,1,1232606,14.75,through entry first,target first,False
+NQ,6,1,1232732,18.0,through entry first,beyond pointer extreme first,False
+ES,6,1,1232732,2.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,1232826,15.25,through entry first,beyond pointer extreme first,False
+ES,6,1,1232828,4.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,1232829,15.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1232918,55.75,through entry first,neither by 15:50,False
+ES,3,1,1234022,6.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1234024,6.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1236731,60.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1236794,4.0,through entry first,beyond pointer extreme first,False
+ES,4,1,1237002,3.75,through entry first,target first,False
+NQ,5,1,1237004,13.25,through entry first,target first,False
+ES,5,1,1237004,3.5,through entry first,target first,False
+NQ,3,1,1249246,39.25,through entry first,target first,False
+ES,5,1,1249248,10.0,through entry first,target first,False
+ES,6,1,1249249,9.5,through entry first,target first,False
+ES,5,1,1250808,1.5,through entry first,beyond pointer extreme first,False
+ES,6,1,1253335,7.25,through entry first,beyond pointer extreme first,False
+ES,5,1,1253373,6.25,through entry first,target first,False
+ES,3,1,1253374,5.0,through entry first,target first,False
+ES,5,1,1253378,5.0,through entry first,target first,False
+ES,6,-1,1254751,10.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1254768,12.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,1254769,12.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1254769,44.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,1254905,6.75,through entry first,target first,False
+NQ,5,-1,1256248,72.25,through entry first,target first,False
+ES,3,-1,1257634,4.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1261672,18.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1264486,13.25,through entry first,target first,False
+NQ,6,-1,1264489,12.0,through entry first,target first,False
+ES,6,-1,1264495,7.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1265905,30.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1268692,3.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1268693,3.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,1276531,18.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1279385,8.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1279441,3.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,1279443,3.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1280658,7.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1280673,106.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,1280673,12.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1280677,109.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1282120,12.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1282121,12.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,1282221,29.5,through entry first,target first,False
+NQ,5,1,1282223,32.75,through entry first,target first,False
+ES,5,1,1282223,3.25,target first,target first,False
+NQ,4,1,1282229,14.0,through entry first,target first,False
+ES,4,1,1282229,1.25,through entry first,target first,False
+NQ,6,1,1282231,14.25,through entry first,target first,False
+ES,6,1,1282231,1.25,through entry first,target first,False
+NQ,3,1,1287721,4.0,through entry first,beyond pointer extreme first,False
+ES,4,1,1287785,2.75,through entry first,target first,False
+ES,3,1,1291717,1.5,target first,target first,False
+ES,4,-1,1294657,6.75,through entry first,target first,False
+ES,4,-1,1294721,19.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1294723,20.75,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1295887,60.0,through entry first,target first,False
+ES,6,-1,1295887,23.5,through entry first,target first,False
+NQ,4,-1,1295893,50.75,through entry first,target first,False
+ES,3,-1,1295899,21.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1295901,33.5,through entry first,target first,False
+ES,4,-1,1295901,17.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1295903,35.75,through entry first,target first,False
+ES,5,-1,1295903,20.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,1295905,18.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1295935,35.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,1296077,7.5,through entry first,target first,False
+ES,3,-1,1297384,9.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1297441,19.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1300038,2.0,through entry first,beyond pointer extreme first,False
+ES,6,1,1300039,2.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,1302901,18.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,1302907,11.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1302908,10.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1305490,26.25,through entry first,target first,False
+ES,6,-1,1305805,3.0,through entry first,target first,False
+ES,3,-1,1309402,3.75,through entry first,target first,False
+ES,5,-1,1309493,4.5,through entry first,beyond pointer extreme first,False
+ES,3,1,1310809,2.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1312273,30.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1312276,25.5,through entry first,target first,False
+NQ,4,-1,1312277,23.0,through entry first,target first,False
+ES,4,1,1312337,5.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1312339,6.0,through entry first,beyond pointer extreme first,False
+ES,4,1,1313645,1.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1313647,47.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1313647,1.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,1313671,55.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1313673,57.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1319212,19.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,1319212,3.75,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1319215,19.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,1323232,32.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1323310,30.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1324555,3.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,1324557,4.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1324558,4.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1324585,23.5,through entry first,target first,False
+NQ,5,1,1326113,33.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,1331479,14.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1333024,3.0,through entry first,beyond pointer extreme first,False
+ES,5,1,1333038,6.25,through entry first,target first,False
+ES,3,1,1334389,11.0,through entry first,target first,False
+ES,4,1,1334393,8.75,through entry first,target first,False
+ES,6,1,1334395,9.0,through entry first,target first,False
+NQ,4,1,1335865,5.75,through entry first,target first,False
+NQ,3,1,1335868,5.25,through entry first,target first,False
+NQ,3,-1,1337131,8.75,through entry first,target first,True
+ES,3,-1,1337131,3.75,through entry first,beyond pointer extreme first,True
+ES,4,-1,1337133,3.75,through entry first,beyond pointer extreme first,True
+ES,3,-1,1341163,10.5,through entry first,target first,False
+NQ,4,1,1341173,15.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1344187,2.25,through entry first,target first,False
+ES,4,-1,1348341,9.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1358872,65.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1362856,44.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1362859,42.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1362860,44.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1362862,42.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,1362883,64.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1362913,8.25,through entry first,target first,False
+NQ,5,1,1362918,7.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,1362923,6.25,through entry first,target first,False
+NQ,3,1,1362982,60.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1362983,60.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1363006,43.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,1363006,3.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1366894,1.25,through entry first,target first,False
+ES,4,1,1367136,7.5,through entry first,beyond pointer extreme first,False
+ES,4,1,1367140,7.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1368256,4.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1368258,5.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1375378,5.25,through entry first,target first,False
+ES,6,1,1375456,4.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1379407,5.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,1379408,5.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1382143,4.25,through entry first,target first,False
+NQ,4,-1,1386468,17.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1389259,18.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1393297,6.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1393298,6.25,through entry first,beyond pointer extreme first,False
+ES,4,1,1393300,6.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,1393306,18.25,through entry first,target first,False
+ES,6,1,1393306,5.75,through entry first,target first,False
+ES,4,-1,1398964,4.0,through entry first,target first,False
+ES,4,-1,1400092,3.5,through entry first,target first,False
+ES,4,-1,1400096,2.75,through entry first,target first,False
+ES,5,-1,1400098,3.25,through entry first,target first,False
+ES,5,1,1400303,3.25,through entry first,target first,False
+ES,3,-1,1401376,6.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,1401392,5.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1401472,192.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1401473,199.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1404091,14.75,through entry first,target first,False
+NQ,5,-1,1404093,9.5,through entry first,target first,False
+ES,4,-1,1405296,22.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1405411,12.5,through entry first,target first,False
+NQ,3,1,1408384,1.25,through entry first,target first,False
+ES,4,-1,1410940,4.0,through entry first,target first,False
+ES,3,-1,1410943,3.25,through entry first,target first,False
+ES,6,-1,1410946,3.75,through entry first,target first,False
+NQ,6,-1,1413646,88.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1413648,89.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1413698,101.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1413798,11.75,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1413856,19.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,1422168,22.5,through entry first,target first,False
+NQ,3,-1,1428664,71.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1428668,5.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,1428694,3.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1432867,11.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1443438,10.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1443459,8.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1448797,6.5,through entry first,target first,False
+ES,4,-1,1455894,4.5,target first,target first,False
+ES,5,-1,1457332,4.5,through entry first,target first,False
+NQ,4,-1,1458382,3.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1458669,0.75,through entry first,target first,False
+ES,3,1,1460103,1.0,through entry first,target first,True
+NQ,3,1,1461225,31.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,1462870,9.75,through entry first,neither by 15:50,False
+ES,5,-1,1462882,8.0,through entry first,neither by 15:50,False
+ES,3,-1,1463949,3.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,1465566,0.5,through entry first,target first,False
+NQ,4,1,1468222,14.0,through entry first,target first,False
+ES,4,1,1469430,4.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,1472314,95.25,through entry first,target first,False
+NQ,6,-1,1473624,17.0,through entry first,target first,False
+NQ,5,-1,1473627,20.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1473632,7.25,through entry first,target first,False
+ES,4,1,1477798,1.0,through entry first,target first,False
+NQ,6,-1,1480722,10.75,through entry first,target first,False
+ES,5,1,1483237,8.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1483284,33.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1483284,8.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,1483286,27.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,1483287,29.25,through entry first,beyond pointer extreme first,False
+ES,6,1,1483290,8.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1483317,25.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,1483380,1.5,through entry first,target first,False
+ES,6,-1,1483392,1.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1484679,4.5,through entry first,beyond pointer extreme first,False
+ES,5,1,1484687,3.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,1484844,20.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1484853,14.5,through entry first,target first,False
+NQ,6,-1,1487556,6.0,through entry first,target first,False
+NQ,5,-1,1487557,6.0,through entry first,target first,False
+NQ,3,1,1491570,18.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,1494336,8.5,through entry first,target first,False
+NQ,4,1,1497322,19.0,through entry first,target first,False
+ES,3,1,1501266,15.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1501269,32.5,through entry first,neither by 15:50,False
+ES,4,-1,1502502,1.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,1505076,15.75,through entry first,beyond pointer extreme first,False
+ES,4,1,1505342,0.75,through entry first,target first,False
+NQ,3,1,1506759,4.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1506768,8.5,through entry first,target first,False
+NQ,5,-1,1506772,5.75,through entry first,target first,False
+NQ,3,-1,1506777,9.25,through entry first,target first,False
+ES,3,1,1506804,5.0,through entry first,neither by 15:50,False
+ES,3,1,1509558,3.0,through entry first,neither by 15:50,False
+NQ,4,-1,1514970,12.25,through entry first,beyond pointer extreme first,True
+ES,6,-1,1514970,1.0,through entry first,beyond pointer extreme first,True
+NQ,6,1,1516128,17.5,through entry first,target first,False
+ES,3,1,1517562,4.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1517595,14.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1517820,10.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1517832,10.25,through entry first,target first,False
+ES,3,1,1520259,4.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1521717,2.25,through entry first,target first,False
+NQ,3,1,1521807,5.5,through entry first,target first,False
+ES,3,-1,1523139,11.5,through entry first,beyond pointer extreme first,False
+ES,6,1,1523250,2.75,through entry first,target first,False
+NQ,5,1,1523292,39.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,1525917,104.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1530157,4.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,1531430,2.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1531432,3.5,through entry first,target first,False
+NQ,4,1,1532674,78.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1532709,68.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1532709,9.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1532778,7.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,1532794,81.5,through entry first,target first,False
+NQ,6,1,1532796,80.5,through entry first,target first,False
+ES,6,1,1532796,8.25,through entry first,target first,False
+NQ,3,-1,1533003,36.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1533003,12.75,through entry first,neither by 15:50,False
+NQ,3,-1,1533006,34.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,1533006,12.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1533014,33.5,through entry first,neither by 15:50,False
+NQ,5,-1,1534297,62.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1534297,21.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1534302,60.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1534302,21.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,1534308,19.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1534359,39.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,1538362,7.5,through entry first,target first,False
+NQ,3,1,1538379,68.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1538514,5.75,through entry first,target first,False
+NQ,6,1,1538514,91.75,through entry first,beyond pointer extreme first,False
+ES,6,1,1539798,2.75,through entry first,target first,False
+NQ,3,-1,1539810,13.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1539810,2.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,1539814,2.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1539861,17.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,1539861,4.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,1539862,4.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1539862,16.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,1543907,47.25,through entry first,target first,False
+ES,5,1,1543907,9.0,through entry first,target first,False
+ES,6,1,1549278,14.25,through entry first,target first,False
+ES,3,1,1549281,11.25,through entry first,target first,False
+NQ,5,1,1549397,0.25,through entry first,beyond pointer extreme first,False
+ES,5,1,1549397,3.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1550619,3.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,1550814,47.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,1550818,39.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1550844,11.5,through entry first,target first,False
+NQ,5,1,1550862,18.75,through entry first,target first,False
+ES,3,1,1553622,1.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1553622,62.25,through entry first,beyond pointer extreme first,False
+ES,5,1,1553627,0.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1554952,11.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1554981,9.5,through entry first,target first,False
+NQ,4,1,1554982,10.75,through entry first,target first,False
+ES,5,-1,1556457,5.5,through entry first,beyond pointer extreme first,True
+NQ,4,1,1559122,8.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1560507,6.5,through entry first,target first,False
+NQ,5,-1,1565837,109.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1565838,114.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1565842,113.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,1565970,5.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1565972,5.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,1568710,15.75,through entry first,target first,False
+NQ,4,1,1568714,13.75,through entry first,target first,False
+NQ,5,1,1568717,11.5,through entry first,target first,False
+NQ,6,1,1568718,13.25,target first,target first,False
+NQ,5,1,1572892,5.5,through entry first,target first,False
+ES,5,1,1572892,4.75,through entry first,target first,False
+ES,4,1,1572894,4.75,through entry first,target first,False
+ES,4,1,1572950,3.5,through entry first,beyond pointer extreme first,False
+ES,6,1,1572954,3.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,1572978,5.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1574070,26.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,1583305,64.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1583307,58.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1583397,6.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1583453,18.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1583454,17.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1583457,20.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1583462,8.5,through entry first,target first,False
+ES,6,-1,1583463,8.75,through entry first,target first,False
+ES,4,-1,1583465,7.25,through entry first,target first,False
+ES,5,-1,1583467,8.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,1584651,5.25,through entry first,target first,False
+ES,5,1,1586032,0.75,through entry first,target first,False
+ES,3,1,1586070,0.75,through entry first,target first,False
+ES,4,1,1586369,1.5,through entry first,beyond pointer extreme first,False
+ES,3,1,1586373,1.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1588887,44.5,through entry first,beyond pointer extreme first,False
+ES,3,1,1588935,4.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1589100,23.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1591641,11.0,through entry first,target first,False
+ES,4,1,1594437,1.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,1594457,11.0,through entry first,target first,False
+NQ,3,1,1598707,66.0,through entry first,neither by 15:50,False
+ES,6,1,1598707,13.0,through entry first,neither by 15:50,False
+NQ,3,1,1598710,62.5,through entry first,neither by 15:50,False
+NQ,4,1,1598711,61.75,through entry first,neither by 15:50,False
+ES,4,1,1598711,12.5,neither by 15:50,neither by 15:50,False
+ES,6,-1,1601233,0.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1606960,2.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,1607047,12.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1612340,13.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1612360,35.25,through entry first,target first,False
+NQ,6,1,1612369,22.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1612405,18.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,1613827,85.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,1613830,81.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1613850,2.75,through entry first,beyond pointer extreme first,False
+ES,6,1,1613851,1.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1618000,20.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,1620735,9.0,through entry first,target first,False
+ES,5,1,1623335,9.25,through entry first,beyond pointer extreme first,False
+ES,6,1,1623337,9.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,1625019,15.5,through entry first,neither by 15:50,False
+ES,5,1,1625020,2.75,through entry first,neither by 15:50,False
+NQ,5,-1,1630230,107.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,1630237,2.25,through entry first,target first,False
+NQ,5,1,1635680,22.75,through entry first,target first,False
+NQ,5,1,1637175,7.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1639951,18.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1639959,16.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1639960,55.0,through entry first,neither by 15:50,False
+ES,3,-1,1639960,15.5,through entry first,neither by 15:50,False
+NQ,4,-1,1639963,52.0,through entry first,neither by 15:50,False
+NQ,3,1,1641307,45.25,through entry first,neither by 15:50,False
+ES,5,-1,1642470,2.25,target first,target first,True
+NQ,3,-1,1642507,47.25,through entry first,beyond pointer extreme first,True
+NQ,5,-1,1642510,44.25,through entry first,beyond pointer extreme first,True
+ES,5,1,1645115,2.0,through entry first,target first,False
+NQ,6,1,1648123,18.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1648195,7.5,through entry first,beyond pointer extreme first,False
+ES,3,1,1648198,6.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1648200,7.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1648210,5.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,1648210,38.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1649431,39.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1649435,27.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1654918,76.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,1657839,7.0,through entry first,target first,False
+NQ,5,1,1657840,7.25,through entry first,target first,False
+NQ,6,1,1657843,6.75,through entry first,target first,False
+ES,3,1,1661557,0.75,through entry first,target first,False
+NQ,3,1,1661680,9.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,1661683,9.5,through entry first,beyond pointer extreme first,False
+ES,4,1,1661683,2.5,through entry first,target first,False
+ES,5,1,1668345,2.75,through entry first,beyond pointer extreme first,False
+ES,4,1,1671283,13.5,target first,target first,False
+NQ,3,1,1671349,14.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1671352,11.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,1671355,14.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1675495,1.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1678066,14.75,target first,target first,False
+ES,4,1,1680791,5.5,through entry first,target first,False
+ES,6,1,1680793,3.25,through entry first,target first,False
+NQ,3,1,1681015,4.25,through entry first,target first,False
+ES,4,-1,1682343,13.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1682345,12.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1682347,12.5,through entry first,beyond pointer extreme first,False
+ES,4,1,1683723,2.5,through entry first,target first,False
+ES,5,1,1684945,5.0,target first,target first,False
+NQ,5,1,1687655,24.25,target first,target first,False
+NQ,5,1,1687660,19.5,target first,target first,False
+ES,4,1,1687731,7.0,through entry first,beyond pointer extreme first,False
+ES,6,1,1687735,5.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1687747,6.5,through entry first,target first,False
+ES,5,1,1687995,1.25,through entry first,beyond pointer extreme first,False
+ES,3,1,1689211,14.5,through entry first,neither by 15:50,False
+ES,3,1,1689217,13.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1692097,24.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,1692100,22.5,through entry first,target first,False
+ES,4,1,1693203,5.75,through entry first,beyond pointer extreme first,False
+ES,4,1,1694571,1.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1694575,2.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1694603,54.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1700197,7.5,through entry first,target first,False
+NQ,3,-1,1700281,8.25,through entry first,target first,False
+ES,3,-1,1700281,2.5,through entry first,target first,False
+NQ,5,-1,1704240,18.0,through entry first,target first,False
+ES,3,1,1705777,11.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,1705777,19.25,through entry first,target first,False
+ES,6,1,1705783,11.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1705831,9.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,1705843,8.5,through entry first,target first,False
+ES,5,-1,1705845,8.25,through entry first,target first,False
+ES,5,1,1707010,6.0,through entry first,target first,False
+ES,6,1,1707019,4.0,through entry first,target first,False
+NQ,4,1,1707143,38.5,through entry first,target first,False
+ES,4,1,1707291,0.75,through entry first,target first,False
+NQ,3,-1,1709737,64.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1709737,9.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,1709743,7.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1709785,1.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1709800,7.75,through entry first,target first,False
+NQ,6,-1,1709899,31.0,through entry first,beyond pointer extreme first,False
+ES,4,1,1711179,7.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1711180,8.25,through entry first,beyond pointer extreme first,False
+ES,5,1,1711185,7.5,through entry first,beyond pointer extreme first,False
+ES,3,1,1715479,2.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1715579,6.5,through entry first,target first,False
+ES,5,-1,1715580,5.75,through entry first,target first,False
+NQ,4,-1,1720903,16.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,1720951,12.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1721098,128.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1721107,125.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1722230,137.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1722253,7.5,through entry first,beyond pointer extreme first,False
+ES,4,1,1722255,7.5,through entry first,beyond pointer extreme first,False
+ES,4,1,1722263,5.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,1722301,129.5,through entry first,neither by 15:50,False
+ES,3,1,1722316,4.75,through entry first,target first,False
+ES,6,1,1722319,4.75,through entry first,target first,False
+ES,5,1,1722320,4.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,1722431,0.25,through entry first,target first,False
+ES,3,1,1722436,1.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1722440,1.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1723885,29.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1723885,1.25,through entry first,target first,False
+ES,4,-1,1725263,5.0,through entry first,target first,False
+NQ,3,-1,1727950,10.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1727955,8.0,through entry first,target first,False
+ES,4,-1,1727955,3.0,through entry first,target first,False
+NQ,3,-1,1727959,8.0,through entry first,target first,False
+ES,3,-1,1727959,2.75,through entry first,target first,False
+ES,5,-1,1727960,2.5,through entry first,target first,False
+NQ,3,-1,1729243,29.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1731815,62.0,through entry first,target first,False
+NQ,4,-1,1731823,54.25,through entry first,target first,False
+ES,4,1,1732091,5.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,1732099,31.25,through entry first,target first,False
+NQ,3,-1,1733290,123.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,1733290,17.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1736245,51.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,1736247,52.75,through entry first,beyond pointer extreme first,False
+ES,6,1,1736257,9.5,through entry first,neither by 15:50,False
+NQ,6,1,1736263,51.0,through entry first,beyond pointer extreme first,False
+ES,6,1,1736263,9.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1739080,3.0,through entry first,target first,False
+NQ,4,1,1740403,9.75,through entry first,target first,False
+ES,4,1,1740403,2.25,target first,target first,False
+NQ,3,1,1741498,16.0,through entry first,target first,False
+NQ,3,1,1741501,13.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1743166,4.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1743167,4.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1747360,7.75,through entry first,neither by 15:50,False
+ES,3,-1,1747363,7.0,through entry first,neither by 15:50,False
+ES,5,-1,1747365,6.25,neither by 15:50,neither by 15:50,False
+NQ,3,-1,1749841,21.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1749843,18.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1749845,20.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1749847,17.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1749877,12.75,through entry first,target first,False
+NQ,4,-1,1749879,10.5,through entry first,target first,False
+NQ,6,-1,1749883,12.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,1753963,0.5,through entry first,target first,False
+ES,6,-1,1754023,6.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1754032,115.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1754215,95.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,1754215,6.0,target first,target first,False
+NQ,3,-1,1762135,130.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1762135,21.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1762143,18.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,1762144,17.75,through entry first,beyond pointer extreme first,False
+ES,4,1,1770383,4.0,through entry first,target first,False
+ES,5,1,1770385,4.0,through entry first,target first,False
+ES,4,1,1770427,2.5,through entry first,beyond pointer extreme first,False
+ES,5,1,1770430,2.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,1771715,11.5,through entry first,beyond pointer extreme first,True
+ES,5,-1,1771720,10.25,through entry first,beyond pointer extreme first,True
+ES,6,-1,1771741,10.75,through entry first,beyond pointer extreme first,True
+ES,4,-1,1771847,4.75,through entry first,beyond pointer extreme first,True
+NQ,6,-1,1774453,14.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1782583,20.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1782589,15.75,through entry first,target first,False
+NQ,4,-1,1786719,36.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1786725,3.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1786852,16.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1789325,0.5,through entry first,target first,False
+NQ,3,1,1790854,10.0,through entry first,target first,False
+NQ,4,-1,1797186,7.5,through entry first,target first,False
+ES,6,-1,1797436,0.75,through entry first,target first,False
+ES,3,-1,1801396,12.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1801398,24.75,through entry first,target first,False
+ES,4,-1,1801398,10.25,through entry first,beyond pointer extreme first,False
+ES,4,1,1801598,2.25,through entry first,beyond pointer extreme first,False
+ES,5,1,1801600,2.5,through entry first,beyond pointer extreme first,False
+ES,5,1,1802645,12.0,through entry first,target first,False
+NQ,4,1,1802658,36.75,through entry first,target first,False
+NQ,3,1,1802659,26.75,through entry first,target first,False
+NQ,4,1,1802662,23.5,through entry first,beyond pointer extreme first,False
+ES,4,1,1802662,6.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,1802665,20.25,through entry first,beyond pointer extreme first,False
+ES,6,1,1802668,6.25,through entry first,target first,False
+ES,6,1,1802674,5.25,through entry first,target first,False
+ES,5,1,1802675,5.25,through entry first,target first,False
+ES,4,1,1802678,5.0,through entry first,target first,False
+ES,3,1,1802680,4.75,through entry first,target first,False
+ES,4,1,1804146,4.25,through entry first,beyond pointer extreme first,False
+ES,4,1,1804154,3.25,through entry first,beyond pointer extreme first,False
+ES,6,1,1804156,2.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1808206,23.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,1808210,4.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1812340,139.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,1813831,30.25,through entry first,target first,False
+ES,3,-1,1814035,21.25,through entry first,neither by 15:50,False
+ES,6,1,1815082,30.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1815142,17.25,through entry first,target first,False
+ES,6,-1,1815142,1.5,through entry first,target first,False
+ES,4,-1,1816510,1.75,through entry first,target first,False
+NQ,5,-1,1816650,139.0,through entry first,neither by 15:50,False
+NQ,3,-1,1816651,131.5,through entry first,neither by 15:50,False
+NQ,4,-1,1816654,125.5,through entry first,neither by 15:50,False
+NQ,5,-1,1816655,129.5,through entry first,neither by 15:50,False
+ES,4,-1,1816678,15.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1816690,77.75,through entry first,neither by 15:50,False
+ES,3,-1,1816690,13.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,1816696,12.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,1817902,44.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1818126,108.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1818130,105.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1818136,99.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1819189,1.0,through entry first,target first,True
+ES,4,1,1819190,1.5,target first,target first,True
+ES,3,1,1819249,9.75,through entry first,beyond pointer extreme first,True
+ES,4,1,1819250,9.5,through entry first,beyond pointer extreme first,True
+NQ,4,1,1819290,139.5,through entry first,beyond pointer extreme first,True
+ES,4,1,1819298,11.5,through entry first,beyond pointer extreme first,True
+ES,3,1,1819300,10.5,through entry first,beyond pointer extreme first,True
+ES,5,1,1819545,14.75,through entry first,target first,False
+NQ,4,-1,1822246,24.0,through entry first,target first,False
+ES,4,-1,1822246,5.5,through entry first,target first,False
+ES,4,1,1823558,14.5,through entry first,beyond pointer extreme first,False
+ES,5,1,1823565,17.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1824976,43.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1825042,14.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1825045,13.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1826344,15.25,through entry first,target first,False
+ES,4,-1,1826346,14.75,through entry first,target first,False
+ES,6,-1,1826350,14.5,through entry first,target first,False
+NQ,6,-1,1827472,47.0,through entry first,target first,False
+NQ,4,-1,1827474,31.25,through entry first,target first,False
+ES,5,1,1828865,3.25,through entry first,target first,False
+ES,4,1,1828866,6.0,through entry first,target first,False
+NQ,4,-1,1828966,37.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1828966,8.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1828970,26.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,1830280,10.5,through entry first,beyond pointer extreme first,False
+ES,3,1,1834411,2.5,through entry first,target first,False
+ES,6,1,1839892,6.5,through entry first,beyond pointer extreme first,False
+ES,3,1,1839895,5.5,through entry first,target first,False
+NQ,4,1,1839974,22.75,through entry first,target first,False
+ES,5,1,1840145,2.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,1842650,8.25,through entry first,target first,False
+ES,5,1,1842650,1.25,through entry first,target first,False
+NQ,3,-1,1842898,32.0,through entry first,target first,False
+NQ,5,-1,1842900,28.25,through entry first,target first,False
+NQ,4,-1,1842902,23.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1842935,18.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,1842962,10.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1844145,5.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,1844146,4.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1844150,4.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,1844225,7.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1844238,24.75,target first,target first,False
+NQ,3,-1,1844386,50.0,through entry first,neither by 15:50,False
+NQ,6,-1,1844392,41.5,through entry first,neither by 15:50,False
+NQ,3,-1,1845448,36.5,through entry first,beyond pointer extreme first,False
+ES,3,1,1845496,6.25,through entry first,beyond pointer extreme first,False
+ES,4,1,1845498,5.75,through entry first,beyond pointer extreme first,False
+ES,5,1,1845500,5.75,through entry first,beyond pointer extreme first,False
+ES,6,1,1845502,5.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1845646,87.75,through entry first,beyond pointer extreme first,False
+ES,3,1,1845646,6.25,through entry first,beyond pointer extreme first,False
+ES,4,1,1845666,5.75,through entry first,beyond pointer extreme first,False
+ES,4,1,1845670,5.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,1849790,5.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1854946,153.5,through entry first,target first,False
+NQ,4,1,1854962,133.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1856542,1.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,1856542,7.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1857919,8.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1863454,31.25,through entry first,beyond pointer extreme first,False
+ES,4,1,1863454,6.0,through entry first,beyond pointer extreme first,False
+ES,5,1,1863455,5.25,through entry first,beyond pointer extreme first,False
+ES,5,1,1863460,4.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,1863472,27.75,through entry first,neither by 15:50,False
+NQ,4,1,1863474,26.25,through entry first,neither by 15:50,False
+NQ,5,1,1864495,11.0,through entry first,target first,False
+ES,6,-1,1867468,12.0,through entry first,beyond pointer extreme first,True
+ES,3,-1,1867471,10.75,through entry first,beyond pointer extreme first,True
+NQ,3,1,1868713,45.0,through entry first,target first,False
+NQ,6,1,1868722,15.75,through entry first,target first,False
+ES,6,1,1870348,2.25,target first,target first,False
+NQ,5,-1,1872790,15.25,through entry first,target first,False
+ES,6,1,1874290,7.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1875835,8.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,1875838,8.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,1879690,32.25,through entry first,target first,False
+ES,6,1,1881160,34.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,1881175,28.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,1881196,20.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,1881202,20.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,1881205,19.0,through entry first,beyond pointer extreme first,False
+ES,4,1,1882558,8.5,through entry first,beyond pointer extreme first,False
+ES,5,1,1885190,6.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,1885192,29.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1885202,42.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,1885202,9.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1885204,32.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,1885204,9.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1885205,37.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1885205,10.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1885210,10.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,1885218,46.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,1885225,27.25,through entry first,target first,False
+ES,5,1,1885225,4.0,through entry first,target first,False
+NQ,4,-1,1885278,62.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,1885330,1.25,through entry first,target first,False
+NQ,6,-1,1885378,67.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,1885378,8.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,1885381,7.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1885420,6.25,through entry first,target first,False
+NQ,3,-1,1888186,69.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1888190,75.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,1889350,1.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1894905,51.0,through entry first,target first,False
+NQ,3,1,1899025,12.75,through entry first,target first,False
+ES,4,-1,1899134,8.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1899238,30.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1899241,26.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1899244,22.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,1899250,21.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,1899268,26.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,1899270,27.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1899280,79.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1899282,74.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1899310,69.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,1900655,8.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1903282,164.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1903288,162.25,through entry first,beyond pointer extreme first,False
+ES,4,1,1904806,7.5,through entry first,target first,False
+ES,4,1,1910354,5.25,through entry first,target first,False
+ES,5,1,1910355,4.5,target first,target first,False
+NQ,6,-1,1910380,32.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1914198,42.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1914200,44.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1918309,19.75,through entry first,target first,False
+ES,5,-1,1920040,3.75,through entry first,beyond pointer extreme first,False
+ES,6,1,1922554,4.75,through entry first,target first,False
+ES,5,1,1922555,4.25,target first,target first,False
+ES,3,1,1922647,17.0,through entry first,beyond pointer extreme first,False
+ES,6,1,1922812,22.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1923905,17.0,through entry first,target first,False
+NQ,3,1,1926730,18.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,1926802,17.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,1927978,14.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1928059,187.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1928110,206.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1928116,200.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,1928275,30.75,through entry first,target first,False
+NQ,4,-1,1929678,54.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,1929678,5.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,1930866,17.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1940225,1.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,1941545,2.25,through entry first,target first,False
+ES,6,-1,1941547,2.0,through entry first,target first,False
+ES,4,1,1941605,2.25,through entry first,target first,False
+ES,3,1,1942924,2.0,target first,target first,False
+NQ,5,-1,1946855,55.5,through entry first,target first,False
+ES,4,-1,1946861,2.0,through entry first,target first,False
+NQ,3,1,1947097,21.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,1948415,0.75,through entry first,target first,False
+NQ,4,-1,1949721,45.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,1949839,40.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1949850,33.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,1949850,7.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,1949851,7.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,1949853,7.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,1949855,33.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1949855,7.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1949949,50.0,through entry first,neither by 15:50,False
+NQ,5,-1,1949950,48.75,through entry first,neither by 15:50,False
+NQ,6,-1,1949953,48.5,through entry first,neither by 15:50,False
+ES,5,-1,1951095,5.75,through entry first,target first,False
+ES,6,1,1955227,5.5,through entry first,beyond pointer extreme first,False
+ES,4,1,1955229,5.0,through entry first,beyond pointer extreme first,False
+ES,3,1,1955230,4.75,through entry first,beyond pointer extreme first,False
+ES,6,1,1964775,7.0,target first,target first,False
+ES,3,-1,1968678,18.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,1968741,14.75,through entry first,beyond pointer extreme first,False
+ES,4,1,1968987,23.75,through entry first,beyond pointer extreme first,False
+ES,6,1,1972863,14.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,1973067,20.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1974435,61.25,through entry first,beyond pointer extreme first,False
+ES,5,1,1976869,29.5,through entry first,beyond pointer extreme first,False
+ES,6,1,1977897,5.25,target first,target first,False
+ES,4,-1,1978169,6.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,1978170,6.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,1978185,5.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,1979322,3.5,through entry first,target first,False
+NQ,3,-1,1980951,10.75,through entry first,target first,False
+ES,6,-1,1987467,0.75,through entry first,target first,False
+ES,6,-1,1987473,7.5,through entry first,target first,False
+NQ,3,-1,1987515,6.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1987518,5.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1987521,3.75,through entry first,target first,False
+ES,6,-1,1990275,2.75,through entry first,target first,False
+ES,4,-1,1990277,2.25,through entry first,target first,False
+ES,3,-1,1990278,2.0,through entry first,target first,False
+NQ,3,1,1991622,92.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,1991624,81.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,1991625,82.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,1991693,120.5,through entry first,beyond pointer extreme first,False
+ES,4,1,1991693,2.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1993014,6.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,1994445,9.5,through entry first,target first,True
+NQ,3,-1,1998525,98.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1998528,10.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,1998529,10.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,1998531,8.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,1998534,8.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,1998613,14.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2001279,23.75,through entry first,target first,False
+NQ,4,-1,2001281,23.25,through entry first,target first,False
+NQ,6,-1,2001285,23.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,2001289,14.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,2003949,112.25,through entry first,beyond pointer extreme first,False
+ES,3,1,2003949,2.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,2008159,9.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,2008161,8.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,2008176,14.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2008184,84.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2008185,84.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2008189,77.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2008191,72.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2008377,89.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,2014857,5.5,through entry first,target first,False
+NQ,4,1,2014861,3.25,through entry first,target first,False
+ES,4,-1,2016093,0.75,through entry first,beyond pointer extreme first,False
+ES,4,1,2016265,3.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,2016365,47.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,2016369,47.75,through entry first,beyond pointer extreme first,False
+ES,5,1,2016389,8.75,through entry first,neither by 15:50,False
+NQ,3,-1,2019000,11.5,through entry first,target first,False
+NQ,3,-1,2021814,42.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2021817,38.5,through entry first,target first,False
+NQ,5,-1,2021819,32.0,through entry first,target first,False
+NQ,6,-1,2021823,26.75,through entry first,target first,False
+ES,5,-1,2023129,2.75,through entry first,target first,False
+NQ,4,-1,2024573,40.25,through entry first,target first,False
+NQ,5,-1,2024579,56.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,2024579,14.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2029897,85.25,through entry first,beyond pointer extreme first,False
+ES,5,1,2031244,18.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,2031569,68.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,2039655,4.0,through entry first,target first,False
+ES,6,1,2039655,3.25,through entry first,target first,False
+ES,3,-1,2042346,4.75,through entry first,beyond pointer extreme first,True
+ES,3,-1,2042349,4.5,through entry first,beyond pointer extreme first,True
+NQ,4,-1,2045261,5.0,through entry first,target first,False
+ES,6,1,2048067,4.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,2048069,13.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,2048073,11.5,through entry first,beyond pointer extreme first,False
+NQ,5,1,2048074,13.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2049229,16.5,through entry first,target first,False
+NQ,4,-1,2050573,8.25,through entry first,target first,False
+NQ,4,-1,2054889,9.75,through entry first,target first,False
+ES,4,-1,2054889,2.75,through entry first,target first,False
+ES,3,1,2054964,19.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,2054965,79.25,through entry first,beyond pointer extreme first,False
+ES,4,1,2054965,20.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2055009,19.25,through entry first,target first,False
+NQ,3,1,2055012,61.75,through entry first,target first,False
+NQ,3,1,2056203,1.75,through entry first,target first,False
+ES,6,1,2059170,25.5,through entry first,target first,False
+ES,6,1,2059176,22.75,through entry first,target first,False
+NQ,6,-1,2060292,648.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2060334,139.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2060338,116.75,through entry first,target first,False
+ES,3,1,2060487,29.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2060508,159.25,through entry first,beyond pointer extreme first,False
+ES,3,1,2060508,39.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,2060514,50.5,through entry first,target first,False
+NQ,3,1,2063256,83.25,through entry first,beyond pointer extreme first,False
+ES,3,1,2063256,29.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,2063259,48.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,2064468,4.75,through entry first,target first,False
+NQ,5,-1,2064511,272.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2064514,154.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2064516,211.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2065998,211.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,2065998,13.75,through entry first,target first,False
+NQ,3,-1,2066001,203.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,2066001,11.5,through entry first,target first,False
+NQ,6,-1,2066004,180.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,2066004,7.0,through entry first,target first,False
+NQ,3,1,2067117,81.0,through entry first,target first,False
+NQ,4,1,2067118,98.75,through entry first,target first,False
+ES,6,1,2070018,17.0,through entry first,beyond pointer extreme first,False
+ES,5,1,2070096,20.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,2076881,8.25,through entry first,target first,False
+ES,5,1,2076881,4.75,through entry first,target first,False
+ES,3,-1,2082342,17.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2082346,17.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2082456,179.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,2082456,37.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2082462,166.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,2082474,3.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2082474,9.0,through entry first,target first,False
+ES,3,-1,2082501,35.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,2083941,14.5,through entry first,target first,False
+ES,5,1,2083941,3.5,through entry first,target first,False
+NQ,3,-1,2088003,26.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,2089430,2.75,through entry first,target first,True
+ES,3,-1,2089431,1.0,through entry first,target first,True
+ES,3,1,2089434,3.25,through entry first,beyond pointer extreme first,True
+ES,5,1,2089436,2.75,through entry first,beyond pointer extreme first,True
+ES,3,-1,2093343,64.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2093379,186.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2096322,1.25,through entry first,target first,False
+NQ,5,1,2098916,8.75,through entry first,target first,False
+ES,4,1,2100378,6.75,through entry first,target first,False
+NQ,3,1,2100381,15.75,through entry first,beyond pointer extreme first,False
+ES,3,1,2100381,5.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,2100384,11.0,through entry first,beyond pointer extreme first,False
+ES,3,1,2100384,4.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2100390,4.25,through entry first,target first,False
+NQ,4,1,2100390,13.25,through entry first,target first,False
+NQ,5,1,2100391,10.75,through entry first,target first,False
+ES,5,1,2100391,3.75,through entry first,target first,False
+NQ,3,1,2103219,26.0,through entry first,target first,False
+NQ,4,1,2104418,36.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,2104421,33.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,2104422,29.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,2104458,20.0,through entry first,beyond pointer extreme first,False
+ES,6,1,2104482,5.5,through entry first,target first,False
+ES,4,1,2104486,5.0,through entry first,target first,False
+ES,4,-1,2104598,4.75,through entry first,beyond pointer extreme first,False
+ES,3,1,2104608,3.75,through entry first,target first,False
+ES,4,1,2104610,3.25,target first,target first,False
+NQ,5,1,2105801,88.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,2105802,85.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2105853,25.25,through entry first,beyond pointer extreme first,False
+ES,4,1,2105854,26.25,through entry first,beyond pointer extreme first,False
+ES,3,1,2105856,24.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2108367,144.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,2108371,136.0,through entry first,neither by 15:50,False
+NQ,4,1,2108482,73.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,2108484,71.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,2108491,62.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,2108514,61.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,2108520,60.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,2109810,2.0,through entry first,beyond pointer extreme first,False
+ES,4,1,2109918,1.0,through entry first,target first,False
+ES,4,-1,2111026,11.25,through entry first,target first,False
+NQ,3,-1,2113839,23.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,2113846,5.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2113848,26.25,through entry first,target first,False
+NQ,6,1,2115294,44.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2116861,5.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,2116866,4.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2118060,1.0,through entry first,beyond pointer extreme first,False
+ES,4,1,2118226,26.75,through entry first,beyond pointer extreme first,False
+ES,5,1,2121001,1.25,through entry first,target first,False
+NQ,4,1,2122102,25.25,through entry first,beyond pointer extreme first,False
+ES,5,1,2123531,1.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2126220,57.75,through entry first,target first,False
+ES,5,-1,2129256,16.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,2130454,9.0,through entry first,beyond pointer extreme first,True
+NQ,5,1,2130461,10.75,through entry first,beyond pointer extreme first,True
+NQ,6,1,2130462,12.5,through entry first,beyond pointer extreme first,True
+ES,6,1,2130474,4.25,through entry first,beyond pointer extreme first,True
+ES,5,1,2130476,4.0,through entry first,beyond pointer extreme first,True
+ES,3,1,2132943,35.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,2134266,143.25,through entry first,beyond pointer extreme first,False
+ES,4,1,2141302,1.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,2141331,13.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2141334,10.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,2141336,9.0,through entry first,beyond pointer extreme first,False
+ES,4,1,2141358,2.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2153403,10.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,2153406,18.0,through entry first,beyond pointer extreme first,False
+ES,5,1,2158696,2.25,through entry first,target first,False
+ES,4,1,2158697,2.5,through entry first,target first,False
+ES,6,1,2158701,2.5,through entry first,target first,False
+NQ,6,-1,2158737,14.25,through entry first,beyond pointer extreme first,False
+ES,4,1,2158885,1.5,through entry first,beyond pointer extreme first,False
+ES,5,1,2158886,1.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,2160069,1.0,through entry first,target first,False
+NQ,5,-1,2160176,14.5,through entry first,target first,False
+NQ,6,-1,2160177,16.0,through entry first,target first,False
+NQ,5,-1,2161736,61.5,through entry first,neither by 15:50,False
+NQ,4,1,2165857,3.75,through entry first,target first,False
+NQ,3,-1,2167227,1.0,through entry first,target first,False
+ES,3,1,2169807,14.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2169836,2.75,through entry first,target first,False
+NQ,4,1,2172449,27.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,2172450,30.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,2172451,33.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,2172461,45.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2172657,48.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2172721,56.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2172729,64.5,through entry first,target first,False
+ES,5,-1,2172736,13.5,through entry first,target first,False
+NQ,3,1,2173845,70.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2173887,24.75,through entry first,beyond pointer extreme first,False
+ES,4,1,2173889,22.25,through entry first,beyond pointer extreme first,False
+ES,5,1,2173891,23.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2173914,28.5,through entry first,target first,False
+NQ,3,1,2173917,119.0,through entry first,target first,False
+ES,4,1,2173917,29.75,through entry first,target first,False
+NQ,3,-1,2173950,72.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2173953,65.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,2173981,11.75,through entry first,target first,False
+ES,3,-1,2173989,4.5,through entry first,target first,False
+NQ,6,-1,2174109,56.0,through entry first,target first,False
+NQ,4,1,2176589,13.75,through entry first,beyond pointer extreme first,False
+ES,3,1,2177970,4.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,2179396,3.5,target first,target first,False
+NQ,4,-1,2180909,21.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2181071,9.25,neither by 15:50,neither by 15:50,False
+NQ,4,-1,2182325,58.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,2182325,11.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2182329,62.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2182331,62.25,through entry first,target first,False
+NQ,6,-1,2182335,52.75,through entry first,target first,False
+ES,5,-1,2182346,10.5,through entry first,target first,False
+ES,5,-1,2182351,9.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,2182353,9.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,2187864,6.0,through entry first,target first,False
+ES,4,1,2189173,1.75,through entry first,target first,False
+ES,6,1,2189181,3.0,through entry first,target first,False
+NQ,3,-1,2191935,168.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,2191935,27.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2191936,174.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,2191936,28.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,2191941,25.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,2193267,12.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,2193269,15.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2193296,13.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,2193297,11.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2193333,80.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,2193333,8.0,through entry first,target first,False
+ES,5,1,2193381,4.25,through entry first,beyond pointer extreme first,False
+ES,6,1,2193417,4.25,through entry first,target first,False
+ES,5,1,2194586,1.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,2194689,118.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2198643,18.5,through entry first,target first,False
+NQ,6,1,2201625,22.5,through entry first,target first,False
+ES,3,-1,2201667,1.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,2205315,5.5,through entry first,target first,False
+ES,5,-1,2205316,6.25,through entry first,target first,False
+NQ,4,-1,2205317,17.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,2205317,3.25,through entry first,target first,False
+NQ,6,-1,2205321,14.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2205449,8.25,through entry first,beyond pointer extreme first,False
+ES,5,1,2205451,8.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2206821,64.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,2206863,2.25,through entry first,beyond pointer extreme first,False
+ES,3,1,2209485,1.75,through entry first,target first,False
+NQ,6,-1,2209539,11.0,through entry first,target first,False
+NQ,6,1,2211087,3.25,through entry first,target first,False
+NQ,4,-1,2219452,10.75,through entry first,target first,False
+NQ,4,-1,2222076,65.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2223458,0.25,through entry first,target first,False
+ES,4,-1,2223460,13.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2223461,48.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2223461,13.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,2223604,2.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2223605,2.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2227451,111.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2227452,102.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2227454,108.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2227455,111.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,2227565,2.75,through entry first,target first,False
+ES,4,-1,2227568,2.25,through entry first,target first,False
+ES,5,-1,2227570,1.0,through entry first,target first,False
+ES,4,1,2231632,2.0,through entry first,target first,False
+ES,6,1,2234516,12.25,through entry first,neither by 15:50,False
+NQ,4,1,2234600,17.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,2234603,14.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2235680,16.0,through entry first,target first,False
+NQ,5,-1,2235690,128.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,2235746,10.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,2244113,118.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,2244115,117.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2244116,115.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,2244135,109.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2244220,7.75,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2244254,87.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2244263,73.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2244264,73.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2244265,71.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,2245444,11.25,through entry first,target first,False
+ES,4,1,2245444,11.0,through entry first,target first,False
+ES,3,1,2245514,35.75,through entry first,beyond pointer extreme first,False
+ES,5,1,2245515,37.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2245547,68.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2245547,35.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,2245548,70.25,through entry first,beyond pointer extreme first,False
+ES,4,1,2245548,36.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2245550,65.75,through entry first,beyond pointer extreme first,False
+ES,3,1,2245550,35.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,2245552,69.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2245552,36.0,through entry first,beyond pointer extreme first,False
+ES,3,1,2245595,3.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2245596,3.75,through entry first,beyond pointer extreme first,False
+ES,3,1,2245598,3.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2249575,148.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,2249576,34.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,2252508,16.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,2252510,17.75,through entry first,beyond pointer extreme first,False
+ES,5,1,2252510,4.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,2252512,14.0,through entry first,beyond pointer extreme first,False
+ES,4,1,2252512,3.25,through entry first,beyond pointer extreme first,False
+ES,5,1,2252515,3.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,2252516,17.0,through entry first,beyond pointer extreme first,False
+ES,5,1,2255270,0.75,through entry first,target first,False
+NQ,5,1,2255305,16.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,2255312,13.0,through entry first,beyond pointer extreme first,False
+ES,6,1,2255312,1.0,through entry first,beyond pointer extreme first,False
+ES,3,1,2262062,1.0,through entry first,target first,False
+NQ,3,-1,2262221,9.5,through entry first,target first,False
+ES,3,-1,2263376,1.75,through entry first,target first,False
+ES,5,1,2266155,6.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,2266160,86.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2267687,76.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2267690,72.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2269088,46.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,2269088,9.25,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2269090,38.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2269090,8.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2269091,45.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2269094,34.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,2269094,8.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2269095,37.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,2271581,7.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,2271584,10.75,through entry first,beyond pointer extreme first,False
+ES,6,1,2275760,29.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2277086,149.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,2277332,5.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2277420,14.0,target first,target first,False
+ES,5,-1,2277420,7.25,target first,target first,False
+ES,6,-1,2278460,11.25,through entry first,target first,False
+NQ,6,-1,2278478,38.0,through entry first,target first,False
+ES,6,-1,2278478,12.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,2283960,13.5,through entry first,target first,False
+ES,5,-1,2285455,10.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,2285456,9.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,2285460,9.0,through entry first,beyond pointer extreme first,False
+ES,3,1,2287079,1.0,through entry first,target first,False
+ES,4,1,2287080,1.0,target first,target first,False
+NQ,6,1,2291138,166.5,through entry first,target first,False
+ES,4,1,2291210,5.5,through entry first,beyond pointer extreme first,False
+ES,5,1,2291215,5.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,2291466,47.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2291466,13.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,2291480,58.0,through entry first,beyond pointer extreme first,False
+ES,5,1,2293890,8.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,2293892,87.5,through entry first,beyond pointer extreme first,False
+ES,6,1,2293892,2.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2295558,1.0,through entry first,target first,False
+ES,3,-1,2296805,6.25,through entry first,beyond pointer extreme first,False
+ES,3,1,2296883,6.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,2296886,21.0,through entry first,beyond pointer extreme first,False
+ES,6,1,2296886,5.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2298251,19.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2298254,18.25,through entry first,target first,False
+ES,3,-1,2298254,6.0,through entry first,target first,False
+NQ,3,-1,2300960,28.5,through entry first,beyond pointer extreme first,True
+NQ,4,-1,2300962,27.75,through entry first,beyond pointer extreme first,True
+ES,3,-1,2301029,7.75,through entry first,beyond pointer extreme first,True
+ES,6,-1,2301032,5.25,through entry first,beyond pointer extreme first,True
+ES,3,1,2302250,7.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2302254,6.75,through entry first,beyond pointer extreme first,False
+ES,3,1,2302379,5.0,through entry first,beyond pointer extreme first,False
+ES,5,1,2302380,4.75,through entry first,beyond pointer extreme first,False
+ES,3,1,2302385,3.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2302391,15.0,through entry first,beyond pointer extreme first,False
+ES,3,1,2306360,3.25,through entry first,target first,False
+NQ,3,-1,2309285,85.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,2316015,16.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,2316017,16.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2316109,6.5,through entry first,neither by 15:50,False
+ES,4,-1,2318633,3.0,through entry first,target first,False
+ES,5,-1,2318635,2.5,through entry first,target first,False
+NQ,6,1,2318789,22.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2325593,9.5,through entry first,target first,False
+ES,5,1,2327095,9.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2328239,49.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2328241,39.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2328533,4.75,through entry first,neither by 15:50,False
+ES,5,-1,2328535,4.5,neither by 15:50,neither by 15:50,False
+NQ,3,1,2332511,39.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,2332515,35.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,2332517,34.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,2332521,31.25,through entry first,beyond pointer extreme first,False
+ES,4,1,2332521,4.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,2332523,22.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2332523,1.75,through entry first,target first,False
+NQ,3,-1,2332568,34.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2332601,42.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,2332601,5.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,2334009,14.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,2335343,1.0,target first,target first,False
+ES,4,-1,2339277,5.0,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2339279,126.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,2339279,9.0,through entry first,beyond pointer extreme first,False
+ES,5,1,2339325,11.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,2343137,8.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,2343185,8.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2343361,1.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2343365,1.25,through entry first,target first,False
+NQ,6,-1,2344511,31.75,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2344754,9.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,2344754,4.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2344755,9.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2344755,4.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2344757,10.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,2344757,4.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,2346045,17.0,through entry first,target first,True
+NQ,3,1,2347313,30.25,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2347565,196.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2350043,13.0,through entry first,beyond pointer extreme first,False
+ES,3,1,2351423,23.0,through entry first,beyond pointer extreme first,False
+ES,3,1,2351435,25.0,through entry first,beyond pointer extreme first,False
+ES,6,1,2351459,24.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,2351461,300.0,through entry first,beyond pointer extreme first,False
+ES,4,1,2351461,16.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,2351465,292.75,through entry first,beyond pointer extreme first,False
+ES,5,1,2351465,15.25,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2354267,106.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,2354381,11.25,through entry first,target first,False
+NQ,4,1,2356969,41.5,through entry first,target first,False
+ES,4,1,2356969,17.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2356970,34.75,through entry first,target first,False
+ES,5,1,2356970,16.5,through entry first,beyond pointer extreme first,False
+NQ,6,1,2356973,34.0,through entry first,target first,False
+ES,4,-1,2358645,4.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2358650,5.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2359880,5.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2361180,24.25,through entry first,target first,False
+ES,3,1,2361251,6.25,through entry first,target first,False
+ES,4,-1,2365253,12.75,through entry first,target first,False
+NQ,6,-1,2366381,59.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,2366381,8.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,2366513,12.0,through entry first,target first,False
+NQ,6,-1,2366567,66.75,through entry first,target first,False
+ES,6,-1,2366567,5.75,through entry first,target first,False
+ES,4,-1,2366629,6.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,2366630,7.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2373473,0.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2374677,28.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2374949,66.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,2374949,10.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2374950,70.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,2374950,11.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2374955,66.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,2374955,9.75,through entry first,beyond pointer extreme first,False
+ES,3,1,2376011,17.25,through entry first,target first,False
+NQ,5,-1,2376335,14.25,through entry first,target first,False
+NQ,5,-1,2377690,0.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2380180,5.5,through entry first,target first,False
+ES,6,-1,2380181,4.25,through entry first,target first,False
+NQ,4,1,2380237,16.0,through entry first,target first,False
+NQ,3,1,2380238,16.75,through entry first,target first,False
+ES,4,1,2382889,38.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,2382975,7.25,through entry first,target first,False
+ES,6,-1,2383193,14.0,through entry first,beyond pointer extreme first,False
+ES,6,1,2384573,1.75,through entry first,beyond pointer extreme first,False
+NQ,5,1,2384575,18.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,2385815,1.0,target first,target first,False
+ES,6,1,2385815,2.25,target first,target first,False
+NQ,3,1,2387075,5.5,through entry first,target first,False
+ES,3,1,2388503,2.0,through entry first,beyond pointer extreme first,False
+ES,6,1,2389913,5.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,2390005,44.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,2390117,76.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,2392545,19.5,through entry first,target first,False
+NQ,3,-1,2392892,7.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2392892,1.25,through entry first,beyond pointer extreme first,False
+ES,4,-1,2392893,1.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,2394023,7.0,through entry first,target first,True
+ES,3,-1,2395364,16.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,2395415,19.25,through entry first,beyond pointer extreme first,False
+ES,3,1,2395451,2.0,through entry first,target first,False
+ES,3,-1,2395454,28.0,through entry first,target first,False
+NQ,6,-1,2395457,20.75,through entry first,target first,False
+NQ,3,-1,2395658,40.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2395660,39.75,through entry first,neither by 15:50,False
+ES,5,-1,2395660,7.5,through entry first,target first,False
+ES,4,-1,2398265,7.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2398268,16.0,through entry first,target first,False
+ES,3,-1,2398268,4.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2398269,18.5,through entry first,target first,False
+ES,4,-1,2398269,5.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2398270,7.25,through entry first,target first,False
+ES,5,-1,2398270,2.25,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2398271,11.0,through entry first,target first,False
+ES,6,-1,2398271,2.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2398290,248.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2398290,11.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2399455,73.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,2399455,27.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2399665,89.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2399693,94.75,through entry first,beyond pointer extreme first,False
+ES,3,1,2400866,5.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2400869,19.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2400869,5.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2405177,23.75,through entry first,target first,False
+ES,4,-1,2405177,27.0,through entry first,target first,False
+NQ,4,-1,2405241,66.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2405243,67.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,2405243,8.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,2405273,2.0,through entry first,target first,False
+NQ,3,-1,2411639,25.5,through entry first,target first,False
+NQ,5,-1,2411640,20.0,through entry first,target first,False
+ES,5,-1,2413045,3.75,through entry first,target first,False
+ES,6,-1,2413046,2.75,target first,target first,False
+ES,3,-1,2413073,2.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2414188,46.0,through entry first,target first,False
+ES,3,-1,2414225,6.5,through entry first,target first,False
+NQ,5,1,2414490,155.75,through entry first,neither by 15:50,False
+ES,5,1,2414490,9.5,through entry first,target first,False
+ES,3,-1,2415644,3.0,through entry first,target first,False
+ES,4,1,2418468,3.0,through entry first,target first,False
+ES,5,-1,2425200,28.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,2425202,27.75,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2425334,20.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2426620,41.0,through entry first,target first,False
+ES,5,1,2426670,2.5,through entry first,target first,False
+NQ,3,-1,2426684,129.25,through entry first,target first,False
+ES,4,-1,2429700,17.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2430719,1.0,through entry first,target first,False
+NQ,3,1,2430791,52.0,through entry first,target first,False
+NQ,4,1,2430792,47.25,through entry first,target first,False
+NQ,6,1,2430794,41.25,through entry first,target first,False
+NQ,5,1,2430795,49.5,through entry first,target first,False
+ES,4,1,2437720,10.75,through entry first,target first,False
+ES,3,1,2437721,9.75,through entry first,target first,False
+NQ,6,1,2439002,14.75,through entry first,target first,False
+NQ,4,1,2439108,4.75,through entry first,target first,False
+NQ,6,-1,2439116,27.0,through entry first,target first,False
+ES,3,1,2439257,10.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,2439260,22.0,through entry first,target first,False
+ES,4,1,2439352,4.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,2447590,32.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2448964,34.25,through entry first,target first,False
+NQ,5,-1,2448965,27.25,through entry first,target first,False
+ES,6,-1,2448968,4.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,2448977,4.25,through entry first,target first,False
+NQ,3,1,2450285,29.5,target first,target first,False
+ES,3,1,2450285,10.5,through entry first,beyond pointer extreme first,False
+NQ,3,1,2451557,39.25,through entry first,target first,False
+ES,6,-1,2453150,1.0,through entry first,target first,False
+ES,4,1,2454436,1.5,through entry first,target first,False
+ES,5,1,2457060,5.0,through entry first,target first,False
+ES,4,1,2462452,4.5,through entry first,target first,False
+ES,3,-1,2466629,4.75,through entry first,beyond pointer extreme first,False
+ES,3,-1,2466632,4.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,2474685,91.0,through entry first,beyond pointer extreme first,False
+ES,5,1,2474685,2.5,through entry first,beyond pointer extreme first,False
+NQ,4,1,2474760,51.0,through entry first,target first,False
+NQ,6,1,2474762,11.75,through entry first,target first,False
+NQ,6,1,2476076,92.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,2476236,24.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2476238,171.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,2476238,24.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2476240,176.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2476240,25.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,2476322,19.25,through entry first,target first,False
+ES,4,-1,2476324,20.25,through entry first,target first,False
+ES,5,-1,2476325,20.5,through entry first,target first,False
+NQ,6,-1,2476328,168.5,through entry first,neither by 15:50,False
+NQ,6,1,2477444,14.75,through entry first,target first,False
+ES,3,-1,2477561,32.0,through entry first,target first,False
+NQ,6,1,2477642,97.0,through entry first,beyond pointer extreme first,False
+ES,3,1,2478878,22.0,through entry first,beyond pointer extreme first,False
+ES,3,1,2478881,21.25,through entry first,beyond pointer extreme first,False
+ES,4,1,2481720,0.75,through entry first,target first,False
+ES,3,1,2483147,4.0,through entry first,beyond pointer extreme first,True
+ES,4,1,2483148,4.25,through entry first,beyond pointer extreme first,True
+ES,5,1,2483150,4.25,through entry first,beyond pointer extreme first,True
+ES,5,-1,2484555,3.0,through entry first,target first,False
+ES,3,-1,2486993,1.75,through entry first,target first,False
+NQ,6,1,2491178,60.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2493780,115.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,2493785,19.0,through entry first,beyond pointer extreme first,False
+ES,3,1,2500418,5.75,through entry first,target first,False
+NQ,4,1,2500424,133.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2500556,2.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,2500575,3.25,through entry first,beyond pointer extreme first,False
+ES,3,1,2500607,1.0,through entry first,beyond pointer extreme first,False
+NQ,4,1,2500652,90.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,2500740,13.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,2500744,12.25,through entry first,beyond pointer extreme first,False
+NQ,5,1,2500750,15.25,neither by 15:50,neither by 15:50,False
+ES,5,-1,2500750,12.5,neither by 15:50,neither by 15:50,False
+ES,3,1,2503328,22.75,through entry first,neither by 15:50,False
+ES,6,-1,2512868,0.25,through entry first,target first,False
+ES,3,-1,2512892,12.5,through entry first,beyond pointer extreme first,False
+ES,6,1,2513108,22.0,through entry first,beyond pointer extreme first,False
+ES,3,-1,2517152,1.25,through entry first,target first,False
+ES,4,-1,2519816,36.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,2519824,33.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,2519828,34.0,through entry first,beyond pointer extreme first,False
+ES,5,-1,2519830,32.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,2519855,41.0,through entry first,target first,False
+ES,6,-1,2519858,40.75,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2519860,216.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2519870,216.25,through entry first,target first,False
+ES,3,1,2519933,10.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,2519978,16.25,through entry first,target first,False
+NQ,3,1,2521202,23.75,through entry first,target first,False
+NQ,4,1,2521204,26.25,through entry first,target first,False
+ES,3,1,2525396,13.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2526797,83.75,through entry first,target first,False
+NQ,3,-1,2531060,73.0,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2531100,61.75,through entry first,neither by 15:50,False
+NQ,5,-1,2531105,58.5,through entry first,neither by 15:50,False
+NQ,3,-1,2533862,55.75,through entry first,neither by 15:50,False
+NQ,4,-1,2533864,58.5,through entry first,neither by 15:50,False
+NQ,5,-1,2536580,2.25,through entry first,target first,False
+NQ,4,-1,2539104,228.5,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2539105,228.5,through entry first,beyond pointer extreme first,False
+ES,5,-1,2539105,22.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,2539106,24.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2545940,69.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,2545940,16.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,2545944,13.0,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2545945,45.25,through entry first,beyond pointer extreme first,False
+ES,5,-1,2545955,10.5,through entry first,beyond pointer extreme first,False
+NQ,4,-1,2545956,57.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2545958,54.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,2546132,7.5,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2546132,2.0,through entry first,target first,False
+NQ,5,-1,2547325,51.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,2547437,6.5,through entry first,target first,False
+ES,6,-1,2547440,4.75,through entry first,target first,False
+ES,4,-1,2547520,22.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2547530,19.75,through entry first,beyond pointer extreme first,False
+NQ,5,-1,2547535,60.0,through entry first,beyond pointer extreme first,False
+NQ,6,1,2550116,96.75,through entry first,neither by 15:50,False
+NQ,3,1,2552915,9.75,through entry first,beyond pointer extreme first,False
+ES,4,-1,2553060,5.75,through entry first,beyond pointer extreme first,False
+NQ,3,1,2555915,8.25,through entry first,target first,False
+NQ,4,1,2555916,11.5,through entry first,target first,False
+NQ,6,1,2555918,10.5,through entry first,target first,False
+ES,4,-1,2563740,2.5,through entry first,beyond pointer extreme first,False
+ES,4,-1,2565156,6.0,through entry first,beyond pointer extreme first,False
+ES,6,1,2569274,6.75,through entry first,beyond pointer extreme first,False
+ES,6,-1,2569316,1.5,through entry first,beyond pointer extreme first,False
+ES,6,-1,2573312,8.25,through entry first,beyond pointer extreme first,False
+ES,6,-1,2573360,12.0,through entry first,beyond pointer extreme first,False
+ES,4,-1,2573368,11.5,through entry first,beyond pointer extreme first,False
+NQ,3,-1,2573384,89.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2577480,10.25,through entry first,beyond pointer extreme first,False
+ES,4,1,2578880,15.0,through entry first,beyond pointer extreme first,False
+ES,4,1,2581708,6.75,through entry first,beyond pointer extreme first,False
+ES,5,1,2581710,6.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,2581712,16.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,2581716,16.5,through entry first,beyond pointer extreme first,False
+ES,3,1,2581733,5.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,2584328,58.25,through entry first,beyond pointer extreme first,False
+ES,3,-1,2587145,2.0,through entry first,beyond pointer extreme first,False
+NQ,3,1,2588564,163.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,2588570,152.25,through entry first,neither by 15:50,False
+ES,4,1,2588600,10.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,2588608,104.25,through entry first,beyond pointer extreme first,False
+NQ,3,1,2588609,95.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,2588610,93.75,through entry first,beyond pointer extreme first,False
+NQ,6,1,2588612,105.75,through entry first,beyond pointer extreme first,False
+ES,5,-1,2592610,10.0,through entry first,beyond pointer extreme first,False
+NQ,6,-1,2592758,47.5,through entry first,beyond pointer extreme first,False
+ES,3,-1,2592788,15.0,through entry first,beyond pointer extreme first,False
+ES,6,-1,2592794,13.75,through entry first,beyond pointer extreme first,False
+NQ,4,1,2592808,44.5,through entry first,beyond pointer extreme first,False
+ES,4,1,2592808,9.25,through entry first,neither by 15:50,False
+NQ,3,1,2592809,33.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,2592810,35.25,through entry first,beyond pointer extreme first,False
+NQ,6,1,2592812,37.25,through entry first,beyond pointer extreme first,False
+ES,6,1,2592812,7.25,through entry first,neither by 15:50,False
+NQ,3,1,2592848,36.5,through entry first,beyond pointer extreme first,False
+ES,5,1,2592870,5.25,through entry first,beyond pointer extreme first,False
+NQ,4,1,2592872,29.0,through entry first,beyond pointer extreme first,False
+NQ,5,1,2592880,28.75,through entry first,beyond pointer extreme first,False
+ES,4,1,2592920,3.5,through entry first,beyond pointer extreme first,False

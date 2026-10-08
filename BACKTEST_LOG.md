@@ -1689,5 +1689,36 @@ Signals are read on **MNQ 1m** and **ES 1m** (Databento). MNQ prints the same pr
 
 **Check charts:** 5m NQ and ES charts for 2026-03-02 → 03-06 (his Episode 12 week) with zones and pointers marked; 10 random V1 trades cut at entry.
 
+### MECH V0 — primitives, audit charts, claims 1 and 2 (`python3 tools/mech.py v0`, 64 s)
+**Primitives, 2019-06 → 2026-10-07:**
+
+| Index | Sweep-type swings (all 5m swings) | FFVGs | Zone phases (FFVG + IFFVG) | Untapped-reaction pointers (3–6m) |
+|---|---|---|---|---|
+| NQ (MNQ prices) | (98,796 swings) | 172,184 | 299,896 (152,899 IFFVG) | 30,234 |
+| ES | (98,186) | 163,675 | 291,477 (148,523 IFFVG) | 30,308 |
+
+- **Pointer events:** 52,241 after deduplicating index, minute and direction (several timeframes can close on the same minute). 33.7 % are correlated within ±5 minutes; 61.2 % are swept.
+- **Audit charts for the author's Episode 12 week:** `data/studies/mech/v0_charts/mech_v0_2026-03-02 … 03-06.png`. NQ and ES 5m, 08:00–16:00.
+  - **Zones:** green = demand, red = supply; filled while untapped, outline after the tap; solid = FFVG, dashed = IFFVG; labelled with their timeframe.
+  - **Pointers:** triangles = untapped-reaction pointers, labelled timeframe, S = swept, C = correlated.
+  - **They are for comparison with his screen; nothing downstream has been adjusted to them.**
+
+**Claim 1** (`claim1.csv`): after an untapped-reaction pointer with a clear path on both indices, does price reach the next untapped zone before trading back through the entry price?
+
+| Outcome, 2,415 qualifying pointers (median distance to target 11.8 points) | n | Share |
+|---|---|---|
+| Through the entry price first | 2,333 | 96.6 % |
+| **Target first** | **72** | **3.0 %** |
+| Neither by 15:50 | 10 | 0.4 % |
+
+- **The other cuts agree:** outside news lockouts 2.8 % (2,334); NQ 2.2 % (1,122); ES 3.6 % (1,293).
+- **Observation, not pre-registered:** "through the entry" is literal, so one tick against the close counts. Counting failure only when price passes the pointer candle's far extreme (its range of control), the target comes first 33.9 % of the time (819), the pointer's extreme is broken first 62.1 % (1,500), and neither 4.0 %.
+- **Verdict, as pre-registered: below 60 %. The additive-trim risk model does not hold.** On a literal reading it is close to never true; on the lenient reading it holds about a third of the time. V1 runs anyway, as it does not depend on it.
+
+**Claim 2** (`claim2.csv`): MNQ 5m reversals of ≥ 1 × 5m ATR inside 09:35–15:50.
+- **Result:** 22,706 reversals. **69.9 % (15,881) had no untapped-reaction pointer in their direction on either index** in the 3 five-minute bars up to the one whose close first reached 1 ATR; 30.1 % (6,825) had one.
+- **Outside news lockouts:** 70.1 % without (22,470 reversals).
+- **The claim that no reversal happens without such a pointer does not hold on this coding.** Most reversals of that size have none.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
