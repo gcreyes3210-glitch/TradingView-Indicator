@@ -1374,5 +1374,14 @@ Each cell is R per trade · win % · R 2019–22 / 2023–26:
 - **The pattern across families:** 1 R targets lose for every family (win rates near 50 % do not pay the costs). The families that are positive at all need the trade held, either to 3 R or to the close.
 - **Observation only;** a change of exit for any family would be its own pre-registered run.
 
+### AMD1-1m held to 16:00 against ORB v1.4 — pre-registered 2026-10-08 (observation only; written before the split was computed)
+- **Trades:** the exit grid's AMD1-1m hold-to-close trades (925; `tools/exit_grid.py`). v1.4 trades come from `data/studies/lit1/v14.csv` (879, 2019-06-01 → 2026-10-06).
+- **Buckets:**
+  - **ORB day, same side:** v1.4 traded that day in AMD's direction.
+  - **ORB day, opposite side:** v1.4 traded that day against AMD's direction.
+  - **Not an ORB day:** v1.4 did not trade that day.
+- **Reported:** n, net and R per trade for each bucket, for the full span and for 2019–2022 / 2023–2026. Also the correlation of daily P&L (AMD and v1.4, every cash day from 2019-06-01 with 0 for no trade, and the days both traded).
+- **Redundancy rule, fixed now:** AMD held to 16:00 is logged as **redundant with ORB** if the ORB-day, same-side bucket's net is at least AMD's total net (so the other two buckets together are ≤ 0) in **both halves**.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
