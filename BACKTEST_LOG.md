@@ -765,6 +765,21 @@ Two variants of L7, otherwise exactly as run: Aceflw levels, same-bar SMT, HTF z
 - **Criterion (each, against L7 = −0.003 R in 2019–2022 / +0.142 R in 2023–2026, 6 of 8 years):** a variant counts only if its R per trade **beats L7's in both halves** and it keeps **≥ 6 of 8 positive years**. Then **Bonferroni 0.05 / 2:** its best split's within-year shuffle p (`split_check.py`; side, level type, zone) must be < 0.025.
 - **Reported next to L7:** n, net, R per trade, win %, PF, DD, R by year, halves, long / short, and the funnel with the variant's extra step (zone of the matching direction for L7-dir; trend-aligned signals for L7-trend). Engine `python3 tools/ifvg_l7.py bias`.
 
+### IFVG-L7 bias variants — results (`python3 tools/ifvg_l7.py bias`, 49 s; `data/studies/ifvg_l7/L7-dir.csv`, `L7-trend.csv`, `bias_summary.csv`)
+
+| Run | n | Net | R/trade | Win % | PF | DD | Positive years | R 2019–22 / 2023–26 | R by year 2019 → 2026 | Long / short R (n) | Funnel |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| L7 | 421 | +1,886 | +0.075 | 32.8 | 1.10 | −1,432 | 6 | −0.003 / +0.142 | +0.60 +0.05 −0.24 −0.05 +0.02 +0.23 +0.12 +0.18 | +0.092 (214) / +0.057 (207) | 8,028 → 7,226 → 2,692 → zone 620 → stop cap 477 → 421 |
+| **L7-dir** | 399 | +1,997 | +0.078 | 33.3 | 1.11 | −1,300 | **5** | **−0.015** / +0.161 | +0.39 +0.07 −0.21 −0.08 +0.12 +0.22 +0.12 +0.17 | +0.105 (204) / +0.050 (195) | 8,028 → 7,226 → 2,692 → zone any direction 620 → **zone of the setup's direction 556** → stop cap 442 → 399 |
+| **L7-trend** | 218 | +1,010 | +0.027 | 32.6 | 1.10 | −1,915 | **5** | **−0.262** / +0.271 | +0.41 −0.44 −0.32 −0.28 +0.16 +0.29 +0.46 +0.11 | +0.143 (144) / −0.200 (74) | 8,028 → 7,226 → 2,692 → zone 620 → stop cap 477 → **trend-aligned 240** → 218 |
+
+**Criterion:** beat L7's R per trade in both halves and keep ≥ 6 positive years. **Both fail.**
+- **L7-dir** is worse than L7 in 2019–2022 (−0.015 against −0.003). It has 5 positive years, not 6: positive years count net dollars, and 2019 turns to −$18 (+0.39 R per trade on 19 trades, but a few large-risk losers). The direction match removes 64 of 620 zone matches (10 %) and 22 trades. R per trade barely moves (+0.078 vs +0.075). The direction match removes 64 zone matches (10 %) and 22 trades. R per trade barely moves (+0.078 vs +0.075).
+- **L7-trend** halves the sample (218 trades). It is worse in 2019–2022 (−0.262) and better in 2023–2026 (+0.271), which is the 2023–2026 bull leg showing through, not a stable effect. Longs +0.143 R (144), shorts −0.200 R (74); 145 of the 240 aligned signals were long.
+- **Bonferroni 0.05 / 2 on the best split:** L7-dir zone 1D vs 4H, 6 of 8 years, p = 0.51 (side 0.92, level type 0.83). L7-trend zone 15m vs 4H, 7 of 8 years, p = 0.16 (side 0.87, level type 0.73). **Neither is below 0.025.**
+
+**Verdict: neither bias variant counts.** Matching the zone's direction changes almost nothing. The daily trend filter trades the first half's losses for the second half's gains. Nothing adopted; not a shadow flag.
+
 ## BIAS study — pre-registered 2026-09-24; both blocks scored
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
 **Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:

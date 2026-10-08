@@ -217,16 +217,17 @@ def fractals_since(j, open_i, sess, high):
     return out
 
 
-def signals(fresh=5, min_gap=1.0, cap=2.0, zset=ZONES_ALL, session="ny", zone_req=True):
+def signals(fresh=5, min_gap=1.0, cap=2.0, zset=ZONES_ALL, session="ny", zone_req=True, zone_dir=False):
     """Every signal (inversion + live setup + zone + stop cap) and the funnel counts. zone_req=False drops the HTF-zone
-    requirement (the zone is still recorded when there is one)."""
+    requirement (the zone is still recorded when there is one). zone_dir=True: only zones of the setup's direction
+    count (bullish FVG / NDOG for longs, bearish for shorts), the indicator's htfMatchDir."""
     load(); setups = sweeps()
     O, H, L, C, tod, ts = S["O"], S["H"], S["L"], S["C"], S["tod"], S["ts"]
     starts, ends = S["starts"], S["ends"]
     sb, sB = S["strong_bear"], S["strong_bull"]
     zw = S["zones"]
     zw = zw[zw.tf.isin(zset)]
-    zf, ze, zt, zb, ztf = (zw[c].to_numpy() for c in ("first", "end", "top", "bot", "tf"))
+    zf, ze, zt, zb, ztf, zbu = (zw[c].to_numpy() for c in ("first", "end", "top", "bot", "tf", "bull"))
     cfg = SESSIONS[session]
     e0, e1 = cfg["entry"]
     by_sess = {s: g for s, g in setups.groupby("sess")}
@@ -252,7 +253,7 @@ def signals(fresh=5, min_gap=1.0, cap=2.0, zset=ZONES_ALL, session="ny", zone_re
         pend = [x for x in pend if x["active"] <= w1]
         pi = 0
         zm = (zf <= w1) & (ze > lo)
-        zz = (zf[zm], ze[zm], zt[zm], zb[zm], ztf[zm])
+        zz = (zf[zm], ze[zm], zt[zm], zb[zm], ztf[zm], zbu[zm].astype(bool))
         gaps = {"S": [], "L": []}                     # alive gaps: [third_i, top, bot]
         for j in range(lo, w1 + 1):
             inwin = j >= w0
@@ -308,6 +309,10 @@ def signals(fresh=5, min_gap=1.0, cap=2.0, zset=ZONES_ALL, session="ny", zone_re
                     x["inv"] = True; funnel["3 fresh inversion"] += 1; funnel["3 fresh inversion [" + ("pivot" if x["kind"] == "pivot" else "level") + "]"] += 1
                 ext = x["ext"]
                 m = (zz[0] <= j) & (zz[1] > j) & (((zz[2] >= bot) & (zz[3] <= top)) | ((zz[3] <= ext) & (zz[2] >= ext)))
+                if zone_dir:
+                    if inwin and m.any() and not x.get("zone_any"):
+                        x["zone_any"] = True; funnel["4a HTF zone, any direction"] += 1
+                    m &= zz[5] == (d == "L")
                 if zone_req and not m.any():
                     continue
                 if inwin and not x["zone"]:

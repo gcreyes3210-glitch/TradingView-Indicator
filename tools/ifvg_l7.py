@@ -5,6 +5,7 @@
     python3 tools/ifvg_l7.py all            L7 and L7-noHTF with neighbours (freshness 3 / 8), CSVs to data/studies/ifvg_l7/
     python3 tools/ifvg_l7.py charts         10 random L7 trades cut at the entry bar (data/studies/ifvg_l7_charts/)
     python3 tools/ifvg_l7.py attrib         A1 / A2 / A3: one of L7's three changes each, next to IFVG-1m and L7
+    python3 tools/ifvg_l7.py bias           L7-dir (htfMatchDir) and L7-trend (daily 20-bar close slope) next to L7
     python3 tools/ifvg_l7.py shadow [--from 2026-10-08]   the L7 shadow forward test (also run by calibrate_orb.py)
 
 Only two things differ from IFVG-1m: the setup list (sweeps of the levels below, SMT against ES's own level of the
@@ -229,6 +230,51 @@ def attrib():
     print(d.to_string(index=False))
 
 
+def daily_slope(n=20):
+    """Per session: least-squares slope of the n completed trading-day closes before it (NaN without n of them)."""
+    S = E.load()
+    close = pd.Series(S["C"]).groupby(S["tdi"]).last().to_numpy()
+    x = np.arange(n) - (n - 1) / 2
+    out = np.full(len(close), np.nan)
+    for s in range(n, len(close)):
+        out[s] = (x * (close[s - n:s] - close[s - n:s].mean())).sum() / (x * x).sum()
+    return out
+
+
+def bias():
+    OUT.mkdir(parents=True, exist_ok=True)
+    setups("same")
+    slope = daily_slope()
+    rows = []
+    for name in ("L7", "L7-dir", "L7-trend"):
+        sig, fun = E.signals(**E.PRIMARY, zset=E.ZONES_ALL, zone_dir=(name == "L7-dir"))
+        fun = dict(fun)
+        if name == "L7-trend":
+            sl = slope[sig.sess.to_numpy()]
+            keep = ((sig.side == "L") & (sl > 0)) | ((sig.side == "S") & (sl < 0))
+            fun["6 trend-aligned signals"] = int((keep & sig.inwin).sum())
+            sig = sig[keep.to_numpy()]
+        t = one_per_day(sig)
+        t.to_csv(OUT / f"{name}_bias.csv" if name == "L7" else OUT / f"{name}.csv", index=False)
+        s = E.summary(t)
+        y = t.entry_time.dt.year
+        print(f"\n==== {name}: " + "  ".join(f"{k} {v}" for k, v in s.items()))
+        print("  R by year: " + " ".join(f"{k} {g.R.mean():+.3f} ({len(g)})" for k, g in t.groupby(y)))
+        print("  side: " + " | ".join(f"{k}: n {len(g)} net {g.pnl.sum():+,.0f} R {g.R.mean():+.3f}" for k, g in t.groupby("side")))
+        print("  funnel: " + " -> ".join(f"{k[2:] if k[1] == ' ' else k[3:]} {v}" for k, v in sorted(fun.items()) if "[" not in k)
+              + f" -> trades {len(t)}")
+        rows.append(dict(run=name, **s))
+        if name != "L7":
+            L = rows[0]
+            ok = s["R_h1"] > L["R_h1"] and s["R_h2"] > L["R_h2"] and s["pos_years"] >= 6
+            print(f"  criterion vs L7 (both halves beat {L['R_h1']} / {L['R_h2']}, >= 6 years): {'PASS' if ok else 'fail'}")
+            rows[-1]["beats_L7"] = ok
+            print(subprocess.run([sys.executable, "tools/split_check.py", str(OUT / f"{name}.csv"), "--splits", "side,smt,zone"],
+                                 capture_output=True, text=True).stdout)
+    pd.DataFrame(rows).to_csv(OUT / "bias_summary.csv", index=False)
+    print(pd.DataFrame(rows).to_string(index=False))
+
+
 SHADOW_START = "2026-10-08"
 
 
@@ -277,6 +323,8 @@ if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "all"
     if cmd == "all":
         run_all()
+    elif cmd == "bias":
+        bias()
     elif cmd == "attrib":
         attrib()
     elif cmd == "shadow":
