@@ -712,6 +712,21 @@ No level type is consistent between the two runs except PDH (positive) and ONH, 
 **Verdict: neither run passes.** L7 is the closest any IFVG run has come: +0.075 R, 6 of 8 years, neighbours positive. It misses on the 2019–2022 half (−0.003 R), and the best split is nowhere near the Bonferroni level. The HTF zone does the work: without it the same sweeps lose (−0.037 R, 3 of 8 years). IFVG-1m's fractal levels made −0.058 R with the zone. **Three things changed at once, so the gain cannot be put on the levels alone:** the level set, the 1-per-day limit and the same-bar SMT window. Nothing adopted; not a shadow flag.
 **Check charts:** `data/studies/ifvg_l7_charts/l7_01…10.png`, 10 random L7 trades (seed 11), cut at the entry bar, with the ES panel and outcome hidden. Answer template `answers.csv`; key `charts_key.csv`. For VWAP levels the drawn line is the level's value on the sweep bar; the level itself moves.
 
+### IFVG-L7 follow-ups — pre-registered 2026-10-08 (written before any follow-up code was run; nothing is adopted from either)
+**1 · Attribution.** L7 differs from the IFVG-1m primary run (T3, Z-all, −0.058 R) in three ways. Each run below applies exactly one of them and keeps the other two as IFVG-1m had them. Span 2019-06 → 2026-10-07, same bars and zone cache as L7.
+- **A1 — Aceflw level set only:** L7's levels and sweep rules, including no pivot SMTs (dropping them is part of replacing the fractal level set). SMT window as IFVG-1m (the 5m bar before, of and after the sweep). IFVG-1m's management: up to 3 trades, stop after the first winner or the second loser.
+- **A2 — one trade per day only:** IFVG-1m's levels and pivot SMTs, IFVG-1m's SMT window, the first trade of each session only.
+- **A3 — same-5m-bar SMT window only:** IFVG-1m's levels, its management, and the ES check on the sweep's 5m bar only (as known at each minute). Pivot SMTs are compared swing to swing and have no sweep window; they are kept unchanged.
+- **Reported for each, next to IFVG-1m and L7:** n, net, R per trade, win %, PF, DD, R by year, positive years, halves (2019–2022 / 2023–2026), and the funnel. The log then says which change carries the gain. "Carries" is read as the single change whose run is closest to L7 in R per trade. If no single change gets above 0 R, the gain comes from the combination.
+- No criterion, neighbours or shuffle test: this is an attribution, not a candidate.
+
+**2 · L7 shadow forward test.** L7 exactly as run (HTF zone required, 1 trade per day, T3) is added to the weekly `calibrate_orb.py --live` check.
+- **What the check does:** it computes L7's signals and simulated outcomes on the bars on disk (`data/bars/`, extended with `tools/extend_bars.py`) for sessions from **2026-10-08** onward, and prints them per week (Monday → Friday) with a running total.
+- **Open trades:** a trade whose session is not complete in the bars is listed as open and left out of the totals.
+- **Log:** each check appends a row to a new **"L7 shadow"** table in the Forward test section.
+- **Nothing is traded. Adoption is reconsidered only if the shadow reaches 60 trades with R per trade ≥ +0.05.**
+- **Check on the code:** the shadow pass, started at 2026-01-01, must give exactly L7's 2026 trades from `data/studies/ifvg_l7/L7.csv`.
+
 ## BIAS study — pre-registered 2026-09-24; both blocks scored
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
 **Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:
