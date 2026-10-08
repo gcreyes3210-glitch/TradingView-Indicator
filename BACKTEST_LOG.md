@@ -1204,5 +1204,47 @@ Net $ (all): PM T1 +$479, PM T-last +$316, PO T1 +$537, PO T-last +$1,661. Setup
 
 **Verdict under the pre-registered decision rule.** Test 2 and Test 3 do not qualify. Test 1 call_wall rejection meets the rule as written (p 0.0021 < 0.0036) on 6 touches. It does not survive correction across both metrics. Mechanism: dealer hedging at the largest call-gamma strike is the claimed one. **Collect further only for call_wall touches** (and post-open High setups, if the user wants a near-miss watched). Everything else in ACE1 is not worth collecting further. Nothing is adopted.
 
+## Literature — pre-registered 2026-10-08 (written before any Literature code was run)
+Three strategies from published work on MNQ, Databento 1m bars, **2019-06-01 → 2026-10-07**, house fills: 1 tick of slippage on every fill, $1 per side, MNQ $2 / point, stop first on a bar touching both stop and target, a bar opening beyond a stop or target fills at its open. Engine `tools/lit1.py`. **Eight runs:** IM1-a, IM1-b, IM1-c, ORB9-a, ORB9-b, ORB9-c, NR7, ID. **Bonferroni: 0.05 / 8 = 0.00625.** Nothing is adopted from this section except by the criteria below.
+**Common definitions.**
+- Cash session 09:30–16:00 ET. "The X close" = the close of the 1m bar ending at X (e.g. 10:00 close = the 09:59 bar's close; 16:00 close = the 15:59 bar's close).
+- The prior day's 16:00 close = the previous cash session's last close.
+- Daily ATR(14) = Wilder ATR of trading-day bars (18:00 → 17:00, TradingView's daily bar on CME futures), from the last completed day before the session.
+- Early-close days come from `data/events.csv` (`early_close`).
+- **Usual criterion** (IM1 and ORB9 runs): ≥ 6 of 8 calendar years positive (2019 and 2026 are partial years but count), ≥ +0.05 R per trade, both halves (2019–2022, 2023–2026) non-negative in R, the sign of R per trade holding on both neighbours, and the run's p < 0.00625.
+- **Walk-forward** for every filter run (IM1-c, ORB9-c, NR7, ID):
+  - In-sample 2019-06-01 → 2022-12-31 is run on a copy of the bars cut at 2022-12-31 23:59 (asserted).
+  - Its results are written to this log and committed **before** 2023-01-01 → 2026-10-07 is run.
+  - IM1-c and ORB9-c must also beat their unfiltered base (IM1-a, ORB9-a) on R per trade in-sample and out-of-sample separately.
+**IM1 — intraday momentum (Gao, Han, Li & Zhou 2018).**
+- **Trade:** signal = the sign of the 10:00 close minus the prior day's 16:00 close. Enter at the 15:30 close (the 15:29 bar's close + 1 tick) in the signal direction, exit at the 16:00 close − 1 tick. No stop. No trade on a zero signal, and none on early-close days (the day itself).
+- **IM1-a:** as stated.
+- **IM1-b:** the signal is the 10:00 close minus the 09:30 open (the 09:30 bar's open).
+- **IM1-c:** IM1-a, only on days where |signal return| (signal ÷ the prior 16:00 close) is above the median of the previous 20 sessions' |signal return| (today excluded).
+- **R unit (IM1 has no stop):** 0.1 × daily ATR(14) in points × $2, the same unit as ORB9's minimum risk. *(Reading: the criterion needs an R; this is the only volatility unit the three papers share.)*
+- **Neighbours:** the signal read at the 09:45 and the 10:15 close instead of 10:00.
+- **Run's p:** the hit rate of the signal against the last half hour's direction (sign of the 16:00 close − the 15:30 close; a flat half hour counts as a miss), one-sided binomial against 50 %. Also reported: by year, halves, long / short, and the share of up last-half-hours.
+**ORB9 — Zarattini & Aziz 5-minute opening-range breakout.**
+- **Trade:** first 5m bar = the 1m bars 09:30–09:34. Close > open → long at the 09:35 open + 1 tick, stop at that bar's low; close < open → short, stop at its high; close = open → no trade.
+- **Minimum risk:** if the stop is closer than 0.1 × daily ATR(14) to the fill (including a 09:35 open beyond the stop), the stop moves to fill ∓ 0.1 × ATR.
+- **Management:** one trade a day. The stop is live from the entry bar. Exit at the 16:00 close − 1 tick. On early-close days, exit at the close of the 1m bar ending 10 minutes before the halt, as ORB v1.4 does.
+- **ORB9-a:** as stated.
+- **ORB9-b:** + a 10 R target.
+- **ORB9-c:** ORB9-a only when the first 5m bar breaks the overnight range (18:00 → 09:29): its high > the overnight high or its low < the overnight low, ORB v1.4's "range must break the overnight range".
+- **R** = net ÷ (|fill − stop| × $2).
+- **Neighbours:** the minimum-risk floor at 0.05 and 0.2 × ATR.
+- **Run's p:** one-sided bootstrap of mean R > 0 (10,000 resamples of the trades, seed 1).
+- **Reported next to ORB v1.4 on the same span:** v1.4 from `orb_engine.run` from 2019-06-01. Also the overlap of trading days (days with a trade in each, both, either) and the correlation of daily P&L between ORB9-a and v1.4: on every cash day with 0 for no trade, and on the days both traded.
+**NR7 / ID — filters on ORB v1.4** (v1.4 trades from `orb_engine.run`, start 2019-06-01; ORB takes at most one trade a day, so filtering its trade list is the filtered rule).
+- **NR7:** the prior cash session's range (09:30–16:00 high − low) is strictly narrower than each of the 6 cash sessions before it.
+- **ID:** the prior cash session's high is below, and its low above, those of the session before it (strict).
+- **Runs:** v1.4 kept only on the day after an NR7 day; v1.4 kept only on the day after an ID day.
+- **Adoption test, as ORB8:**
+  - (1) the skipped trades are net negative in-sample **and** out-of-sample;
+  - (2) the kept trades average more R per trade than all v1.4 trades (full span);
+  - (3) among 1,000 random removals of the same number of v1.4 trades (seed 7), the share with R per trade ≥ the kept trades' is < 5 %.
+  - **This share is the run's p for the Bonferroni level, 0.00625.** No usual-criterion or neighbour step: the ORB8 test is the criterion.
+**Check charts:** 10 random IM1-a trades (5m bars 09:30 → the 15:30 entry, with the prior close, the 10:00 close and the entry marked) and 10 random ORB9-a trades (1m bars 08:30 → the 09:35 entry, with the first 5m bar, the stop and the overnight high / low), seed 11, cut at entry, outcome hidden.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
