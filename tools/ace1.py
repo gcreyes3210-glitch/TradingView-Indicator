@@ -222,7 +222,7 @@ def t2_report(T):
         base_in = g.inside.mean()
         lines.append(f"\n{br}: {len(g)} days scored · up sessions {g.up.sum()}/{len(g)} = {u:.1%} · "
                      f"16:00 close inside VAL–VAH {g.inside.sum()}/{len(g)} = {base_in:.1%}")
-        lines.append("| Calls (n = %d days) | n | hits | hit % | expected % | one-sided p |" % len(g))
+        lines.append(f"| Calls (n = {len(g)} days) | n | hits | hit % | expected % | one-sided p |")
         lines.append("|---|---|---|---|---|---|")
         for name, s in [("directional, strict + broad", g[g.cls == "dir"]),
                         ("directional, strict only", g[(g.cls == "dir") & (g["sub"] == True)]),
@@ -349,9 +349,11 @@ def main():
     if nlev > 5:
         sys.exit(f"{nlev} level-mismatch days flagged > 5: stopping before the tests, as pre-registered")
     days = sorted(C.date[~C.flag])
+    nosess = [d for d in days if pd.Timestamp(f"{d} 15:59", tz="America/New_York") not in one.index]
+    days = [d for d in days if d not in nosess]           # bars end before the session close (data licence)
     print(f"\nscored days: {len(days)} of {len(C)}; excluded, level mismatch ({nlev}): "
           f"{', '.join(C.date[C.kind == 'level']) or 'none'}; excluded, contract mismatch: "
-          f"{', '.join(C.date[C.kind == 'contract']) or 'none'}")
+          f"{', '.join(C.date[C.kind == 'contract']) or 'none'}; excluded, no session bars: {', '.join(nosess) or 'none'}")
 
     # Test 1
     R, Z = test1(b, one, atr5, days)

@@ -958,5 +958,65 @@ Source: `data/aceflw/briefs.csv`, Aceflw's pre-market and post-open briefs for *
 - **Reported:** setups, unscorable, filled, net $, R per trade (net ÷ (|fill − stop| × $2)), total R, win % (net > 0), by conviction and watch-only, for T1 and T-last. No significance threshold: descriptive only, n is a few dozen trades.
 **Decision rule for a longer collection:** a Test 1 type or grouping clearing its Bonferroni α on rejection or excursion, a Call class with one-sided p < 0.05, or a Test 3 conviction bucket with ≥ 15 fills and R per trade > +0.25 in both T1 and T-last. Anything else: not worth collecting further for that component.
 
+### ACE1 results — run 2026-10-08
+**Data.** Databento GLBX.MDP3 MNQ.v.0 and ES.v.0 ohlcv-1m extended from 2026-09-22 to **2026-10-08 09:33 ET**: quoted $0.12 (cap $10). Two attempts timed out (504) before the third completed. The licence ends at 2026-10-08 13:34 UTC, so the 10-08 cash session is not available. 5m files rebuilt from the full 1m files (`tools/extend_bars.py`).
+**Data check (amended rule).** The 13 new days (09-22 → 10-08) all pass: OVN High / Low within 4 pts. 2 level-mismatch days (halt is > 5), so the tests ran. **Scored: 32 of 38 days.** Excluded:
+- level mismatch (counted toward the halt): **2026-09-04** (OVN High −15.5 pts), **2026-09-14** (OVN High −24.5 pts);
+- contract mismatch (not counted, per the amendment): **2026-09-15, 2026-09-16, 2026-09-17**;
+- no session bars: **2026-10-08**. Its overnight check passes, but the bars stop at 09:33 because of the licence. Not a flag; the day cannot be scored.
+**Fix while running (no effect on any number):** a `%` in the Test 2 table header broke the string formatting. The crash came before any Test 2 output.
+
+**Test 1 — pre-market level reactions** (32 days, 50 random levels per real level, 10,000 resamples; α = 0.0036 per type, 0.025 per grouping)
+| Type | levels | touched (rate · base) | rejection 15m (base) | n30 | rejection 30m (base) | p | excursion 30m ATR (base) | p |
+|---|---|---|---|---|---|---|---|---|
+| val | 32 | 20 (62% · 60%) | 65% (56%) | 20 | 50% (56%) | 0.805 | 2.35 (2.63) | 0.716 |
+| poc | 32 | 17 (53% · 50%) | 35% (43%) | 17 | 47% (46%) | 0.437 | 2.09 (2.13) | 0.562 |
+| vah | 32 | 18 (56% · 53%) | 41% (34%) | 17 | 59% (43%) | 0.077 | 2.19 (1.80) | 0.200 |
+| vwap | 32 | 21 (66% · 61%) | 48% (46%) | 21 | 43% (50%) | 0.795 | 1.93 (2.41) | 0.832 |
+| vwap_sigma_up | 64 | 35 (55% · 55%) | 61% (56%) | 33 | 61% (50%) | 0.056 | 3.02 (2.55) | 0.070 |
+| vwap_sigma_dn | 64 | 31 (48% · 50%) | 55% (62%) | 31 | 52% (53%) | 0.601 | 2.12 (2.26) | 0.712 |
+| on_high | 32 | 13 (41% · 43%) | 46% (62%) | 13 | 62% (58%) | 0.392 | 2.43 (2.19) | 0.311 |
+| on_low | 32 | 13 (41% · 44%) | 69% (62%) | 13 | 23% (42%) | 0.990 | 2.18 (2.28) | 0.641 |
+| gamma_wall | 32 | 12 (38% · 41%) | 58% (53%) | 12 | 42% (44%) | 0.616 | 1.61 (2.15) | 0.864 |
+| put_wall | 32 | 12 (38% · 36%) | 50% (51%) | 12 | 50% (55%) | 0.779 | 2.22 (1.94) | 0.249 |
+| **call_wall** | 32 | 7 (22% · 32%) | 67% (37%) | **6** | **83% (41%)** | **0.0021 ✓** | 2.35 (2.01) | 0.270 |
+| vol_trigger | 30 | 13 (43% · 37%) | 62% (59%) | 13 | 46% (50%) | 0.633 | 1.83 (2.18) | 0.827 |
+| draw_up | 28 | 10 (36% · 46%) | 44% (42%) | 9 | 44% (44%) | 0.516 | 2.62 (2.18) | 0.165 |
+| draw_down | 28 | 10 (36% · 41%) | 50% (46%) | 10 | 50% (47%) | 0.494 | 2.34 (1.96) | 0.107 |
+| group: gamma/put/call wall + vol trigger | 126 | 44 (35% · 37%) | 58% (51%) | 43 | 51% (48%) | 0.256 | 1.95 (2.08) | 0.725 |
+| group: val/poc/vah | 96 | 55 (57% · 54%) | 48% (45%) | 54 | 52% (49%) | 0.308 | 2.22 (2.21) | 0.489 |
+No level was "at the level at the open". **Only call_wall rejection at 30 min clears its α, on 6 measured touches (5 rejected).** Read with care: this is 1 pass in 32 tests (14 types × 2 metrics, plus 2 groupings × 2). Over all 28 per-type tests the Bonferroni level is 0.05 / 28 = 0.0018, and 0.0021 does not clear it. The 6 touches split 3 from above and 3 from below. Call walls are touched less often than random levels at the same distance (22 % vs 32 %). Excursion is not significant. The wider GEX group is flat.
+
+**Test 2 — the Call** (32 days)
+| Brief | Calls | n | hits | hit % | expected % | one-sided p |
+|---|---|---|---|---|---|---|
+| pre-market (up days 15/32; close inside VAL–VAH 12/32) | directional, strict + broad (6 up / 8 down) | 14 | 3 | 21.4% | 50.4% | 0.994 |
+| | directional, strict only (1 up / 6 down) | 7 | 2 | 28.6% | 52.2% | 0.951 |
+| | directional, broad only (5 up / 2 down) | 7 | 1 | 14.3% | 48.7% | 0.991 |
+| | non-directional, both | 18 | 7 | 38.9% | 37.5% | 0.540 |
+| | balanced → fade edges | 12 | 5 | 41.7% | 37.5% | 0.490 |
+| | respect breaks | 6 | 2 | 33.3% | 37.5% | 0.726 |
+| post-open (up days 16/32; close inside VAL–VAH 14/32) | directional, strict + broad (4 up / 7 down) | 11 | 6 | 54.5% | 50.0% | 0.500 |
+| | directional, strict only (0 up / 6 down) | 6 | 3 | 50.0% | 50.0% | 0.656 |
+| | directional, broad only (4 up / 1 down) | 5 | 3 | 60.0% | 50.0% | 0.500 |
+| | non-directional, both | 21 | 12 | 57.1% | 43.8% | 0.155 |
+| | balanced → fade edges | 14 | 7 | 50.0% | 43.8% | 0.416 |
+| | respect breaks | 7 | 5 | 71.4% | 43.8% | 0.137 |
+No Call class has p < 0.05. Pre-market directional Calls hit 3 of 14, below chance. The reverse direction was not pre-registered and is not tested.
+
+**Test 3 — setups** (1 MNQ each, house fills; R per trade / total R / fills; detail with parsed values in `test3_setups.csv`)
+| Bucket | PM T1 | PM T-last | PO T1 | PO T-last |
+|---|---|---|---|---|
+| all | −0.060 / −2.9 / 48 | −0.042 / −2.0 / 48 | +0.097 / +4.7 / 48 | +0.230 / +11.0 / 48 |
+| High | −0.010 / −0.3 / 27 | +0.177 / +4.8 / 27 | +0.236 / +5.2 / 22 | +0.456 / +10.0 / 22 |
+| Medium | −0.565 / −6.8 / 12 | −0.504 / −6.0 / 12 | +0.108 / +1.6 / 15 | +0.129 / +1.9 / 15 |
+| Low | +0.272 / +2.2 / 8 | −0.226 / −1.8 / 8 | −0.196 / −2.2 / 11 | −0.084 / −0.9 / 11 |
+| none | +2.008 / +2.0 / 1 | +1.073 / +1.1 / 1 | — / 0 | — / 0 |
+| watch-only flagged | +0.465 / +4.2 / 9 | −0.081 / −0.7 / 9 | −0.281 / −2.8 / 10 | +0.011 / +0.1 / 10 |
+| armed | −0.181 / −7.0 / 39 | −0.033 / −1.3 / 39 | +0.197 / +7.5 / 38 | +0.288 / +10.9 / 38 |
+Net $ (all): PM T1 +$479, PM T-last +$316, PO T1 +$537, PO T-last +$1,661. Setups / unscorable: PM 75 / 2, PO 77 / 1. **No conviction bucket meets ≥ 15 fills with R > +0.25 in both T1 and T-last.** The nearest is post-open High (22 fills): +0.236 at T1 and +0.456 at T-last, which misses at T1.
+
+**Verdict under the pre-registered decision rule.** Test 2 and Test 3 do not qualify. Test 1 call_wall rejection meets the rule as written (p 0.0021 < 0.0036) on 6 touches. It does not survive correction across both metrics. Mechanism: dealer hedging at the largest call-gamma strike is the claimed one. **Collect further only for call_wall touches** (and post-open High setups, if the user wants a near-miss watched). Everything else in ACE1 is not worth collecting further. Nothing is adopted.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.

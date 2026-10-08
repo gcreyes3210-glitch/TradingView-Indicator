@@ -1,0 +1,65 @@
+date,brief,cls,dirn,sub,start,end,up,inside,val,vah
+2026-08-17,premarket,nondir,0,balanced,30218.75,30091.0,False,False,30183.25,30299.25
+2026-08-17,postopen,nondir,0,balanced,30253.0,30091.0,False,False,30183.25,30297.25
+2026-08-18,premarket,dir,-1,True,29690.75,29586.25,False,False,29768.5,30119.5
+2026-08-18,postopen,dir,-1,True,29713.5,29586.25,False,False,29762.0,30119.0
+2026-08-19,premarket,dir,1,False,29696.25,29521.75,False,True,29501.5,29629.5
+2026-08-19,postopen,dir,1,False,29672.75,29521.75,False,True,29498.5,29637.5
+2026-08-20,premarket,dir,-1,True,29350.75,29306.0,False,False,29462.0,29685.0
+2026-08-20,postopen,dir,-1,True,29347.25,29306.0,False,False,29439.0,29685.0
+2026-08-21,premarket,nondir,0,respect breaks,29469.75,29395.5,False,True,29349.5,29538.5
+2026-08-21,postopen,nondir,0,respect breaks,29425.75,29395.5,False,True,29353.5,29538.5
+2026-08-24,premarket,nondir,0,respect breaks,29235.25,29099.75,False,False,29203.75,29409.75
+2026-08-24,postopen,dir,-1,True,29131.75,29099.75,False,False,29204.75,29409.75
+2026-08-25,premarket,dir,1,False,29296.75,29270.25,False,True,29060.0,29325.0
+2026-08-25,postopen,nondir,0,balanced,29302.25,29270.25,False,True,29137.0,29409.0
+2026-08-26,premarket,dir,-1,False,29174.25,29297.25,True,False,29176.0,29295.0
+2026-08-26,postopen,nondir,0,balanced,29229.5,29297.25,True,False,29172.0,29295.0
+2026-08-27,premarket,nondir,0,balanced,29524.5,29691.5,True,False,29476.25,29634.25
+2026-08-27,postopen,nondir,0,balanced,29572.25,29691.5,True,False,29480.25,29634.25
+2026-08-28,premarket,nondir,0,balanced,29628.0,29496.25,False,False,29606.25,29668.25
+2026-08-28,postopen,nondir,0,balanced,29610.5,29496.25,False,False,29605.25,29665.25
+2026-08-31,premarket,nondir,0,balanced,29438.25,29506.25,True,True,29362.5,29520.5
+2026-08-31,postopen,nondir,0,respect breaks,29480.5,29506.25,True,True,29367.5,29520.5
+2026-09-01,premarket,dir,-1,True,29111.75,29126.25,True,False,29220.25,29569.25
+2026-09-01,postopen,dir,-1,True,29097.75,29126.25,True,False,29214.25,29569.25
+2026-09-02,premarket,nondir,0,respect breaks,29098.25,29190.0,True,False,29047.25,29147.25
+2026-09-02,postopen,nondir,0,respect breaks,29065.0,29190.0,True,False,29047.25,29145.25
+2026-09-03,premarket,nondir,0,balanced,29249.25,29530.75,True,False,29145.0,29233.0
+2026-09-03,postopen,dir,1,False,29282.75,29530.75,True,False,29146.0,29235.0
+2026-09-08,premarket,nondir,0,balanced,29644.5,29542.5,False,True,29532.75,29666.75
+2026-09-08,postopen,nondir,0,balanced,29660.75,29542.5,False,True,29537.75,29667.75
+2026-09-09,premarket,dir,-1,True,29454.75,29455.0,True,True,29426.0,29634.0
+2026-09-09,postopen,nondir,0,respect breaks,29462.5,29455.0,False,True,29427.0,29634.0
+2026-09-10,premarket,dir,-1,True,29089.25,29138.25,True,False,29244.25,29506.25
+2026-09-10,postopen,dir,-1,True,29118.25,29138.25,True,False,29225.25,29506.25
+2026-09-11,premarket,dir,1,False,29417.75,29386.75,False,False,29041.5,29315.5
+2026-09-11,postopen,dir,1,False,29379.25,29386.75,True,False,29041.5,29320.5
+2026-09-18,premarket,nondir,0,balanced,29814.5,29916.25,True,False,29649.0,29851.0
+2026-09-18,postopen,nondir,0,balanced,29814.25,29916.25,True,True,29743.0,29950.0
+2026-09-21,premarket,nondir,0,balanced,30221.75,30783.5,True,False,30039.0,30275.0
+2026-09-21,postopen,nondir,0,balanced,30253.5,30783.5,True,False,30051.0,30275.0
+2026-09-22,premarket,nondir,0,balanced,30764.0,31029.75,True,False,30753.0,30848.0
+2026-09-22,postopen,nondir,0,balanced,30813.5,31029.75,True,False,30753.0,30845.0
+2026-09-23,premarket,dir,-1,False,31005.75,30769.75,False,False,30999.75,31056.75
+2026-09-23,postopen,dir,-1,False,30965.25,30769.75,False,False,30996.75,31057.75
+2026-09-24,premarket,nondir,0,respect breaks,30519.25,30756.5,True,False,30370.0,30665.0
+2026-09-24,postopen,nondir,0,balanced,30515.75,30756.5,True,False,30370.0,30661.0
+2026-09-25,premarket,nondir,0,balanced,30819.5,30891.25,True,True,30774.25,30999.25
+2026-09-25,postopen,nondir,0,balanced,30804.25,30891.25,True,True,30778.25,30999.25
+2026-09-28,premarket,nondir,0,respect breaks,30717.75,30567.0,False,True,30559.0,30757.0
+2026-09-28,postopen,nondir,0,respect breaks,30695.25,30567.0,False,True,30560.0,30751.0
+2026-09-29,premarket,dir,1,True,30709.0,30617.0,False,True,30439.25,30626.25
+2026-09-29,postopen,nondir,0,balanced,30677.5,30617.0,False,True,30432.25,30626.25
+2026-09-30,premarket,nondir,0,balanced,30699.25,30692.75,False,True,30584.25,30710.25
+2026-09-30,postopen,nondir,0,balanced,30725.0,30692.75,False,True,30615.25,30749.25
+2026-10-01,premarket,nondir,0,balanced,30797.0,30773.5,False,True,30739.5,30995.5
+2026-10-01,postopen,nondir,0,respect breaks,30768.0,30773.5,True,True,30742.5,30995.5
+2026-10-02,premarket,dir,1,False,31148.0,31069.5,False,False,30777.25,31007.25
+2026-10-02,postopen,nondir,0,balanced,31095.75,31069.5,False,True,30879.25,31222.25
+2026-10-05,premarket,nondir,0,respect breaks,31055.0,31338.25,True,False,30973.5,31093.5
+2026-10-05,postopen,nondir,0,respect breaks,31056.0,31338.25,True,False,30975.5,31090.5
+2026-10-06,premarket,dir,1,False,31513.5,31480.5,False,False,31317.25,31441.25
+2026-10-06,postopen,dir,1,False,31553.5,31480.5,False,False,31317.25,31453.25
+2026-10-07,premarket,dir,-1,True,31234.0,31396.0,True,True,31304.25,31519.25
+2026-10-07,postopen,dir,-1,True,31244.0,31396.0,True,True,31282.25,31519.25
