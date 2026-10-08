@@ -774,7 +774,7 @@ Two variants of L7, otherwise exactly as run: Aceflw levels, same-bar SMT, HTF z
 | **L7-trend** | 218 | +1,010 | +0.027 | 32.6 | 1.10 | −1,915 | **5** | **−0.262** / +0.271 | +0.41 −0.44 −0.32 −0.28 +0.16 +0.29 +0.46 +0.11 | +0.143 (144) / −0.200 (74) | 8,028 → 7,226 → 2,692 → zone 620 → stop cap 477 → **trend-aligned 240** → 218 |
 
 **Criterion:** beat L7's R per trade in both halves and keep ≥ 6 positive years. **Both fail.**
-- **L7-dir** is worse than L7 in 2019–2022 (−0.015 against −0.003). It has 5 positive years, not 6: positive years count net dollars, and 2019 turns to −$18 (+0.39 R per trade on 19 trades, but a few large-risk losers). The direction match removes 64 of 620 zone matches (10 %) and 22 trades. R per trade barely moves (+0.078 vs +0.075). The direction match removes 64 zone matches (10 %) and 22 trades. R per trade barely moves (+0.078 vs +0.075).
+- **L7-dir** is worse than L7 in 2019–2022 (−0.015 against −0.003). It has 5 positive years, not 6: positive years count net dollars, and 2019 turns to −$18 even though its R per trade is +0.39 on 19 trades (R averages trades of different risk; net does not). The direction match removes 64 of 620 zone matches (10 %) and 22 trades. R per trade barely moves (+0.078 vs +0.075).
 - **L7-trend** halves the sample (218 trades). It is worse in 2019–2022 (−0.262) and better in 2023–2026 (+0.271), which is the 2023–2026 bull leg showing through, not a stable effect. Longs +0.143 R (144), shorts −0.200 R (74); 145 of the 240 aligned signals were long.
 - **Bonferroni 0.05 / 2 on the best split:** L7-dir zone 1D vs 4H, 6 of 8 years, p = 0.51 (side 0.92, level type 0.83). L7-trend zone 15m vs 4H, 7 of 8 years, p = 0.16 (side 0.87, level type 0.73). **Neither is below 0.025.**
 
