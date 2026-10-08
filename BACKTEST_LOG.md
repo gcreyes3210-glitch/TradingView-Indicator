@@ -780,6 +780,25 @@ Two variants of L7, otherwise exactly as run: Aceflw levels, same-bar SMT, HTF z
 
 **Verdict: neither bias variant counts.** Matching the zone's direction changes almost nothing. The daily trend filter trades the first half's losses for the second half's gains. Nothing adopted; not a shadow flag.
 
+### IFVG-L7 timeframe check — pre-registered 2026-10-08 (written before any timeframe code was run; nothing is adopted)
+The identical L7 rule on **5-minute** MNQ bars (**L7-5m**), with **3m** and **10m** as neighbours, next to **L7-1m** (= L7, 421 trades, +0.075 R). Span 2019-06 → 2026-10-07. Engine `python3 tools/ifvg_l7.py tf` (each timeframe in its own process; HTF-zone cache per timeframe).
+**What is the same in chart bars of the timeframe:**
+- MNQ and ES 1m bars bucketed to N minutes from midnight (09:30 starts a bar on all three).
+- Gap = 3-bar FVG ≥ 1.0 point.
+- Inversion close within 5 bars of the gap's third candle; the 80 % strong-candle inversion (body ≥ 60 % of range, range ≥ ATR(20) of the chart bars).
+- Gap expiry 30 bars; setup life 30 bars after the sweep leg's extreme.
+- Sweep = the first chart bar beyond the level by > 2 ticks.
+- **SMT = ES does not take its level on the sweep's chart bar.** For 5m this is exactly L7's window (the sweep's 5m bar). For 3m and 10m it is the 3m / 10m bar: the same-bar rule on that chart, since a 5m window does not align with 3m bars.
+- Entries on bars opening 09:30–10:59, flat at the close of the last bar opening before 12:00, 1 trade per day, 3 R target, house fills on chart bars (stop first on a bar touching both).
+**Levels:**
+- The overnight VAH / POC / VAL are built from **1m intrabars** whatever the chart, as `Aceflw_Levels.pine` does with `request.security_lower_tf` (taken from L7's `levels.csv`, same code).
+- Overnight high / low and PDH / PDL are the same on any chart.
+- **VWAP and its bands are computed on the chart bars** (hlc3 × volume), as the Pine does on that chart. The value through the previous chart bar is used.
+**Stop cap:** 2 × ATR(14) of the **last 5m bar closed** when the signal bar closes, on every timeframe (true 5m bars). For 1m this equals L7's.
+**HTF zones:** Run I lifecycle on the chart bars, with the 15m / 1H / 4H / D bars built from 1m data, as `request.security` would (on a 10m chart, 15m bars cannot be made from 10m bars).
+**Check:** the generalised code run at 1m must reproduce L7's 421 trades exactly.
+**Reported:** for 1m / 3m / 5m / 10m: n, net, R per trade, win %, PF, DD, R by year, positive years, halves, long / short, by level type, and the funnel. **If L7-5m's R per trade is negative, the log says that L7's result is specific to the 1m timeframe.** No criterion beyond that, no adoption.
+
 ## BIAS study — pre-registered 2026-09-24; both blocks scored
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
 **Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:
