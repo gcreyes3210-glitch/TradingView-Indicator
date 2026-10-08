@@ -63,27 +63,40 @@ NEIGHBOURS = (("fresh", 3), ("fresh", 8), ("min_gap", 0.5), ("min_gap", 2.0), ("
 SESSIONS = dict(ny=dict(entry=(9 * 60 + 30, 11 * 60), flat=12 * 60, open=9 * 60 + 30, loop=8 * 60 + 30),
                 asia=dict(entry=(18 * 60 + 10, 24 * 60), flat=2 * 60, open=18 * 60, loop=18 * 60))
 CACHE = pathlib.Path("data/bars/ifvg1m_zones.parquet")
+TF = 1          # chart timeframe in minutes (set before load(); 1 = the engine as specified)
 S = {}          # loaded data
 
 
 def load():
     if S:
         return S
-    a = pd.read_parquet("data/bars/MNQ_1m.parquet")
-    b = pd.read_parquet("data/bars/ES_1m.parquet").reindex(a.index).ffill()
+    a1 = pd.read_parquet("data/bars/MNQ_1m.parquet")
+    e1 = pd.read_parquet("data/bars/ES_1m.parquet")
+    agg = {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
+    if TF == 1:
+        a, e = a1, e1
+    else:                                             # N-minute chart bars from midnight; empty buckets dropped
+        a = a1.resample(f"{TF}min", label="left", closed="left").agg(agg).dropna(subset=["open"])
+        e = e1.resample(f"{TF}min", label="left", closed="left").agg(agg).dropna(subset=["open"])
+    b_raw = e.reindex(a.index)                        # ES on the MNQ bars, a missing bar left empty
+    b = b_raw.ffill()
     ts = a.index
     O, H, L, C = (a[k].to_numpy() for k in ("open", "high", "low", "close"))
     td = trading_date(ts)
     tdi = pd.factorize(td)[0]
-    b5key = ts.floor("5min")
-    k5 = pd.factorize(b5key)[0]                       # 5m bucket per 1m bar (buckets are in time order)
+    # 5m bucket per chart bar (buckets in time order); on a chart of N > 1 minutes each chart bar is its own bucket
+    k5 = pd.factorize(ts.floor("5min"))[0] if TF == 1 else np.arange(len(ts))
     g = pd.DataFrame({"k": k5, "i": np.arange(len(ts))}).groupby("k").i
     first5, last5 = g.min().to_numpy(), g.max().to_numpy()
     H5 = pd.Series(H).groupby(k5).max().to_numpy(); L5 = pd.Series(L).groupby(k5).min().to_numpy()
     C5 = pd.Series(C).groupby(k5).last().to_numpy()
     HB, LB = b.high.to_numpy(), b.low.to_numpy()
     HB5 = pd.Series(HB).groupby(k5).max().to_numpy(); LB5 = pd.Series(LB).groupby(k5).min().to_numpy()
-    S.update(a=a, ts=ts, O=O, H=H, L=L, C=C, HB=HB, LB=LB, td=td, tdi=tdi, k5=k5, first5=first5, last5=last5,
+    # ATR(14) of the last true 5m bar closed when chart bar j closes (open <= close time - 5 min)
+    b5 = a1.resample("5min", label="left", closed="left").agg(agg).dropna(subset=["open"])
+    atr5t = rma_atr(b5.high.to_numpy(), b5.low.to_numpy(), b5.close.to_numpy())
+    atr5_at = atr5t[np.searchsorted(b5.index.to_numpy(), (ts + pd.Timedelta(minutes=TF - 5)).to_numpy(), side="right") - 1]
+    S.update(a=a, a1=a1, b_raw=b_raw, atr5_at=atr5_at, ts=ts, O=O, H=H, L=L, C=C, HB=HB, LB=LB, td=td, tdi=tdi, k5=k5, first5=first5, last5=last5,
              H5=H5, L5=L5, HB5=HB5, LB5=LB5, sess5=tdi[first5], atr5=rma_atr(H5, L5, C5),
              atr1=rma_atr_n(H, L, C, 20), tod=(ts.hour * 60 + ts.minute).to_numpy())
     rng = np.maximum(H - L, 1e-9)
@@ -103,17 +116,18 @@ def rma_atr_n(h, l, c, n):
 
 def zones():
     stamp = f"{len(S['ts'])} {S['ts'][-1]}"            # the cache is only valid for the bars it was built on
-    tag = CACHE.with_suffix(".stamp")
-    if CACHE.exists() and tag.exists() and tag.read_text() == stamp:
-        return pd.read_parquet(CACHE)
-    one = S["a"]
+    cache = CACHE if TF == 1 else CACHE.with_name(f"ifvg_zones_{TF}m.parquet")
+    tag = cache.with_suffix(".stamp")
+    if cache.exists() and tag.exists() and tag.read_text() == stamp:
+        return pd.read_parquet(cache)
+    one = S["a1"]                                     # HTF bars from 1m data, mapped onto the chart bars
     book = ZoneBook(one, S["ts"], S["O"], S["H"], S["L"], S["C"], rma_atr(S["H"], S["L"], S["C"]), P5["htf"],
                     P5["ndog"], P5["htf_days"], P5["htf_cap"], record=True)
     for i in range(len(S["ts"])):
         book.pre(i)
         book.post(i)
     w = book.windows().drop(columns=["t1"])
-    w.to_parquet(CACHE)
+    w.to_parquet(cache)
     tag.write_text(stamp)
     return w
 
@@ -320,8 +334,7 @@ def signals(fresh=5, min_gap=1.0, cap=2.0, zset=ZONES_ALL, session="ny", zone_re
                 sgn = -1 if d == "S" else 1
                 stop = ext - sgn * TOL
                 risk = sgn * (C[j] - stop)
-                k = S["k5"][j]
-                a5 = S["atr5"][k] if ts[j].minute % 5 == 4 else S["atr5"][k - 1]
+                a5 = S["atr5_at"][j]                  # last 5m bar closed by this bar's close
                 if risk <= 0 or risk > cap * a5:
                     continue
                 for y in live:

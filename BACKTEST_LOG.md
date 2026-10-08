@@ -799,6 +799,22 @@ The identical L7 rule on **5-minute** MNQ bars (**L7-5m**), with **3m** and **10
 **Check:** the generalised code run at 1m must reproduce L7's 421 trades exactly.
 **Reported:** for 1m / 3m / 5m / 10m: n, net, R per trade, win %, PF, DD, R by year, positive years, halves, long / short, by level type, and the funnel. **If L7-5m's R per trade is negative, the log says that L7's result is specific to the 1m timeframe.** No criterion beyond that, no adoption.
 
+### IFVG-L7 timeframe check — results (`python3 tools/ifvg_l7.py tf`, 83 s; `data/studies/ifvg_l7/L7-{1,3,5,10}m.csv`, `timeframes.csv`)
+**Code check:** the generalised engine at 1m gives L7's 421 trades exactly, trade for trade. The 5m-ATR stop cap now reads the last closed true 5m bar on every timeframe, which at 1m is the same bar as before.
+
+| Chart | n | Net | R/trade | Win % | PF | DD | Positive years | R 2019–22 / 2023–26 | R by year 2019 → 2026 | Long / short R (n) | Funnel: sweep+SMT → gap → fresh inversion → zone → stop cap → trades |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **1m (L7)** | 421 | +1,886 | +0.075 | 32.8 | 1.10 | −1,432 | 6 | −0.003 / +0.142 | +0.60 +0.05 −0.24 −0.05 +0.02 +0.23 +0.12 +0.18 | +0.092 (214) / +0.057 (207) | 8,028 → 7,226 → 2,692 → 620 → 477 → 421 |
+| 3m | 224 | −573 | +0.023 | 37.1 | 0.95 | −1,914 | 4 | +0.024 / +0.023 | +0.30 +0.24 +0.18 −0.28 −0.00 +0.16 −0.28 +0.21 | +0.184 (107) / −0.124 (117) | 7,715 → 7,108 → 1,879 → 430 → 234 → 224 |
+| **5m (L7-5m)** | 111 | +610 | **−0.036** | 39.6 | 1.11 | −700 | 4 | −0.107 / +0.075 | −0.23 −0.22 −0.17 +0.06 −0.22 +0.20 −0.12 +0.70 | −0.178 (50) / +0.080 (61) | 7,070 → 5,948 → 1,267 → 373 → 114 → 111 |
+| 10m | 26 | +94 | +0.028 | 42.3 | 1.07 | −688 | 4 | +0.560 / −0.504 | −0.74 +0.79 +0.47 +1.00 −0.61 −0.44 −0.34 −0.66 | +0.323 (9) / −0.127 (17) | 6,037 → 3,957 → 665 → 295 → 26 → 26 |
+
+- **Net and R part ways on 3m and 5m:** 3m is net −573 with +0.023 R, and 5m net +610 with −0.036 R. R averages trades of different risk; net does not.
+- **The stop cap does most of the cutting above 1m.** It stays 2 × 5m ATR on every chart, while the sweep extreme on a wider bar sits farther from the entry: 77 % of zone signals pass on 1m, 54 % on 3m, 31 % on 5m and 9 % on 10m. 10m's 26 trades are too few to read.
+- **Long and short swap places across timeframes** (5m: shorts +0.080, longs −0.178; 1m and 3m: longs better). The level types also do not keep their order: VWAP −1σ is +0.55 R on 1m and −0.25 on 5m; VAL is +0.32 on 1m and +0.53 on 5m.
+
+**L7-5m is negative per trade (−0.036 R, 4 of 8 years, 2019–2022 −0.107). As pre-registered: L7's result is specific to the 1-minute timeframe.** On 3m it fades to +0.023 R with a negative net, and on 5m it turns negative. The same rule on the 5m chart does not show L7's edge, and nothing here supports L7 beyond the 1m bars it was found on. No adoption; the L7 shadow continues as registered.
+
 ## BIAS study — pre-registered 2026-09-24; both blocks scored
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
 **Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:

@@ -74,9 +74,12 @@ def setups(smt_win="same"):
     first5, last5 = S["first5"], S["last5"]
     n = len(H)
     V = S["a"].volume.to_numpy().astype(float)
-    es = pd.read_parquet("data/bars/ES_1m.parquet").reindex(S["ts"])
-    VB = es.volume.fillna(0).to_numpy().astype(float)       # a missing ES minute adds no volume
+    es = S["b_raw"]
+    VB = es.volume.fillna(0).to_numpy().astype(float)       # a missing ES bar adds no volume
     CB = es.close.ffill().to_numpy()
+    va = None
+    if E.TF > 1:          # the value area comes from 1m intrabars (the Pine's request.security_lower_tf), as in L7
+        va = pd.read_csv(OUT / "levels.csv").set_index("date")
     starts = np.r_[0, np.flatnonzero(np.diff(tdi)) + 1]
     ends = np.r_[starts[1:], n]
     tdi_s = np.repeat(np.arange(len(starts)), ends - starts)        # session number per 1m bar
@@ -114,11 +117,18 @@ def setups(smt_win="same"):
         if s > 0:
             lv.append(("PDH", lambda j, x=dH[sidx - 1]: x, lambda j, x=dHB[sidx - 1]: x, True, False, a1))
             lv.append(("PDL", lambda j, x=dL[sidx - 1]: x, lambda j, x=dLB[sidx - 1]: x, False, True, a1))
-        if len(rth) and rth[0] > 30:
+        if len(rth) and rth[0] * E.TF > 30:
             o = a1 + rth[0]                           # the 09:30 bar
             on = slice(a1, o)
-            m3, b3 = profile(H[on], L[on], V[on]), profile(HB[on], LB[on], VB[on])
-            lv_rows.append(dict(sess=s, date=str(S["td"][o])[:10], VAH=m3[0], POC=m3[1], VAL=m3[2], ONH=H[on].max(), ONL=L[on].min(),
+            if va is None:
+                m3, b3 = profile(H[on], L[on], V[on]), profile(HB[on], LB[on], VB[on])
+            else:
+                dk = str(S["td"][o])[:10]
+                r_ = va.loc[dk] if dk in va.index else None
+                m3 = (r_.VAH, r_.POC, r_.VAL) if r_ is not None else (np.nan,) * 3
+                b3 = (r_.VAH_es, r_.POC_es, r_.VAL_es) if r_ is not None else (np.nan,) * 3
+            if va is None:
+              lv_rows.append(dict(sess=s, date=str(S["td"][o])[:10], VAH=m3[0], POC=m3[1], VAL=m3[2], ONH=H[on].max(), ONL=L[on].min(),
                                 VAH_es=b3[0], POC_es=b3[1], VAL_es=b3[2], ONH_es=HB[on].max(), ONL_es=LB[on].min()))
             lv.append(("ONH", lambda j, x=H[on].max(): x, lambda j, x=HB[on].max(): x, True, False, o))
             lv.append(("ONL", lambda j, x=L[on].min(): x, lambda j, x=LB[on].min(): x, False, True, o))
@@ -230,6 +240,24 @@ def attrib():
     print(d.to_string(index=False))
 
 
+def tf_run(tf):
+    """L7 on N-minute chart bars (the timeframe check); writes L7-{tf}m.csv and returns its summary row."""
+    E.TF = tf
+    d, _ = setups("same")
+    sig, fun = E.signals(**E.PRIMARY, zset=E.ZONES_ALL)
+    t = one_per_day(sig)
+    t.to_csv(OUT / f"L7-{tf}m.csv", index=False)
+    s = E.summary(t)
+    y = t.entry_time.dt.year
+    print(f"\n==== L7-{tf}m: " + "  ".join(f"{k} {v}" for k, v in s.items()))
+    print("  R by year: " + " ".join(f"{k} {g.R.mean():+.3f} ({len(g)})" for k, g in t.groupby(y)))
+    for name, col in (("side", t.side), ("level type", t.smt), ("exit", t.reason)):
+        print(f"  by {name}: " + " | ".join(f"{k}: n {len(g)} net {g.pnl.sum():+,.0f} R {g.R.mean():+.3f}" for k, g in t.groupby(col)))
+    print("  funnel: " + " -> ".join(f"{k[2:]} {v}" for k, v in sorted(fun.items()) if "[" not in k) + f" -> trades {len(t)}")
+    return dict(tf=f"{tf}m", **s, **{f"R_{k}": round(g.R.mean(), 3) for k, g in t.groupby(y)},
+                **{f"f{k[0]}": v for k, v in sorted(fun.items()) if "[" not in k}, trades=len(t))
+
+
 def daily_slope(n=20):
     """Per session: least-squares slope of the n completed trading-day closes before it (NaN without n of them)."""
     S = E.load()
@@ -323,6 +351,20 @@ if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "all"
     if cmd == "all":
         run_all()
+    elif cmd == "tf":
+        if "--tf" in sys.argv:                          # one timeframe per process (the loaded bars are global)
+            import json
+            print("TFROW " + json.dumps(tf_run(int(sys.argv[sys.argv.index("--tf") + 1])), default=str))
+        else:
+            import json
+            rows = []
+            for tf in (1, 3, 5, 10):
+                o = subprocess.run([sys.executable, __file__, "tf", "--tf", str(tf)], capture_output=True, text=True)
+                print(o.stdout.split("TFROW")[0].rstrip(), o.stderr[-2000:])
+                rows.append(json.loads(o.stdout.split("TFROW ")[1]))
+            d = pd.DataFrame(rows)
+            d.to_csv(OUT / "timeframes.csv", index=False)
+            print(d.to_string(index=False))
     elif cmd == "bias":
         bias()
     elif cmd == "attrib":
