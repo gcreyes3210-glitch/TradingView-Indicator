@@ -755,6 +755,16 @@ No level type is consistent between the two runs except PDH (positive) and ONH, 
 - **A1 alone is weak:** +0.015 R, 5 of 8 years, first half −0.024. Without the narrower SMT window and the daily limit, the levels do not reach L7's numbers.
 Attribution only; nothing adopted.
 
+### IFVG-L7 bias variants — pre-registered 2026-10-08 (written before any variant code was run; nothing is adopted)
+Two variants of L7, otherwise exactly as run: Aceflw levels, same-bar SMT, HTF zone, T3, NY AM, 1 trade per day, 2019-06 → 2026-10-07.
+- **L7-dir:** the HTF zone must match the setup's direction, as the indicator's `htfMatchDir`. A long needs an overlapping eligible zone that is a bullish FVG (or bullish NDOG); a short needs a bearish one. A zone of the other direction does not count, so the setup stays live and is not used up. This is the same place in the logic where the indicator applies it.
+- **L7-trend:** trades only in the direction of the **daily 20-bar close slope at 09:30**.
+  - Daily bar = the trading day (18:00 → 17:00) and its close = the last 1m close before 17:00, as TradingView's daily bar on CME futures. Slope = least-squares slope of the 20 completed daily closes before the session (the current day's partial bar is not used; `ta.linreg`'s slope).
+  - Longs only if the slope is > 0, shorts only if < 0, no trade if it is exactly 0.
+  - **The filter acts on signals before the 1-per-day limit,** so a counter-trend signal does not block a later with-trend one. (Reading: "trades only in the direction" filters which signals may be traded; the day's single trade is then the first allowed one.)
+- **Criterion (each, against L7 = −0.003 R in 2019–2022 / +0.142 R in 2023–2026, 6 of 8 years):** a variant counts only if its R per trade **beats L7's in both halves** and it keeps **≥ 6 of 8 positive years**. Then **Bonferroni 0.05 / 2:** its best split's within-year shuffle p (`split_check.py`; side, level type, zone) must be < 0.025.
+- **Reported next to L7:** n, net, R per trade, win %, PF, DD, R by year, halves, long / short, and the funnel with the variant's extra step (zone of the matching direction for L7-dir; trend-aligned signals for L7-trend). Engine `python3 tools/ifvg_l7.py bias`.
+
 ## BIAS study — pre-registered 2026-09-24; both blocks scored
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
 **Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:
