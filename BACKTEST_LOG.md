@@ -1443,7 +1443,7 @@ v1.4: 879 trades, +20,900, +0.127 R. Median opening correlation 0.815; 4 days ha
 - **Possible next step, not done:** the forward-test practice for a split like this is a **shadow flag** (mark each live v1.4 trade ES-diverge or not and track the two nets), as for ORB8 and retail sales. That would be a separate, pre-registered addition to `calibrate_orb.py`.
 
 ## SIX — six pre-registered tests on MNQ 2019-06 → 2026-10 (written 2026-10-08 before any SIX code was run)
-**Common.** Databento MNQ 1m / 5m and ES 1m bars, 2019-06-01 → 2026-10-07. House fills: 1 tick on every fill, $1 per side per contract, MNQ $2 / pt, MES $5 / pt, stop first, a bar opening beyond a level fills at its open. Engine `tools/six.py` (LRB through `tools/lrb_engine.py`).
+**Common.** Databento MNQ 1m / 5m and ES 1m bars, 2019-06-01 → 2026-10-07. House fills: 1 tick on every fill, $1 per side per contract, MNQ $2 / pt, MES $5 / pt, stop first, a bar opening beyond a level fills at its open. Engine `tools/six1.py` (LRB through `tools/lrb_engine.py`; named `six.py` in the first draft of this entry, renamed because it shadowed the `six` package).
 - **Usual criterion** (tests 1–4): ≥ 6 of 8 calendar years positive (net), ≥ +0.05 R per trade, both halves (2019–2022, 2023–2026) non-negative in R per trade, the sign of R per trade holding on both neighbours, and the test's p < **0.05 / 6 = 0.0083**. p = one-sided bootstrap of mean R > 0 (10,000 resamples of the trades, seed 1) unless stated.
 - **Walk-forward for anything adopted:** a test that passes is logged as a candidate only. It is then re-run on bars cut at 2022-12-31 (asserted), with that in-sample result logged before the 2023–2026 part is looked at again, as a separate step. Nothing is adopted here.
 **(1) ORB-rev — stop and reverse.**
@@ -1492,6 +1492,58 @@ v1.4: 879 trades, +20,900, +0.127 R. Median opening correlation 0.815; 4 days ha
 - **Reported:** CV accuracy and in-sample (training) accuracy and R; out-of-sample accuracy, R per trade, by year, long / short.
 - **Passes if,** out of sample: R per trade ≥ +0.05, ≥ 3 of 4 years net positive, and accuracy above the always-long accuracy (the share of up days) with one-sided binomial p < 0.0083.
 **Observation only:** buy at the 15:59 close + 1 tick, sell at the next session's 09:30 open − 1 tick, every cash day (early-close days skipped), net and per trade by year.
+
+### SIX — results (`python3 tools/six1.py all`, about 1 minute; trades in `data/studies/six/`, `summary.json`)
+**Coding fixes before any result:**
+- The module was first named `six.py`, which shadowed the `six` package that pandas' dateutil imports. Renamed to `six1.py`; the log line above now says so.
+- The ML1 feature join crashed on a column-name clash **before any model was fitted**. Renamed the intermediate columns.
+- ML1 ran twice: alone, then inside `all`. It is the same deterministic fit (random_state 1, same data), so the numbers are identical. That is still the one evaluation, not a second model.
+
+| Test | n | Net | R/trade | Win % | DD | Positive years | R 2019–22 / 2023–26 | Neighbours R | p (< 0.0083) | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|
+| (1) ORB-rev | 309 | −1,346 | −0.013 | 42.7 | −5,694 | 2 | +0.002 / −0.030 | −0.013 / −0.014 (buffer 0 / 4) | 0.62 | fails |
+| (2) ORB-add, the add contract | 83 | +2,459 | +0.049 | 53.0 | −1,020 | **8** | +0.133 / **−0.009** | +0.042 / +0.122 (0.75 / 1.25 R) | 0.18 | fails (R just under +0.05, 2023–26 negative, p) |
+| (3) LRB (= LRB1d) | 1,369 | −3,406 | −0.000 | 46.6 | −6,682 | 3 | +0.025 / −0.024 | +0.002 / −0.025 | 0.50 | fails |
+| (4) RV | 881 | −11,057 | −0.086 | 47.9 | −14,436 | 2 | −0.051 / −0.118 | −0.134 / −0.124 (1.5 / 2.5) | 0.95 | fails |
+| (5) ORB-vol | 838 | +29,770 | — | — | — | 7 | return/DD 2.96 vs 3.18 const / 8.76 vs 10.13 | cap 5: 8.54 vs 10.65; cap 20: 9.70 vs 10.65 | 0.65 | fails |
+| (6) ML1, out of sample | 936 | +10,730 | +0.042 | 52.2 | −9,092 | 3 of 4 | — / +0.042 | — | accuracy 52.6 % vs always-long 55.1 %, p 0.95 | fails |
+
+**(1) ORB-rev.**
+- **Result:** reversing v1.4's stop-outs makes nothing. By year −0.22 / +0.10 / −0.00 / +0.02 / +0.00 / −0.24 / +0.20 / −0.02 R, long −0.040, short +0.011.
+- **Exits:** 249 of 309 reversals reach the close and 60 are stopped. The stop sits at the day's opposite extreme (median risk 130 points), so a failed ORB breakout is no signal for the other side.
+**(2) ORB-add.**
+- **The add contract alone:** 83 adds in 7.3 years, every year net positive, but +0.049 R per trade and −0.009 R in 2023–2026. Its risk (add fill to v1.4's stop) is wide, so dollars are positive while R is near zero.
+- **Combined, in v1.4 risk units:**
+
+  | Book | Net | Total R | DD | R per day 2019–22 / 2023–26 | Return / DD |
+  |---|---|---|---|---|---|
+  | v1.4 alone | +20,900 | +111.5 R | −15.3 R | +0.102 / +0.150 | 7.30 |
+  | v1.4 + add | +23,359 | +126.7 R | −11.8 R | +0.130 / +0.157 | 10.75 |
+
+- **Observation, not a criterion:** the add lowers the book's drawdown in R, because adds come only on trades already +1 R at noon. It fails the pre-registered test on the add contract, so nothing is adopted.
+**(3) LRB.**
+- **Reproduces the logged LRB1d** on the longer span (1,363 → 1,369 trades, −0.001 → −0.000 R).
+- **Variant, break days only:** 761 trades, −316, −0.008 R, 2 of 8 years. The afternoon range breakout has no edge with or without v1.4's day filter.
+**(4) RV.**
+- **The ratio's 5-day z-score almost never returns to 0 the same day:** 834 of 881 trades exit at 15:59, only 47 at z = 0. The trade is mostly a held mean-reversion bet against intraday ratio trend, and it loses: shorts −0.131 R, longs −0.032 R.
+- **Roll handling:** 203 trading days are skipped for rolls in the 5-day window.
+- **Exposure:** one MNQ against one MES carries net long-NQ exposure, as noted in the pre-registration.
+**(5) ORB-vol.**
+- **Sizing:** risk sizing at $250 a trade gives 1–8 contracts (mean 1.53; the 10-contract cap never binds). 41 trades with stops over 62.5 points round to 0 and are skipped.
+- **Result:** risk sizing has the **lower** return-to-drawdown in both halves and on both neighbours. It puts the most contracts on the narrow-range days, and those are not v1.4's best. Constant size is better here.
+**(6) ML1 — one model, one out-of-sample evaluation.**
+- **Fit:** best by 5-fold CV inside 2019–2022: learning_rate 0.1, max_depth 2, 200 trees, CV accuracy 0.567. In-sample (training) accuracy is 0.854 with +1.05 R per trade, which is fit, not skill.
+- **Out of sample (2023–2026):** accuracy 0.526 against 0.551 for always-long. +0.042 R per trade. Years +0.04 / +0.09 / −0.07 / +0.13 R. Long 624 trades +0.077 R, short 312 trades −0.029 R.
+- **The model is not better than always going long:** always-long over the same days makes +9,638 and +0.048 R, and the model's profit comes from its long calls.
+- **Feature importances:** opening-range low vs overnight low 0.17, range width 0.15, gap 0.14, overnight return 0.14, 20-day vol 0.13, previous range 0.12, opening-range high vs overnight high 0.12, day of week 0.02. **No second model.**
+**Observation — overnight hold** (buy the 15:59 close, sell the next 09:30 open; 1,833 nights, early-close days skipped):
+- **Total:** +32,478 net, +17.7 per night, 55.5 % up nights, +18,988 points before costs. That is about four-fifths of NQ's rise over the span, from about 7,000 to about 31,000.
+- **By year:** +2,942 / +5,264 / +2,971 / **−6,172** / +2,464 / +10,732 / +7,710 / +6,568 (7 of 8 positive; 2022 is the one down year).
+- This is the overnight drift: on MNQ 2019–2026 most of the index's gain came outside the cash session. Not tested; observation only.
+**Verdict: none of the six passes; nothing adopted, so no walk-forward step is needed.** Two things to keep from it:
+- the second-contract add improves v1.4's return-to-drawdown, though it fails on its own R;
+- the overnight hold is where the index's drift sits.
+Either would need its own pre-registration.
 
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
