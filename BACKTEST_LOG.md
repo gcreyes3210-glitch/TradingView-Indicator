@@ -445,10 +445,11 @@ Rule traded: ORB v1.4 (v1.3 + the early-close flatten), MNQ 5m, one contract, fr
 Shadow rules — marked on every live trade, never traded:
 - **ORB8** (in-sample demonstration, see ORB8 under the ORB table): skip if F1 the previous cash day's range is in the top tercile of the 60 cash days before it, F2 the overnight range is wider than the previous cash day's range, or F3 |09:30 gap| < 0.5 × opening-range width. The tool prints each filter per trade. **Adoption rule: ORB8 is adopted only if the trades it would have skipped are net negative after at least 40 live trades.** Baseline for comparison (2020-01-07 → 2026-09-22, the TradingView export): of 821 trades ORB8 would have skipped 599, and those were **net +10,164** (F1 306 trades −77, F2 166 +1,829, F3 249 +3,672) — the skipped trades have been profitable, so the live test has to show something the history does not.
 - **Retail-sales days** (Events): 18 event types were tested, so its p = 0.011 does not survive a multiple-comparison correction, and there is no mechanism; tracked only, no adoption criterion. Baseline: 36 of 821 trades, net −2,330.
+- **ES-diverge** (from 2026-10-08; see "ES filters on ORB v1.4" and "Tiered sizing"): ES had not closed beyond its 09:30–09:44 range on the trade's side by v1.4's entry close. The tool marks each live trade DIV or conf and tracks both nets. Baseline: 19.6 % of trades, hit 53.5 %, +0.348 R; ES-confirm hit 48.8 %, +0.073 R. **The forward test of the tiered size (2 contracts on ES-diverge) is this column.**
 
-| Week | Live trades (v1.4) | Net | Shadow ORB8 | Shadow retail-sales |
-|---|---|---|---|---|
-| week to 2026-10-06 | 3 | -295 | taken 3, ORB8 would skip 2, net of skipped -90 | taken 3, retail-sales would skip 0, net of skipped +0 |
+| Week | Live trades (v1.4) | Net | Shadow ORB8 | Shadow retail-sales | Shadow ES-diverge |
+|---|---|---|---|---|---|
+| week to 2026-10-06 | 3 | -295 | taken 3, ORB8 would skip 2, net of skipped -90 | taken 3, retail-sales would skip 0, net of skipped +0 | ES-diverge 0 net +0, ES-confirm 3 net -295 (column added 2026-10-08) |
 
 **Check of 2026-10-08** (export `data/tradingview/ORB_live_2026-10-08.csv`, 30 trades 2026-06-29 → 2026-10-06, Databento MNQ bars to 2026-10-08 09:33 ET):
 - **Calibration, all 30 trades:** 30 TradingView / 30 engine, 30 matched on day and side, 0 unmatched. All 30 agree on entry bar, entry price, exit reason, exit price, PnL (within $1) and opening-range width. The tag's h:m (New York) equals the chart time (Los Angeles) converted to New York on all 30. Both sides: net +150, win 50.0 %, PF 1.03, DD −1,954, 9 stops / 21 time exits. **The chart's strategy matches v1.4.**
@@ -1577,6 +1578,37 @@ Either would need its own pre-registration.
 | (b) 2 contracts | 838 | +10,966 | +85.1 | −7,766 | −30.5 | 2.79 | 1.41 |
 
 **2019–2022: the tiered book beats (a) and (b) in R and in dollars.** It makes almost what (b) makes (+10,305 against +10,966) with about (a)'s drawdown, on 508 contracts against 838. The test now needs the same in 2023–2026.
+
+### Tiered sizing — walk-forward step 2 and verdict (`python3 tools/es_filters.py tier --phase full`; `data/studies/es_filters/tier_full.csv`, `tier_full_summary.csv`)
+The 2019–2022 trades and flags equal step 1 (asserted).
+
+| Book | 2019–22: Return/DD R · $ | 2023–26: Net · total R · DD $ · DD R | 2023–26: Return/DD R · $ |
+|---|---|---|---|
+| **Tiered** (543 contracts in 2023–26) | **5.06 · 2.35** | +21,660 · +100.4 · −3,481 · −15.4 | **6.52 · 6.22** |
+| (a) 1 contract | 2.79 · 1.41 | +15,417 · +68.9 · −3,143 · −11.1 | 6.21 · 4.91 |
+| (b) 2 contracts | 2.79 · 1.41 | +30,834 · +137.9 · −6,286 · −22.2 | 6.21 · 4.91 |
+
+**By the pre-registered rule the tiered book is adopted:** it beats (a) and (b) in R and in dollars in both halves. Read with it:
+1. **2023–2026 was not unseen.** The ES-diverge split was found in the ES filter study on 2019–2026, which already showed its 2023–2026 R (+0.379). Step 2 is a re-check of a split chosen with those years in view, not a blind out-of-sample test. **The live shadow flag is the first genuinely out-of-sample evidence.**
+2. **The 2023–26 margin in R is small** (6.52 against 6.21), and the tiered drawdown in R is deeper than (a)'s (−15.4 against −11.1). The margin in dollars is larger (6.22 against 4.91).
+3. **Multiple comparisons and mechanism:** the split came from 3 ES tests and cleared its Bonferroni level on the random-removal share (0.003 < 0.0167). Its proposed mechanism (NQ breaking out alone is relative strength) is plausible but untested.
+4. **Live use needs ES bars in the chart's strategy** (`request.security` on ES1!) to know the flag at entry. **Nothing in `ORB_strategy.pine` is changed by this entry;** carrying the tiered size into the live strategy is a separate step for the user to decide, and the shadow flag tracks it until then.
+
+**Forward-test baseline for ES-diverge** (`python3 tools/es_filters.py baseline`, `data/studies/es_filters/baseline.csv`; 879 backtest trades, 2019-06-01 → 2026-10-06):
+
+| Year | Trades | ES-diverge (share) | ES-diverge hit % · R · net | ES-confirm hit % · R · net |
+|---|---|---|---|---|
+| 2019 | 56 | 9 (16 %) | 33 % · +0.070 · −84 | 45 % · −0.053 · −325 |
+| 2020 | 99 | 21 (21 %) | 62 % · +0.213 · +108 | 44 % · −0.089 · −1,445 |
+| 2021 | 127 | 37 (29 %) | 59 % · +0.201 · +1,340 | 56 % · +0.130 · +1,168 |
+| 2022 | 137 | 22 (16 %) | 55 % · +0.722 · +3,458 | 48 % · +0.103 · +1,263 |
+| 2023 | 128 | 28 (22 %) | 43 % · +0.190 · +1,180 | 49 % · +0.042 · +1,360 |
+| 2024 | 130 | 29 (22 %) | 52 % · +0.570 · +2,818 | 47 % · +0.129 · +470 |
+| 2025 | 117 | 20 (17 %) | 60 % · +0.407 · +2,272 | 50 % · +0.096 · +3,230 |
+| 2026 (to Oct 6) | 85 | 6 (7 %) | 50 % · +0.243 · −26 | 52 % · +0.139 · +4,114 |
+| **All** | 879 | 172 (19.6 %) | **53.5 % · +0.348 · +11,066** | 48.8 % · +0.073 · +9,834 |
+
+About 1 v1.4 trade in 5 is ES-diverge, roughly 2 a month at v1.4's rate. **Expect about 25 ES-diverge trades a year in the forward test,** so the shadow needs a year or more before its R can be compared with +0.348.
 
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.

@@ -15,6 +15,8 @@ whether each ORB8 filter would have skipped it, and the retail-sales flag — sh
     F2  overnight (18:00-09:30) range wider than the previous cash day's range
     F3  |09:30 gap| < 0.5 x the 09:30-09:45 opening-range width
     ORB8 skip = F1 or F2 or F3        retail = Census advance retail-sales release day (data/events.csv)
+    ES = ES-diverge (DIV: ES had not closed beyond its 09:30-09:44 range on the trade's side by the entry bar's close)
+         or ES-confirm (conf), tools/es_filters.py es_confirm(); n/a until the ES bars reach the entry bar
 Then the running shadow lines (trades taken, trades ORB8 / retail would have skipped, net of the skipped trades) and a
 ready-to-paste row for the "Forward test" table in BACKTEST_LOG.md. Flags need bars (and events.csv) that reach the
 trade date; otherwise they print as n/a. Then the forward bias log score (tools/bias_log.py, data/forward/bias_log.csv).
@@ -100,11 +102,15 @@ def shadow_report(tv, flags, since):
         return
     for c in ("F1", "F2", "F3", "ORB8", "retail"):
         live[c] = [flags[c].get(d, np.nan) if d in flags.index else np.nan for d in live.day]
+    from es_filters import load_es, es_confirm
+    _, e = load_es()
+    live["ES"] = [es_confirm(e, t, sd) for t, sd in zip(live.entry_time, live.side)]
     fmt = lambda v: "n/a" if pd.isna(v) else ("SKIP" if v else "-")
-    print(f"{'date':<11}{'side':<5}{'exit':<7}{'net':>8}   F1    F2    F3    ORB8  retail")
+    print(f"{'date':<11}{'side':<5}{'exit':<7}{'net':>8}   F1    F2    F3    ORB8  retail  ES")
     for _, r in live.iterrows():
         print(f"{str(r.day):<11}{r.side:<5}{r.reason:<7}{r.pnl:>+8.1f}   " +
-              "  ".join(f"{fmt(r[c]):<4}" for c in ("F1", "F2", "F3", "ORB8", "retail")))
+              "  ".join(f"{fmt(r[c]):<4}" for c in ("F1", "F2", "F3", "ORB8", "retail")) +
+              f"    {'n/a' if pd.isna(r.ES) else ('conf' if r.ES else 'DIV')}")
     row = []
     for c, name in (("ORB8", "ORB8"), ("retail", "retail-sales")):
         known = live[live[c].notna()]
@@ -113,11 +119,18 @@ def shadow_report(tv, flags, since):
                 + (f" ({len(live) - len(known)} n/a)" if len(known) < len(live) else ""))
         print(f"shadow {name}: {line}")
         row.append(line)
+    k = live[live.ES.notna()]
+    dv, cf = k[~k.ES.astype(bool)], k[k.ES.astype(bool)]
+    es_line = (f"ES-diverge {len(dv)} net {dv.pnl.sum():+,.0f}, ES-confirm {len(cf)} net {cf.pnl.sum():+,.0f}"
+               + (f" ({len(live) - len(k)} n/a)" if len(k) < len(live) else ""))
+    print(f"shadow ES-diverge: {es_line}   [backtest baseline: 19.6 % of trades ES-diverge, hit 53.5 %, +0.348 R; "
+          f"ES-confirm hit 48.8 %, +0.073 R]")
+    row.append(es_line)
     if "F1" in live:
         print("  ORB8 by filter (a trade can fail several): " +
               "  ".join(f"{c} {int(live[c].eq(True).sum())} trades {live[live[c].eq(True)].pnl.sum():+,.0f}"
                         for c in ("F1", "F2", "F3")))
-    print(f"\nlog row: | week to {live.day.max()} | {len(live)} | {live.pnl.sum():+,.0f} | {row[0]} | {row[1]} |")
+    print(f"\nlog row: | week to {live.day.max()} | {len(live)} | {live.pnl.sum():+,.0f} | {row[0]} | {row[1]} | {row[2]} |")
 
 
 if __name__ == "__main__":
