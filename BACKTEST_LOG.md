@@ -637,6 +637,32 @@ Shuffle check on the best split (split_check, side / zone / SMT type): level vs 
 **Verdict: IFVG-1m fails.** No exit or zone set gives positive R, and the neighbours agree in sign (negative). Z-high, the trader's named secondary, is no better than Z-all.
 **What the rule could not encode:** "strong move" as a feeling, the V-shape, the "stronger trade" comparison between overlapping signals, and whether a gap is visible beyond the 1-point minimum. The trader names the day's bias as the missing input; the forward bias log is the test of it.
 
+## IFVG-L7 — IFVG-1m with the Aceflw level set as the sweep levels — pre-registered 2026-10-08 (written before any L7 code was run)
+The IFVG-1m rule (`data/studies/audit/IFVG1m_spec.md`, `tools/ifvg1m_engine.py`), primary settings **T3, Z-all**, with **one change: the sweep levels.** The 5m 3-bar fractal levels are replaced by the reproducible part of Aceflw's level set, computed as in `Aceflw_Levels.pine`. Engine `tools/ifvg_l7.py`, which imports the IFVG-1m engine and replaces only its sweep list and its trade limit. Span: everything the bars hold, **2019-06 → 2026-10-07**, MNQ and ES 1m bars from Databento.
+**Levels (MNQ, and the same computation on ES 1m bars for ES's corresponding level):**
+- **Overnight VAH / POC / VAL:** volume profile of the 1m bars 18:00 → 09:29 ET of the trading day. Rows are 4 ticks (1 point on both MNQ and ES). Each bar's volume is spread evenly over the rows from its low to its high. POC is the fullest row (the lowest one on a tie) at its midpoint. The 70 % value area grows from the POC two rows at a time toward the side whose next two rows hold more volume (up on a tie). VAH is the top of its highest row and VAL the bottom of its lowest, as in the Pine.
+- **Overnight high / low:** the high and low of the same bars.
+- **VWAP, ±1σ, ±2σ:** anchored at 18:00, hlc3 of 1m bars weighted by volume, with σ the volume-weighted standard deviation from the anchor. It moves every minute. **The level used on bar j is its value through bar j−1** (known when bar j opens). The Pine plots the value including the live bar, which would be look-ahead.
+- **Prior-day high / low:** the previous trading day's high / low (18:00 → 17:00), exactly as IFVG-1m's PDH / PDL. `Aceflw_Levels.pine` does not draw these; they are added as asked.
+- **Not included:** gamma wall, put wall, call wall and vol trigger cannot be reproduced without options data. The Pine's expected-move bands, draw-up / draw-down and Aceflw's other brief levels are not part of this set either.
+**When levels are live.** The overnight profile and overnight high / low exist from the 09:30 bar. VWAP and its bands are used from 09:30 too, so an overnight crossing cannot use them up. PDH / PDL are live from 18:00, as in IFVG-1m. Setups still form from 08:30 in the scan, as before; only PDH / PDL can form one before 09:30.
+**Sweep** = the first 1m bar that trades beyond the level by > 2 ticks.
+- **One-sided levels:** the overnight high and PDH can only be swept upward (short setup); the overnight low and PDL only downward (long setup).
+- **Two-sided levels:** VAH, POC, VAL, VWAP and its four bands can be swept either way. A high sweep needs the previous 1m close below the level and a high > level + 2 ticks; a low sweep is the mirror.
+- **Each level gives at most one sweep per direction per session** (the first), as IFVG-1m uses each level once. *(Reading: the level set has no side of its own and VWAP moves; without a per-direction limit VWAP chop would make a sweep every few bars.)*
+**SMT** = ES does not take its corresponding level (> 2 ticks beyond, ES's own level of the same type) on the **same 5m bar** as the MNQ sweep. That is the user's wording; IFVG-1m checked the 5m bar before, of and after. As before, the check is read as known at each minute: ES taking it at or before the sweep minute means no SMT; ES taking it later in that 5m bar ends the SMT from that minute.
+- For VWAP and its bands, ES's level on each minute is ES's VWAP / band through the previous minute.
+- **Pivot SMTs are dropped.** They were built on 5m fractals, which this run replaces; every L7 setup is a level sweep.
+**Everything else as IFVG-1m:**
+- freshest bullish (bearish) 1m gap ≥ 1 point inverted within 5 bars, on or after the sweep bar; the 80 % strong-candle inversion; setup life 30 bars after the sweep leg's extreme
+- HTF zone required (Z-all: 15m / 1H / 4H / D / NDOG, Run I lifecycle, 50 % CE)
+- stop at the sweep extreme + 2 ticks, skipped beyond 2 × 5m ATR(14); target 3 R
+- entries 09:30–10:59, flat 12:00; house fills, $1 per side, 1 tick
+- **1 trade per day** (the first trade of the session), as asked. IFVG-1m allowed up to 3 with a stop after the first winner or the second loser, which in practice meant at most 2.
+**Runs (2):** **L7** (above) and **L7-noHTF** (the HTF-zone requirement removed, everything else equal).
+**Criterion per run (the usual one):** ≥ 6 of 8 calendar years positive, ≥ +0.05 R per trade, both halves (2019–2022, 2023–2026) non-negative, and the sign holding on the neighbours (freshness 3 and 8 bars). **Two comparisons:** a run counts only if, in addition, the best split's within-year shuffle p (`split_check.py`, side and level type) is < 0.05 / 2 = 0.025.
+**Reported per run:** n, net, R per trade, win %, PF, DD, by year, long / short, **by level type swept**, exit mix, and the funnel (sweep+SMT → gap alive → fresh inversion → HTF zone → stop cap → signals → trades after the 1-per-day limit). **Check charts:** 10 random L7 trades, 1m bars cut at the entry bar with the ES panel, outcome hidden.
+
 ## BIAS study — pre-registered 2026-09-24; both blocks scored
 Question: can the trader call the day's direction from the picture at 09:30 ET? No rule change.
 **Days.** 40 trading days, 5 per calendar year 2019–2026, drawn with `default_rng(2409)` (`python3 tools/bias_study.py make`). Eligible days have:
