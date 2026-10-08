@@ -1566,5 +1566,17 @@ Either would need its own pre-registration.
 - **Step 2:** the full span, asserting that the 2019–2022 trades and flags equal step 1, then the 2023–2026 result.
 - Engine `python3 tools/es_filters.py tier --phase is|full`.
 
+### Tiered sizing — walk-forward step 1: 2019–2022 (logged and committed before 2023–2026 was run)
+`python3 tools/es_filters.py tier --phase is`. MNQ and ES bars cut at 2022-12-31 23:59 (asserted). 419 v1.4 trades, 89 ES-diverge (as in the ES filter study).
+- **Code:** the ES-diverge definition was moved into one function, `es_confirm()`, which the study, the shadow flag and this test all use. Re-running the study with it gives the same flag on all 879 trades.
+
+| Book, 2019–22 | Contracts | Net | Total R | DD $ | DD R | Return/DD in R | Return/DD in $ |
+|---|---|---|---|---|---|---|---|
+| **Tiered (2 on ES-diverge, 1 otherwise)** | 508 | +10,305 | +71.0 | −4,386 | −14.0 | **5.06** | **2.35** |
+| (a) 1 contract | 419 | +5,483 | +42.6 | −3,883 | −15.3 | 2.79 | 1.41 |
+| (b) 2 contracts | 838 | +10,966 | +85.1 | −7,766 | −30.5 | 2.79 | 1.41 |
+
+**2019–2022: the tiered book beats (a) and (b) in R and in dollars.** It makes almost what (b) makes (+10,305 against +10,966) with about (a)'s drawdown, on 508 contracts against 838. The test now needs the same in 2023–2026.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
