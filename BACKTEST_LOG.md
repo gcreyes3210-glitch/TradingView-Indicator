@@ -1416,5 +1416,31 @@ Each cell is R per trade · win % · R 2019–22 / 2023–26:
 - among 1,000 random removals of the same count (seed 7), the share whose R per trade is at least the kept trades' is **< 0.0167**. The 5 % share is shown too.
 **Observation only unless a filter passes.** Engine `python3 tools/es_filters.py`.
 
+### ES filters — results (`python3 tools/es_filters.py`, 2 s; per-trade flags in `data/studies/es_filters/v14_es.csv`, `summary.csv`)
+v1.4: 879 trades, +20,900, +0.127 R. Median opening correlation 0.815; 4 days have no correlation (constant prices) and fall outside the terciles.
+
+| Bucket | All: n · net · R/trade | 2019–22 | 2023–26 | R by year 2019 → 2026 |
+|---|---|---|---|---|
+| ES-confirm | 707 · +9,834 · +0.073 | 330 · +661 · +0.043 | 377 · +9,174 · +0.099 | −0.05 −0.09 +0.13 +0.10 +0.04 +0.13 +0.10 +0.14 |
+| **ES-diverge** | 172 · +11,066 · **+0.348** | 89 · +4,822 · +0.319 | 83 · +6,244 · +0.379 | +0.07 +0.21 +0.20 +0.72 +0.19 +0.57 +0.41 +0.24 |
+| Correlation, low | 295 · +8,938 · +0.132 | 140 · +6,036 · +0.240 | 155 · +2,902 · +0.034 | −0.06 +0.10 +0.30 +0.40 −0.11 +0.08 +0.03 +0.19 |
+| Correlation, mid | 288 · +13,569 · +0.259 | 136 · +4,550 · +0.250 | 152 · +9,019 · +0.267 | +0.33 +0.22 +0.38 +0.12 +0.13 +0.34 +0.35 +0.24 |
+| Correlation, high | 292 · +160 · +0.005 | 139 · −3,336 · −0.154 | 153 · +3,496 · +0.151 | −0.36 −0.28 −0.23 +0.08 +0.20 +0.27 +0.07 +0.01 |
+
+**Adoption test (3 filters, Bonferroni 0.0167 on the random-removal share):**
+
+| Filter | Kept: n · R/trade · net | Skipped net 2019–22 / 2023–26 | Kept R > all | Random share ≥ kept R | Verdict |
+|---|---|---|---|---|---|
+| Keep ES-confirm | 707 · +0.073 · +9,834 | +4,822 / +6,244 | no | 0.998 | fails all four |
+| **Keep ES-diverge** | 172 · **+0.348** · +11,066 | **+661 / +9,174** | yes | **0.003** (< 0.0167) | **fails condition (1):** the skipped trades make money in both halves |
+| Keep top correlation tercile | 292 · +0.005 · +160 | +8,818 / +11,922 | no | 0.979 | fails all four |
+
+**Verdict: none passes; observation only.**
+- **ES-diverge is the strongest split found on v1.4 so far.** Trades where NQ broke its 15-minute range by a decisive close while ES had not closed beyond its own make +0.348 R. They are positive in all 8 years, both halves (+0.32 / +0.38), and only 0.3 % of random subsets of 172 do as well.
+- **It fails for the same reason as NR7 and ID:** the other 707 trades (ES confirming) also make money (+9,834, +0.073 R). Keeping only ES-diverge would give up about half of v1.4's dollars for a higher average.
+- **Possible mechanism:** NQ leading ES out of the range is relative strength in the index that is breaking. It was not tested here.
+- **Correlation does not order the trades monotonically:** the middle tercile is best (+0.259) and the top tercile worst (+0.005). That shape suggests noise, not a mechanism.
+- **Possible next step, not done:** the forward-test practice for a split like this is a **shadow flag** (mark each live v1.4 trade ES-diverge or not and track the two nets), as for ORB8 and retail sales. That would be a separate, pre-registered addition to `calibrate_orb.py`.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
