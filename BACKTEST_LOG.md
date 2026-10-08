@@ -1367,7 +1367,7 @@ Each cell is R per trade · win % · R 2019–22 / 2023–26:
 **Reading (no criterion applied).**
 - **The exit does not rescue a negative family:** OB1, OTE1, IFVG-1m and VWR1 are negative at every fixed target, and OB1 and OTE1 at hold-to-close too.
 - **The sign does flip with the exit for four families:**
-  - **AMD1-1m:** negative at 1 R, positive at 2 R / 3 R and hold. **Hold-to-close is the only cell in the table positive in both halves** apart from ORB9-a's own exit (+0.057 / +0.132, matching the logged AMD1e).
+  - **AMD1-1m:** negative at 1 R, positive at 2 R / 3 R and hold. **Positive in both halves:** only AMD1-1m's hold-to-close (+0.057 / +0.132, in line with the logged AMD1e) and its own exit (+0.010 / +0.101), plus ORB9-a's hold-to-close, which is its own exit (+0.103 / +0.043).
   - **L7:** positive only at 2–3 R; hold-to-close loses.
   - **ORB9-a:** positive only at 3 R and hold.
   - **VWR1:** barely positive at hold (+0.012).
