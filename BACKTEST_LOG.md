@@ -448,6 +448,13 @@ Shadow rules — marked on every live trade, never traded:
 
 | Week | Live trades (v1.4) | Net | Shadow ORB8 | Shadow retail-sales |
 |---|---|---|---|---|
+| week to 2026-10-06 | 3 | -295 | taken 3, ORB8 would skip 2, net of skipped -90 | taken 3, retail-sales would skip 0, net of skipped +0 (3 n/a) |
+
+**Check of 2026-10-08** (export `data/tradingview/ORB_live_2026-10-08.csv`, 30 trades 2026-06-29 → 2026-10-06, Databento MNQ bars to 2026-10-08 09:33 ET):
+- **Calibration, all 30 trades:** 30 TradingView / 30 engine, 30 matched on day and side, 0 unmatched. All 30 agree on entry bar, entry price, exit reason, exit price, PnL (within $1) and opening-range width. The tag's h:m (New York) equals the chart time (Los Angeles) converted to New York on all 30. Both sides: net +150, win 50.0 %, PF 1.03, DD −1,954, 9 stops / 21 time exits. **The chart's strategy matches v1.4.**
+- **Live trades:** 2026-09-23 S time +231.0 (F3 → ORB8 skip) · 2026-09-30 L SL −321.5 (F2 → ORB8 skip) · 2026-10-06 L time −204.5 (no flag). ORB8 by filter: F1 0, F2 1 trade −322, F3 1 trade +231.
+- **Retail-sales flag n/a** on all three: `data/events.csv` ends 2026-09-18 (the last retail-sales date in it is 2026-09-16). It needs the Census calendar rebuilt (`tools/build_events.py`) to score.
+- **Forward bias log:** `data/forward/bias_log.csv` has 0 rows; nothing to score.
 
 ## Walk-forward
 Pre-registered (user, 2026-09-23): a parameter search on the ORB engine only, run as a script. In-sample 2019-06-01 → 2022-12-31; out-of-sample 2023-01-01 → 2026-09-21, never read by the search (`tools/wf1.py` hands the search a copy of the bars cut at 2022-12-31 23:59 and asserts it). Rank in sample by the worst calendar year's total R, then the median year's; take the top five; run them and v1.4 once each out of sample. **Rule: adopt nothing unless a setting beats v1.4 out of sample in both net and R per trade with at least 3 of 4 positive years; otherwise log it as confirmation that v1.4 sits on a plateau.**
