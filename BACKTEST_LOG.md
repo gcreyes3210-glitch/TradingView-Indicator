@@ -1246,5 +1246,24 @@ Three strategies from published work on MNQ, Databento 1m bars, **2019-06-01 →
   - **This share is the run's p for the Bonferroni level, 0.00625.** No usual-criterion or neighbour step: the ORB8 test is the criterion.
 **Check charts:** 10 random IM1-a trades (5m bars 09:30 → the 15:30 entry, with the prior close, the 10:00 close and the entry marked) and 10 random ORB9-a trades (1m bars 08:30 → the 09:35 entry, with the first 5m bar, the stop and the overnight high / low), seed 11, cut at entry, outcome hidden.
 
+### Literature — walk-forward step 1: in-sample results, 2019-06-01 → 2022-12-31 (logged and committed before any 2023–2026 run)
+`python3 tools/lit1.py is`: bars cut at 2022-12-31 23:59 (asserted); 926 cash days. CSVs `data/studies/lit1/is_*.csv`, `is_results.json`.
+**Coding fix before this run was logged:** ORB9's floored stop is rounded to the tick away from the fill, so the risk is never under the floor, and the 10 R target to the nearest tick. The first in-sample run had unrounded stops. That changed ORB9-a in-sample by −$58 and nothing else.
+
+| Run | n | Net | R/trade | Win % | PF | DD | R by year 2019 / 2020 / 2021 / 2022 (n) | Long / short R |
+|---|---|---|---|---|---|---|---|---|
+| IM1-a (base) | 883 | −5,589 | −0.162 | 46.1 | 0.82 | −8,466 | −0.19 (131) / +0.03 (251) / −0.33 (251) / −0.17 (250) | −0.167 / −0.155 |
+| **IM1-c** | 445 | −3,050 | **−0.181** | 46.7 | 0.82 | −4,976 | −0.07 (60) / +0.08 (126) / −0.59 (126) / −0.10 (133) | −0.183 / −0.177 |
+| ORB9-a (base) | 909 | +4,556 | +0.101 | 26.3 | 1.08 | −3,713 | +0.07 (136) / +0.01 (257) / +0.12 (258) / +0.18 (258) | +0.120 / +0.084 |
+| **ORB9-c** | 329 | +6,624 | **+0.245** | 29.8 | 1.33 | −1,204 | +0.34 (40) / −0.20 (74) / +0.19 (110) / +0.58 (105) | +0.169 / +0.343 |
+| ORB v1.4 (base) | 419 | +5,483 | +0.102 | 50.1 | 1.15 | −3,883 | | |
+| **NR7** (v1.4 after NR7 days) | 65 kept / 354 skipped | kept +2,848, **skipped +2,636** | kept +0.241 (all +0.102) | | | | −0.54 (9) / +0.11 (17) / +0.39 (17) / +0.55 (22) | +0.324 / +0.170 |
+| **ID** (v1.4 after ID days) | 43 kept / 376 skipped | kept +2,666, **skipped +2,818** | kept +0.488 (all +0.102) | | | | +1.75 (3) / +0.10 (16) / +0.11 (14) / +1.26 (10) | +0.440 / +0.534 |
+
+**In-sample reading, fixed now:**
+- **IM1-c does not beat its base in-sample** (−0.181 against −0.162), so it already fails the walk-forward requirement.
+- **ORB9-c beats ORB9-a in-sample** (+0.245 against +0.101) and goes to the out-of-sample test as registered.
+- **NR7 and ID already fail ORB8 condition (1):** the trades they would skip are **net positive** in-sample (+2,636 / +2,818). Their kept trades average more R. Random-removal shares in-sample: NR7 0.158, ID 0.008.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
