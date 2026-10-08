@@ -1398,5 +1398,23 @@ Each cell is R per trade · win % · R 2019–22 / 2023–26:
 - **The split is not a usable filter:** v1.4's side is known only when v1.4 enters (as late as 11:30), and most AMD entries come earlier.
 - Observation only; nothing adopted.
 
+## ES filters on ORB v1.4 — pre-registered 2026-10-08 (written before any code was run)
+**Trades:** v1.4 from `orb_engine.run`, 2019-06-01 → 2026-10-06, 879 trades (`data/studies/lit1/v14.csv`). R = net ÷ (risk × $2). v1.4 enters at the close of the 5m breakout bar, which opens at `entry_time` and closes 5 minutes later.
+**ES:** Databento ES 1m bars on the MNQ minutes (a missing ES minute repeats the last).
+- **ES range** = ES's high / low of the 09:30–09:44 1m bars.
+- **ES break** on a side = an ES 1m close above the range high (long) or below the range low (short), strictly beyond and without v1.4's buffer or 0.15 × range rule, on a bar from 09:45 up to the last 1m bar of NQ's entry 5m bar (the one closing with it).
+**Buckets per trade:**
+- **(1) ES-confirm:** ES broke its range on the trade's side by NQ's entry close.
+- **(2) ES-diverge:** it had not.
+- **(1) and (2) are complements on the trade's side,** so the two filters below are each other's skip set.
+- **(3) ES-corr:** Pearson correlation of NQ and ES 1m close-to-close returns over the 15 bars 09:30–09:44 (the first return from the 09:29 close), known at 09:45. Split into terciles **within each calendar year** of the v1.4 trades.
+**Reported:** count, net and R per trade for every bucket, for 2019–2022 and 2023–2026.
+**Filters tested (3; Bonferroni 0.05 / 3 = 0.0167):** keep only ES-confirm trades; keep only ES-diverge trades; keep only the top correlation tercile.
+**Adoption test, as ORB8**, with the Bonferroni level on the random-removal share. A filter passes only if all three hold:
+- the skipped trades are net negative in 2019–2022 **and** in 2023–2026;
+- the kept trades average more R per trade than all v1.4 trades;
+- among 1,000 random removals of the same count (seed 7), the share whose R per trade is at least the kept trades' is **< 0.0167**. The 5 % share is shown too.
+**Observation only unless a filter passes.** Engine `python3 tools/es_filters.py`.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
