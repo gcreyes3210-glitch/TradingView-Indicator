@@ -157,5 +157,40 @@ def main():
     print("\n" + d.to_string(index=False))
 
 
+def amd_orb():
+    """AMD1-1m held to 16:00, split by ORB v1.4 day and side (pre-registered observation)."""
+    b = bars(1)
+    cfg = FAM["AMD1-1m"]
+    x = sim(prep("AMD1-1m", cfg, b), b, hold=True, rule=cfg["flat"], eb=cfg["eb"], tf=1)
+    x["d"] = x.et.dt.tz_localize(None).dt.normalize()
+    v = pd.read_csv("data/studies/lit1/v14.csv", parse_dates=["day"])
+    vs = v.groupby("day").side.first()
+    vp = v.groupby("day").pnl.sum()
+    x["bucket"] = ["not an ORB day" if d not in vs.index else ("ORB day, same side" if vs[d] == sd else "ORB day, opposite side")
+                   for d, sd in zip(x.d, x.side)]
+    x["half"] = np.where(x.et.dt.year <= 2022, "2019-22", "2023-26")
+    x.to_csv(OUT / "AMD1-1m_hold_orb.csv", index=False)
+    print(f"AMD1-1m held to 16:00: n {len(x)}  net {x.g_pnl.sum():+,.0f}  R/trade {x.g_R.mean():+.3f}")
+    for h in ("all", "2019-22", "2023-26"):
+        g0 = x if h == "all" else x[x.half == h]
+        print(f"\n  {h}: total n {len(g0)} net {g0.g_pnl.sum():+,.0f} R {g0.g_R.mean():+.3f}")
+        for k in ("ORB day, same side", "ORB day, opposite side", "not an ORB day"):
+            g = g0[g0.bucket == k]
+            print(f"    {k:<24} n {len(g):>4}  net {g.g_pnl.sum():>+8,.0f}  R/trade {g.g_R.mean():+.3f}")
+    a_ = x.groupby("d").g_pnl.sum()
+    days = pd.DatetimeIndex(sorted(set(b.index[(b.index.hour * 60 + b.index.minute == 570)].tz_localize(None).normalize())))
+    days = days[(days >= "2019-06-01") & (days <= v.day.max())]
+    both = a_.index.intersection(vp.index)
+    print(f"\n  daily P&L correlation with v1.4: all {len(days)} cash days (0 = no trade) "
+          f"{np.corrcoef(a_.reindex(days, fill_value=0), vp.reindex(days, fill_value=0))[0, 1]:+.3f}; "
+          f"{len(both)} days both traded {np.corrcoef(a_[both], vp[both])[0, 1]:+.3f}")
+    red = all(x[(x.half == h) & (x.bucket == "ORB day, same side")].g_pnl.sum() >= x[x.half == h].g_pnl.sum()
+              for h in ("2019-22", "2023-26"))
+    print(f"  redundancy rule (same-side ORB-day net >= total net in both halves): {'REDUNDANT with ORB' if red else 'not redundant'}")
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "amd-orb":
+        amd_orb()
+    else:
+        main()

@@ -1383,5 +1383,20 @@ Each cell is R per trade · win % · R 2019–22 / 2023–26:
 - **Reported:** n, net and R per trade for each bucket, for the full span and for 2019–2022 / 2023–2026. Also the correlation of daily P&L (AMD and v1.4, every cash day from 2019-06-01 with 0 for no trade, and the days both traded).
 - **Redundancy rule, fixed now:** AMD held to 16:00 is logged as **redundant with ORB** if the ORB-day, same-side bucket's net is at least AMD's total net (so the other two buckets together are ≤ 0) in **both halves**.
 
+**Result** (`python3 tools/exit_grid.py amd-orb`; trades with their bucket in `data/studies/exit_grid/AMD1-1m_hold_orb.csv`). AMD1-1m held to 16:00: 925 trades, +9,582, +0.096 R.
+
+| Bucket | All: n · net · R/trade | 2019–22 | 2023–26 |
+|---|---|---|---|
+| ORB day, same side | 317 · **+33,410** · +1.126 | 155 · **+10,624** · +0.816 | 162 · **+22,786** · +1.424 |
+| ORB day, opposite side | 238 · −20,237 · −0.938 | 104 · −7,446 · −0.933 | 134 · −12,791 · −0.942 |
+| Not an ORB day | 370 · −3,592 · −0.122 | 185 · +444 · −0.023 | 185 · −4,035 · −0.221 |
+| Total | 925 · +9,582 · +0.096 | 444 · +3,622 · +0.057 | 481 · +5,960 · +0.132 |
+
+**Daily P&L correlation with v1.4:** +0.362 over 1,896 cash days (0 = no trade); +0.511 on the 555 days both traded.
+**Verdict: redundant with ORB.** The ORB-day, same-side bucket's net exceeds AMD's total in both halves (+10,624 against +3,622; +22,786 against +5,960). The other two buckets together lose in both halves.
+- **The diagnosis is the same as AMD1's:** AMD pays only when it ends up trading ORB's trend. Holding to 16:00 makes those trades bigger (+1.13 R) and the ones against ORB no smaller (−0.94 R).
+- **The split is not a usable filter:** v1.4's side is known only when v1.4 enters (as late as 11:30), and most AMD entries come earlier.
+- Observation only; nothing adopted.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
