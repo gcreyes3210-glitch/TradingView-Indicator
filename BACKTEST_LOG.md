@@ -1720,5 +1720,36 @@ Signals are read on **MNQ 1m** and **ES 1m** (Databento). MNQ prints the same pr
 - **Outside news lockouts:** 70.1 % without (22,470 reversals).
 - **The claim that no reversal happens without such a pointer does not hold on this coding.** Most reversals of that size have none.
 
+### MECH V1 — core (`python3 tools/mech.py v1`, 2 min; trades `data/studies/mech/v1.csv`, `v1_stop60.csv`)
+- **Coding fix before results:** a pointer closing on the 15:49 flat bar opened a zero-length trade. Entries on or after the flat bar are now skipped.
+- **Bonferroni:** α = 0.05 / 4 = 0.0125, because V2 and V3 run (below). The printout shows 0.025, from before that was known; nothing passes either way.
+- **R unit:** 60 points × $2 = $120 a contract.
+
+| Run | n | Net | R/trade | Win % | PF | DD | Positive years | R 2019–22 / 2023–26 | Neighbours R (SWING_N 2 / 4) | p | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **V1 (no stop)** | 13,994 | −30,660 | **−0.018** | 37.7 | 0.94 | −31,673 | **1** | −0.019 / −0.018 | −0.032 / −0.014 | 0.99 | fails |
+| V1 + 60-point stop | 14,678 | −33,962 | −0.019 | 36.1 | 0.93 | −35,076 | 1 | −0.022 / −0.017 | −0.029 / −0.016 | 1.00 | fails |
+
+**V1 (no stop):**
+- **By year (R):** −0.026 / −0.043 / −0.027 / **+0.020** / −0.011 / −0.017 / −0.004 / −0.044. Only 2022 is positive.
+- **Side:** long −0.016 / short −0.021.
+- **By grade (labels use the ±1 bar window):**
+
+  | Grade | n | R/trade | Net | Win % |
+  |---|---|---|---|---|
+  | Correlated plain | 1,187 | −0.011 | −1,528 | 41 % |
+  | SMT | 4,972 | −0.011 | −6,624 | 37 % |
+  | Swept | 7,835 | −0.024 | −22,508 | 37 % |
+
+- **By hour (R):** 9h −0.034, 10h −0.026, 11h +0.010, 12h −0.025, 13h +0.009, 14h −0.024, 15h −0.033.
+- **Exits:** 12,134 opposite pointer, 1,801 at 15:50, 59 news. Median 30 minutes in trade, about 8 trades a day.
+- **Maximum adverse excursion (points):** median 18.8, p75 38.5, p90 69.5, p95 99.0, p99 167.8, max 819. **23.6 % of trades exceed 40 points against, 12.9 % exceed 60, 4.9 % exceed 100.**
+
+**With the 60-point stop:** 2,010 stops. MAE is capped (p99 81; the max of 211 is a bar opening beyond the stop). Correlated plain is the only grade above zero (+0.007 R on 1,254 trades).
+**Verdict:**
+- V1 fails every part of the criterion except the neighbours' sign: they agree it is negative.
+- **R per trade is −0.018, within 0.05 R of zero, so V2 and V3 run as the user specified.** That is with a 60-point unit; in dollars it is −$2.19 a trade on one contract.
+- **On no-stop risk:** one trade in eight goes more than 60 NQ points against before its exit signal. At his 10-MNQ size that is $1,200 or more of open loss, against the $2,000 drawdown limit he quotes.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.

@@ -438,8 +438,172 @@ def run_v0(swing_n=3):
     return W, Q, C1, C2
 
 
+def sig_minutes(Q):
+    """One signal per (minute, direction); a minute with both directions is dropped (indices disagree = no trade)."""
+    rows = []
+    for t, g in Q.groupby("t"):
+        dirs = set(g.dir)
+        if len(dirs) > 1 or not ok_day(t):
+            continue
+        d = dirs.pop()
+        grade = "correlated" if (g.correlated & ~g.swept).any() else ("SMT" if (~g.swept).any() else "swept")
+        rows.append(dict(t=t, dir=d, grade=grade, corr_known=bool((g.corr_known & ~g.swept).any()),
+                         swept=bool(g.swept.all()), idx="+".join(sorted(set(g.idx)))))
+    return pd.DataFrame(rows)
+
+
+def lock_at(t):
+    for lo, hi in S["lock"]:
+        if lo <= t < hi:
+            return True
+    return False
+
+
+def v1_trades(W, Q, stop=None):
+    """V1: always in after a signal, reverse on an opposite signal, flat 15:50 / before a lockout; optional stop."""
+    G = sig_minutes(Q)
+    nq = W["NQ"]
+    O1, H1, L1, C1 = S["mk"]["NQ"].open.to_numpy(), nq["H1"], nq["L1"], nq["C1"]
+    tod, tdi = S["tod"], S["tdi"]
+    locks = S["lock"]
+    lock_starts = np.array([a for a, b in locks])
+    out = []
+    for day, g in G.groupby(tdi[G.t.to_numpy()]):
+        # flat bar of the day: the 15:49 bar
+        d0 = S["day_first"][day]
+        d1 = S["day_first"][day + 1] if day + 1 < len(S["day_first"]) else S["n"]
+        fl = np.flatnonzero(tod[d0:d1] == 15 * 60 + 49)
+        if not len(fl):
+            continue
+        flat = d0 + fl[0]
+        pos = None
+        sigs = list(g.itertuples())
+
+        def close(pos, x, px, why):
+            d = pos["dir"]
+            seg_l, seg_h = L1[pos["t"] + 1:x + 1], H1[pos["t"] + 1:x + 1]
+            if len(seg_l):
+                mae = (pos["entry"] - seg_l.min()) if d > 0 else (seg_h.max() - pos["entry"])
+                mfe = (seg_h.max() - pos["entry"]) if d > 0 else (pos["entry"] - seg_l.min())
+            else:
+                mae = mfe = 0.0
+            pnl = d * (px - pos["entry"]) * PV - 2 * COMM
+            out.append(dict(entry_t=pos["t"], exit_t=x, dir=d, entry=pos["entry"], exit=px, why=why, pnl=pnl,
+                            R=pnl / (CAT * PV), mae=max(mae, 0) if len(seg_l) else 0.0, mfe=max(mfe, 0) if len(seg_l) else 0.0,
+                            grade=pos["grade"], corr_known=pos["corr_known"], idx=pos["idx"]))
+
+        def run_until(pos, x_end):
+            """advance an open trade to bar x_end (inclusive); returns (pos or None) after checking the stop."""
+            if stop is None or pos is None:
+                return pos
+            d, sp = pos["dir"], pos["stop"]
+            for j in range(pos["chk"], x_end + 1):
+                if d * (O1[j] - sp) <= 0 and j > pos["t"]:
+                    close(pos, j, O1[j] - d * TICK, "stop"); return None
+                if (L1[j] <= sp) if d > 0 else (H1[j] >= sp):
+                    close(pos, j, sp - d * TICK, "stop"); return None
+            pos["chk"] = x_end + 1
+            return pos
+
+        def lock_between(a_, b_):
+            k = np.searchsorted(lock_starts, a_, side="right")
+            return lock_starts[k] if k < len(lock_starts) and lock_starts[k] <= b_ else None
+
+        for r in sigs:
+            if r.t >= flat:                            # no entry on or after the flat bar
+                break
+            if pos is not None:
+                lk = lock_between(pos["t"], r.t)
+                if lk is not None:
+                    pos = run_until(pos, lk - 1)
+                    if pos is not None:
+                        close(pos, lk - 1, C1[lk - 1] - pos["dir"] * TICK, "news"); pos = None
+                pos = run_until(pos, r.t)
+            if lock_at(r.t):
+                continue
+            if pos is not None and r.dir == pos["dir"]:
+                continue
+            if pos is not None:
+                close(pos, r.t, C1[r.t] - pos["dir"] * TICK, "opposite pointer")
+            e = C1[r.t] + r.dir * TICK
+            pos = dict(t=r.t, dir=r.dir, entry=e, grade=r.grade, corr_known=r.corr_known, idx=r.idx,
+                       stop=(e - r.dir * stop) if stop else None, chk=r.t + 1)
+        if pos is not None:
+            lk = lock_between(pos["t"], flat)
+            end = lk - 1 if lk is not None else flat
+            pos = run_until(pos, end)
+            if pos is not None:
+                close(pos, end, C1[end] - pos["dir"] * TICK, "news" if lk is not None else "15:50")
+    T = pd.DataFrame(out)
+    T["et"] = S["ts"][T.entry_t.to_numpy()]
+    T["side"] = np.where(T.dir > 0, "L", "S")
+    return T
+
+
+def summ(t):
+    y = t.et.dt.year
+    by = t.groupby(y).pnl.sum()
+    eq = t.pnl.cumsum()
+    gw, gl = t.pnl[t.pnl > 0].sum(), -t.pnl[t.pnl < 0].sum()
+    return dict(n=len(t), net=round(t.pnl.sum()), R=round(t.R.mean(), 4), win=round(100 * (t.pnl > 0).mean(), 1),
+                pf=round(gw / gl, 2) if gl else None, dd=round((eq - eq.cummax()).min()), pos_years=int((by > 0).sum()),
+                years=int(y.nunique()), R_h1=round(t[y <= 2022].R.mean(), 4), R_h2=round(t[y >= 2023].R.mean(), 4))
+
+
+def boot_p(R, n=10000, seed=1):
+    R = np.asarray(R, dtype=float)
+    rng = np.random.default_rng(seed)
+    return float((R[rng.integers(0, len(R), size=(n, len(R)))].mean(axis=1) <= 0).mean())
+
+
+def report_v1(name, T, nb, k_stages):
+    s = summ(T)
+    p = boot_p(T.R)
+    alpha = 0.05 / k_stages
+    parts = dict(years=s["pos_years"] >= 6, R=s["R"] >= 0.05, halves=s["R_h1"] >= 0 and s["R_h2"] >= 0,
+                 neighbours=all(np.sign(x["R"]) == np.sign(s["R"]) and x["R"] != 0 for x in nb), p=p < alpha)
+    print(f"\n==== {name}: " + "  ".join(f"{k} {v}" for k, v in s.items()) + f"  p {p:.4f} (alpha {alpha:.4f})")
+    y = T.et.dt.year
+    print("  by year (R, n, net): " + " | ".join(f"{k} {g.R.mean():+.3f} {len(g)} {g.pnl.sum():+,.0f}" for k, g in T.groupby(y)))
+    print("  side: " + " | ".join(f"{k}: n {len(g)} net {g.pnl.sum():+,.0f} R {g.R.mean():+.3f}" for k, g in T.groupby("side")))
+    print("  grade: " + " | ".join(f"{k}: n {len(g)} net {g.pnl.sum():+,.0f} R {g.R.mean():+.3f} win {100 * (g.pnl > 0).mean():.0f}%"
+                                  for k, g in T.groupby("grade")))
+    print("  hour: " + " | ".join(f"{k}: n {len(g)} R {g.R.mean():+.3f} net {g.pnl.sum():+,.0f}" for k, g in T.groupby(T.et.dt.hour)))
+    print("  exits: " + ", ".join(f"{k} {v}" for k, v in T.why.value_counts().items()) +
+          f"; minutes in trade median {np.median(T.exit_t - T.entry_t):.0f}")
+    q = T.mae.quantile([.5, .75, .9, .95, .99])
+    print("  MAE points: median {:.1f} / p75 {:.1f} / p90 {:.1f} / p95 {:.1f} / p99 {:.1f} / max {:.1f}; share > 40 {:.1%}, > 60 {:.1%}, > 100 {:.1%}".format(
+        *q.values, T.mae.max(), (T.mae > 40).mean(), (T.mae > 60).mean(), (T.mae > 100).mean()))
+    print("  neighbours (SWING_N 2 / 4) R: " + " / ".join(str(x["R"]) for x in nb))
+    print(f"  criterion: {'PASS' if all(parts.values()) else 'fail'} {parts}")
+    return dict(run=name, **s, p=p, nb=[x["R"] for x in nb], passes=all(parts.values()))
+
+
+def run_v1(k_stages=2):
+    W = build_all(3)
+    Q = signals(W)
+    res = {}
+    for st in (None, CAT):
+        res[st] = v1_trades(W, Q, stop=st)
+    nbs = {}
+    for sn in (2, 4):
+        Wn = build_all(sn)
+        Qn = signals(Wn)
+        for st in (None, CAT):
+            nbs.setdefault(st, []).append(summ(v1_trades(Wn, Qn, stop=st)))
+    rows = []
+    for st, name in ((None, "V1 (no stop)"), (CAT, "V1 + 60-point catastrophic stop")):
+        T = res[st]
+        T.to_csv(OUT / ("v1.csv" if st is None else "v1_stop60.csv"), index=False)
+        rows.append(report_v1(name, T, nbs[st], k_stages))
+    pd.DataFrame(rows).to_csv(OUT / "v1_summary.csv", index=False)
+    return res
+
+
 if __name__ == "__main__":
     opt = lambda k, d: type(d)(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     cmd = sys.argv[1] if len(sys.argv) > 1 else "v0"
     if cmd == "v0":
         run_v0(opt("--swing", 3))
+    elif cmd == "v1":
+        run_v1()
