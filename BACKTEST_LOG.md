@@ -1317,5 +1317,62 @@ Three strategies from published work on MNQ, Databento 1m bars, **2019-06-01 →
 - **Check on the re-simulator:** each family is first replayed with its **own** target and flatten time, and the share of trades whose exit matches the engine's (reason and price) is reported. P2's break-even trades are excluded from this check.
 - **Reported in one table:** per family and exit, n, R per trade, win %, R 2019–2022 / 2023–2026. **No criterion; the question is only whether any family's sign depends on the exit.**
 
+### Literature follow-ups — results
+**1 · ORB9-c against ORB v1.4, head to head** (`python3 tools/lit1.py h2h`, 9 s; ORB9-c asserted equal to the logged run).
+
+| Days | System | n | Net | Net / trade | R / trade | Win % | DD | 2019–22: R (net / trade) | 2023–26: R (net / trade) |
+|---|---|---|---|---|---|---|---|---|---|
+| shared (617) | **ORB9-c** | 617 | +17,054 | +27.6 | **+0.299** | 29.8 | −1,974 | **+0.350** (+27.3) | **+0.255** (+27.9) |
+| shared (617) | v1.4 | 617 | +17,508 | +28.4 | +0.121 | 49.6 | −4,375 | +0.120 (+20.6) | +0.122 (+35.1) |
+| ORB9-c only | ORB9-c | 93 | −4,761 | −51.2 | −0.501 | 19.4 | −5,016 | −0.448 (−27.7) | −0.546 (−71.4) |
+| v1.4 only | v1.4 | 262 | +3,392 | +12.9 | +0.141 | 50.0 | −4,019 | +0.062 (−3.0) | +0.222 (+29.4) |
+
+- **By year on shared days, R:** ORB9-c +0.46 / −0.17 / +0.30 / +0.72 / +0.27 / +0.40 / +0.04 / +0.28; v1.4 −0.04 / −0.12 / +0.02 / +0.44 / +0.06 / +0.18 / +0.05 / +0.22.
+- **ORB9-c-only days lose in every year,** −0.33 to −0.75 R.
+- **Neighbours, each on its own shared days with v1.4:**
+
+  | Neighbour | Shared days | R/trade ORB9-c vs v1.4 | Net/trade ORB9-c vs v1.4 |
+  |---|---|---|---|
+  | First bar 09:30–09:40 | 764 | +0.338 vs +0.149 | +39.9 vs +32.7 |
+  | Floor 0.05 ATR | 617 | +0.278 vs +0.121 | +26.8 vs +28.4 |
+  | Floor 0.2 ATR | 617 | +0.248 vs +0.121 | +34.5 vs +28.4 |
+
+**By the rule stated in advance, ORB9-c's entry is a candidate to replace v1.4's entry.** On shared days its R per trade beats v1.4's in 2019–2022 and in 2023–2026, and all three neighbours agree. **Stopped here, as registered; replacing the entry would be its own pre-registered step.**
+**Read with it:**
+- **The win is in R, not in dollars per contract.** On shared days net per trade is +27.6 against +28.4. In 2023–2026 v1.4 makes more per trade (+35.1 against +27.9).
+- **ORB9-c's higher R comes from a tighter stop** (the first 5m bar, floored at 0.1 ATR, against the far side of the 15-minute range), at a 30 % win rate against 50 %.
+- **R matters only under risk-based sizing:** the same dollar risk buys more contracts on the tighter stop. At one contract each the two entries are level, and ORB9-c's drawdown on these days is smaller (−1,974 against −4,375).
+- **The ORB9-c-only days** (no v1.4 trade: the 15-minute range did not break, or no close beyond it) lose in every year, so any replacement must keep v1.4's day selection.
+
+**2 · Exit grid, observation only** (`python3 tools/exit_grid.py`, 23 s; `data/studies/exit_grid/exit_grid.csv`; the five fresh engine trade lists in `data/studies/exit_grid/trades/`).
+**Re-simulator check** (own target and flatten time, exit reason and price matched to the engine):
+- AMD1-1m 925 / 925, OTE1-1m 119 / 119, IFVG-1m 496 / 496, L7 421 / 421, P2 base 107 / 107 (2 break-even trades excluded), VWR1 637 / 637 and ORB9-a 1,876 / 1,876 match, net identical.
+- **OB1-1m 413 / 417:** in the 4 others the bar after entry opens beyond the target. OB1's engine fills the limit at the target; the replay fills at the open. That is +$22 in all.
+- Spans run to 2026-10-07, so n differs slightly from the logged runs.
+
+Each cell is R per trade · win % · R 2019–22 / 2023–26:
+
+| Family (n) | 1 R | 2 R | 3 R | Hold to close (16:00) | Own exit (replay) |
+|---|---|---|---|---|---|
+| AMD1-1m (925) | −0.015 · 51 % · −0.06 / +0.03 | +0.020 · 40 % · −0.05 / +0.09 | +0.039 · 37 % · −0.05 / +0.12 | **+0.096** · 29 % · **+0.06 / +0.13** | +0.057 · 37 % · +0.01 / +0.10 |
+| OB1-1m (417) | −0.115 · 50 % · −0.06 / −0.17 | −0.088 · 35 % · −0.09 / −0.09 | −0.127 · 26 % · −0.17 / −0.09 | −0.097 · 11 % · −0.06 / −0.14 | −0.088 (2 R) |
+| OTE1-1m (119) | −0.035 · 51 % · −0.20 / +0.13 | −0.076 · 34 % · −0.12 / −0.03 | −0.043 · 28 % · −0.16 / +0.08 | −0.235 · 18 % · −0.25 / −0.23 | −0.101 · 30 % |
+| IFVG-1m (496) | −0.146 · 46 % · −0.23 / −0.08 | −0.079 · 34 % · −0.21 / +0.02 | −0.064 · 29 % · −0.21 / +0.05 | −0.092 · 18 % · −0.27 / +0.04 | −0.064 (3 R) |
+| L7 (421) | −0.055 · 50 % · −0.07 / −0.04 | +0.030 · 38 % · −0.07 / +0.12 | +0.075 · 33 % · −0.00 / +0.14 | −0.124 · 19 % · −0.23 / −0.03 | +0.075 (3 R) |
+| P2 base (109) | −0.004 · 55 % · −0.00 / −0.01 | −0.179 · 31 % · −0.20 / −0.15 | −0.073 · 27 % · −0.05 / −0.11 | +0.752 · 15 % · −0.12 / +2.00 † | −0.115 · 19 % |
+| VWR1 (637, 5m) | −0.153 · 46 % · −0.23 / −0.09 | −0.142 · 33 % · −0.20 / −0.09 | −0.140 · 27 % · −0.19 / −0.10 | +0.012 · 22 % · −0.04 / +0.05 | −0.065 · 36 % |
+| ORB9-a (1,876) | −0.035 · 50 % · −0.03 / −0.03 | −0.013 · 35 % · +0.00 / −0.03 | +0.022 · 30 % · +0.05 / −0.00 | +0.072 · 26 % · +0.10 / +0.04 | +0.070 (= hold) |
+
+† P2's hold-to-close is one trade: +75 R on a 15-point median risk (P2's stop is the target distance ÷ 5). Without its 3 largest trades it is −0.325 R per trade; median −1.08 R.
+**Reading (no criterion applied).**
+- **The exit does not rescue a negative family:** OB1, OTE1, IFVG-1m and VWR1 are negative at every fixed target, and OB1 and OTE1 at hold-to-close too.
+- **The sign does flip with the exit for four families:**
+  - **AMD1-1m:** negative at 1 R, positive at 2 R / 3 R and hold. **Hold-to-close is the only cell in the table positive in both halves** apart from ORB9-a's own exit (+0.057 / +0.132, matching the logged AMD1e).
+  - **L7:** positive only at 2–3 R; hold-to-close loses.
+  - **ORB9-a:** positive only at 3 R and hold.
+  - **VWR1:** barely positive at hold (+0.012).
+- **The pattern across families:** 1 R targets lose for every family (win rates near 50 % do not pay the costs). The families that are positive at all need the trade held, either to 3 R or to the close.
+- **Observation only;** a change of exit for any family would be its own pre-registered run.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.

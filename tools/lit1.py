@@ -98,7 +98,8 @@ def im1(T, variant="a", sig_col="c959"):
 
 
 # ---------------------------------------------------------------- ORB9
-def orb9(a, T, floor=0.1, target=None, on_filter=False):
+def orb9(a, T, floor=0.1, target=None, on_filter=False, fb=5):
+    """fb = first-bar length in minutes (5: 09:30-09:35, the rule; 10: 09:30-09:40, a neighbour)."""
     ts = a.index
     O, H, L, C = (a[k].to_numpy() for k in ("open", "high", "low", "close"))
     pos = pd.Series(np.arange(len(ts)), index=ts)
@@ -108,12 +109,12 @@ def orb9(a, T, floor=0.1, target=None, on_filter=False):
             continue
         t0 = pd.Timestamp(d).tz_localize(TZ) + pd.Timedelta(hours=9, minutes=30)
         try:
-            i0 = pos[t0]; i5 = pos[t0 + pd.Timedelta(minutes=5)]
+            i0 = pos[t0]; i5 = pos[t0 + pd.Timedelta(minutes=fb)]
         except KeyError:
             continue
-        if i5 - i0 != 5 or ts[i0 + 4] != t0 + pd.Timedelta(minutes=4):
+        if i5 - i0 != fb or ts[i0 + fb - 1] != t0 + pd.Timedelta(minutes=fb - 1):
             continue
-        fo, fc, fh, fl = O[i0], C[i0 + 4], H[i0:i0 + 5].max(), L[i0:i0 + 5].min()
+        fo, fc, fh, fl = O[i0], C[i0 + fb - 1], H[i0:i0 + fb].max(), L[i0:i0 + fb].min()
         if fc == fo:
             continue
         if on_filter and not (fh > r.on_h or fl < r.on_l):
@@ -331,6 +332,54 @@ def run_full():
     print("\n" + d.to_string(index=False))
 
 
+def h2h():
+    """ORB9-c against ORB v1.4 on shared / ORB9-c-only / v1.4-only days (pre-registered follow-up 1)."""
+    a, b5 = load()
+    T = days_table(a)
+    v = v14(b5)
+    v["d"] = v.day
+    c = orb9(a, T, on_filter=True)
+    c["d"] = pd.to_datetime(c.day)
+    ref = pd.read_csv(OUT / "ORB9-c.csv")
+    assert np.allclose(c.pnl.to_numpy(), ref.pnl.to_numpy()), "ORB9-c differs from the logged run"
+
+    def stats(x):
+        if len(x) == 0:
+            return "n 0"
+        eq = x.pnl.cumsum()
+        return (f"n {len(x)}  net {x.pnl.sum():+,.0f}  net/trade {x.pnl.mean():+.1f}  R/trade {x.R.mean():+.3f}  "
+                f"win {100 * (x.pnl > 0).mean():.1f}%  DD {(eq - eq.cummax()).min():+,.0f}")
+    shared = set(c.d) & set(v.d)
+    sets = (("shared days", c[c.d.isin(shared)], v[v.d.isin(shared)]),
+            ("ORB9-c-only days", c[~c.d.isin(shared)], None), ("v1.4-only days", None, v[~v.d.isin(shared)]))
+    res = {}
+    for name, x9, xv in sets:
+        print(f"\n== {name}")
+        for lab, x in (("ORB9-c", x9), ("v1.4", xv)):
+            if x is None:
+                continue
+            y = pd.to_datetime(x.entry_time, utc=True).dt.tz_convert(TZ).dt.year
+            print(f"  {lab:<7} all   {stats(x)}")
+            for h, m in (("2019-22", y <= 2022), ("2023-26", y >= 2023)):
+                print(f"  {lab:<7} {h} {stats(x[m])}")
+                res[(name, lab, h)] = x[m].R.mean()
+            print(f"  {lab:<7} by year R: " + " ".join(f"{k} {g.R.mean():+.2f} ({len(g)})" for k, g in x.groupby(y)))
+    beat = res[("shared days", "ORB9-c", "2019-22")] > res[("shared days", "v1.4", "2019-22")] and \
+        res[("shared days", "ORB9-c", "2023-26")] > res[("shared days", "v1.4", "2023-26")]
+    nb_ok = []
+    for lab, kw in (("first bar 09:30-09:40", dict(fb=10)), ("floor 0.05 ATR", dict(floor=0.05)), ("floor 0.2 ATR", dict(floor=0.2))):
+        x = orb9(a, T, on_filter=True, **kw)
+        x["d"] = pd.to_datetime(x.day)
+        sh = set(x.d) & set(v.d)
+        r9, rv = x[x.d.isin(sh)].R.mean(), v[v.d.isin(sh)].R.mean()
+        nb_ok.append(r9 > rv)
+        print(f"  neighbour {lab}: shared days {len(sh)}, R/trade ORB9-c {r9:+.3f} vs v1.4 {rv:+.3f}; net/trade "
+              f"{x[x.d.isin(sh)].pnl.mean():+.1f} vs {v[v.d.isin(sh)].pnl.mean():+.1f}")
+    print(f"\nshared-days R beats v1.4 in both halves: {beat}; neighbours beat v1.4 on their shared days: {nb_ok}")
+    print("CANDIDATE to replace v1.4's entry (separate pre-registration needed)" if beat and all(nb_ok)
+          else "not a candidate")
+
+
 def charts(n=10, seed=11):
     import matplotlib
     matplotlib.use("Agg")
@@ -400,4 +449,4 @@ def charts(n=10, seed=11):
 
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "full"
-    {"is": run_is, "full": run_full, "charts": charts}[cmd]()
+    {"is": run_is, "full": run_full, "charts": charts, "h2h": h2h}[cmd]()
