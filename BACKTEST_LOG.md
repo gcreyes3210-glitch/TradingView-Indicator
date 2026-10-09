@@ -102,7 +102,7 @@ Rule set: same overnight profile · RTH open must be outside value · after `acc
 | VP2x-ES | v2, Trade window 0930-1600, MES | 75 | −78 | PF 0.97, years −205 (PF 0.76) / +112 (PF 1.15) / +16 (PF 1.02). Afternoon entries (12:00–16:00 ET) −261 on 22 trades. ES stays flat under both windows |
 | VP2-ES | same on MES | 53 | +22 | Win 49%, PF 1.02, DD −325. Years +152 (PF 1.47) / +136 (PF 1.55) / −268 (PF 0.45). Longs +255 (63% win), shorts −233 (35%). 26 of 53 exits were the 12:00 flatten. Flat overall, 2 of 3 years positive. **Across both symbols 5 of 6 symbol-years ≥ 0 → lead worth one structural test (full-session window), not a system** |
 
-## Where things stand (2026-09-23)
+## Where things stand (updated 2026-10-08)
 **ORB v1.3 on MNQ is the one rule that survived**: 15-minute opening range, first 5m close ≥ 0.15 × range beyond the edge (09:45–11:30), stop at the other side of the range, no target, flat at 16:00, only on days whose opening range breaks the overnight range. 2019-06 → 2026-09 on the local engine (calibrated to TradingView, 818 of 820 trades): 875 trades, +21,000, PF 1.27, win 50%, +0.13 R per trade, worst drawdown −15 R, two losing years (2019 half-year, 2020).
 Tested and not adopted: 2R target (ORB1), 30-min range, stop-order entry, second trade, 09:45–10:00 window, filter off (ORB6a–e). Not a second instrument: MES (ORB7, +0.07 R, four losing years). Not a companion rule: VWAP reversion on balance days (VWR1, no edge in any form). Balance days are skipped, not traded.
 Also tested and not adopted: overnight-extreme rejection on balance days (ONR1a–e, −0.02 R per trade, two positive years of eight). Both balance-day rules, VWR and ONR, failed: no mean-reversion rule tested so far pays on the days ORB skips.
@@ -121,6 +121,20 @@ ORB context check (pre-registered, no rule change): four of five splits pass the
 **POWELL 10:00 model** (manipulation from the 10:00 open, then a close back through it; P1 / P4 × 3R / 5R / IL): all six runs fail. The author's own guide (P2: limit at O, liquidity target, 1:5 stop, break-even, news / overnight / SMT filter; six runs) fails as well: from −0.07 to −0.92 R per trade, at most 3 positive years. There are 71 trades in seven years, at most 4 positive years, and the 2019–2022 half is negative in every run.
 Sizing (see "Sizing"): one MNQ ≈ 1.1% of a $25k account at the median stop; a repeat of the worst drawdown ≈ −17% at that size. The edge is in the top 5% of trades, so every qualifying trade is taken.
 Forward test: v1.4 on the TradingView MNQ 5m chart with one "Any alert() function call" alert; each week export the strategy's list of trades and run `python3 tools/calibrate_orb.py <export.csv>` (live window from 2026-09-23 by default): it matches the live trades against the engine, prints the ORB8 filters and the retail-sales flag for every live trade, and ends with the row for the "Forward test" table below. Shadow rules are tracked, not traded.
+
+**Since 2026-09-23 (all pre-registered; nothing new adopted into the traded rule except as noted):**
+- **Live rule:** ORB v1.4, forward test from 2026-09-23, 3 live trades to 2026-10-06 (−295), the engine matching all 30 trades of the TradingView export. **Pine v1.5** adds the ES-diverge flag as information only (tag, alert, debug table); its TradingView export check is pending.
+- **Shadow flags in the weekly check, tracked and not traded:** ORB8, retail-sales days, **ES-diverge** (baseline 19.6 % of trades, +0.348 R against +0.073 R for ES-confirm) and **ORB-add** (the midday second contract; adopted only if net positive after 40 live occurrences). Also the **L7 shadow** (IFVG with the Aceflw levels; reconsidered at 60 trades and ≥ +0.05 R).
+- **Sizing:** the tiered size (2 contracts on ES-diverge, 1 otherwise) met its pre-registered walk-forward rule, return-to-drawdown 6.52 R / 6.22 $ against 6.21 / 4.91 in 2023–26. But 2023–26 was not unseen when ES-diverge was found, so the live shadow is its real test, and the Pine strategy still trades 1 contract.
+- **Closed, no edge or not enough data:**
+  - ACE1, the Aceflw briefs (only call-wall rejections cleared their level, on 6 touches);
+  - IFVG-L7 and its follow-ups (+0.075 R on 1m only; 5m −0.036 R; the bias variants fail);
+  - Literature (IM1, ORB9, NR7 / ID): ORB9-c's entry is a candidate by its rule, level with v1.4 in dollars;
+  - ES filters as filters;
+  - SIX (stop and reverse, second contract, lunch-range breakout, NQ / ES relative value, risk sizing, ML1). The overnight hold is noted as where the index's drift sits.
+  - MECH, the mech model: both claims fail, −0.02 to −0.06 R, a $2,000 trailing account dies in a median 2–3 days;
+  - **RDM, the Ryze Divergence Model: not enough data,** 5 trades in 7 years, sign flips with `pivot_len`.
+- **Kept for reuse:** the exit grid over the closed families (no exit rescues a losing family; AMD1 held to 16:00 is redundant with ORB), the Ryze zone reconstruction and `events.csv` through 2027 with per-type coverage.
 
 Pine v1.4 (2026-09-23): early-close flatten added to the script (half days 13:15 ET, US holiday futures sessions 13:00 ET, computed by rule; flattens 10 min before the halt, exit comment "early"). Retail-sales days are NOT a filter: the event criterion passed as written (8 of 8 negative years, shuffle p 0.011) but 18 event types were tested, so a p of 0.011 is within what one lucky type produces (Bonferroni 0.003); tracked as a shadow flag in the weekly forward-test check alongside ORB8. FOMC afternoons stay held (+1,479 on the 14 trades open at 14:00, 11 of 14 positive).
 
@@ -2090,6 +2104,14 @@ The RDM inverse-FVG step is replaced by the definition in `data/studies/audit/IF
 - **Verdict: 5 trades cannot support any verdict** (and 16 could not), so the answer is **not enough data to tell**. No run passes; nothing is adopted.
 - **The three assumptions most likely to change the result** (report.md): the inverse-FVG rule (16 → 5 trades on that choice alone); the SMT definition and timeframe (the neighbours flip sign); the 12-day zone life with the RSMT cancel rule.
 - **Results-aware caveat:** amendment 2 was made after the first report.
+
+### RDM — closed (2026-10-08)
+**Verdict: not enough data.**
+- **Trade count:** with the trader's gap rule (IFVG-1m: freshest gap, inversion within 5 bars, entry at the inverting close) the baseline makes **5 trades in 7.3 years** (+1.23 R per trade, 95 % CI −0.19 to +2.87, p 0.058, 2 of 8 years). One trade is most of the total.
+- **Sign:** the result flips with `pivot_len` (2: −1.10 R on 5 trades; 4: +0.62 R on 6). No run of the 8 passes the usual criterion. Under one trade a year cannot resolve an edge in any reasonable time.
+- **Chart check:** the trader's round-1 check agrees with the stricter gap rule on **8 of 10** charts. The rule keeps the 2 the trader marked right and drops all 6 marked wrong; it also drops 2 the trader marked right (2019-06-12, 2024-04-03). *(The user's closing note said all 10; the files say 8 of 10: `charts/answers_round1.csv` against `results/trades.csv`.)*
+- **Kept:** the zone file (`data/studies/rdm/zones.csv`, the verified Ryze reconstruction, with `tools/rdm_zones.py`) and the engine (`tools/rdm.py`, `tests/test_rdm.py`) are kept for reuse.
+- **No shadow flag** in the forward test. Nothing adopted.
 
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
