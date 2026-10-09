@@ -17,6 +17,8 @@ whether each ORB8 filter would have skipped it, and the retail-sales flag — sh
     ORB8 skip = F1 or F2 or F3        retail = Census advance retail-sales release day (data/events.csv)
     ES = ES-diverge (DIV: ES had not closed beyond its 09:30-09:44 range on the trade's side by the entry bar's close)
          or ES-confirm (conf), tools/es_filters.py es_confirm(); n/a until the ES bars reach the entry bar
+    add = the ORB-add second contract (six1.add_one): open at 12:00 and >= +1 R, a 0.5 R pullback, then the first 5m
+         close back in the trade's direction; what that contract would have made, exiting with v1.4
 Then the running shadow lines (trades taken, trades ORB8 / retail would have skipped, net of the skipped trades) and a
 ready-to-paste row for the "Forward test" table in BACKTEST_LOG.md. Flags need bars (and events.csv) that reach the
 trade date; otherwise they print as n/a. Then the forward bias log score (tools/bias_log.py, data/forward/bias_log.csv).
@@ -42,7 +44,7 @@ def load_tv(path):
         if r["Type"].startswith("Entry"):
             tag = dict(x.split(":", 1) for x in r["Signal"].split("|")[2:] if ":" in x)
             d.update(side=r["Signal"][0], entry_time=t, entry=float(r["Price USD"]), or_w=float(tag["or"]),
-                     on=tag["on"], pnl=float(r["Net PnL USD"]))
+                     on=tag["on"], pnl=float(r["Net PnL USD"]), risk=float(tag["risk"]))
         else:
             d.update(exit_time=t, exit=float(r["Price USD"]), reason=r["Signal"])
     df = pd.DataFrame.from_dict(tr, orient="index").sort_index()
@@ -105,12 +107,26 @@ def shadow_report(tv, flags, since):
     from es_filters import load_es, es_confirm
     _, e = load_es()
     live["ES"] = [es_confirm(e, t, sd) for t, sd in zip(live.entry_time, live.side)]
+    from six1 import add_one
+    b5 = pd.read_parquet("data/bars/MNQ_5m.parquet")
+    adds, status = [], []
+    for r in live.itertuples():
+        if b5.index[-1] < r.exit_time:                     # the bars do not reach the trade's exit yet
+            adds.append(np.nan); status.append("n/a"); continue
+        sg = 1 if r.side == "L" else -1
+        px = r.entry - sg * 0.25
+        rr = pd.Series(dict(et=r.entry_time, xt=r.exit_time, sg=sg, side=r.side, px=px, risk=r.risk,
+                            stop=px - sg * r.risk, exit=r.exit, reason=r.reason))
+        a = add_one(b5, rr)
+        adds.append(a["pnl"] if a else np.nan); status.append(f"{a['pnl']:+.1f}" if a else "-")
+    live["add_pnl"], live["add_status"] = adds, status
     fmt = lambda v: "n/a" if pd.isna(v) else ("SKIP" if v else "-")
-    print(f"{'date':<11}{'side':<5}{'exit':<7}{'net':>8}   F1    F2    F3    ORB8  retail  ES")
+    print(f"{'date':<11}{'side':<5}{'exit':<7}{'net':>8}   F1    F2    F3    ORB8  retail  ES    add")
     for _, r in live.iterrows():
         print(f"{str(r.day):<11}{r.side:<5}{r.reason:<7}{r.pnl:>+8.1f}   " +
               "  ".join(f"{fmt(r[c]):<4}" for c in ("F1", "F2", "F3", "ORB8", "retail")) +
-              f"    {'n/a' if pd.isna(r.ES) else ('conf' if r.ES else 'DIV')}")
+              f"    {'n/a' if pd.isna(r.ES) else ('conf' if r.ES else 'DIV'):<5} "
+              f"{r.add_status}")
     row = []
     for c, name in (("ORB8", "ORB8"), ("retail", "retail-sales")):
         known = live[live[c].notna()]
@@ -126,11 +142,17 @@ def shadow_report(tv, flags, since):
     print(f"shadow ES-diverge: {es_line}   [backtest baseline: 19.6 % of trades ES-diverge, hit 53.5 %, +0.348 R; "
           f"ES-confirm hit 48.8 %, +0.073 R]")
     row.append(es_line)
+    fired = live.add_pnl[~live.add_status.isin(["-", "n/a"])].tolist()
+    na = int((live.add_status == "n/a").sum())
+    add_line = (f"add fired {len(fired)} of {len(live)}, net {sum(fired):+,.0f}" + (f" ({na} n/a)" if na else ""))
+    print(f"shadow ORB-add: {add_line}   [adoption: net positive after 40 live occurrences; backtest 83 adds, "
+          f"+2,459, +0.049 R]")
+    row.append(add_line)
     if "F1" in live:
         print("  ORB8 by filter (a trade can fail several): " +
               "  ".join(f"{c} {int(live[c].eq(True).sum())} trades {live[live[c].eq(True)].pnl.sum():+,.0f}"
                         for c in ("F1", "F2", "F3")))
-    print(f"\nlog row: | week to {live.day.max()} | {len(live)} | {live.pnl.sum():+,.0f} | {row[0]} | {row[1]} | {row[2]} |")
+    print(f"\nlog row: | week to {live.day.max()} | {len(live)} | {live.pnl.sum():+,.0f} | {row[0]} | {row[1]} | {row[2]} | {row[3]} |")
 
 
 if __name__ == "__main__":
