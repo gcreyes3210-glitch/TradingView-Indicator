@@ -1,0 +1,87 @@
+G11 grid   phase is   trades 705413   2019-06-21 -> 2022-12-30   traded days 884
+pick() agrees with the grouped selection on 160 random combinations
+
+combinations 25920   cells 1620   with a trade 25920   eligible (>= 215 trades) 15967   eligible with mean R > 0: 3698   [grid evaluated in 2s, written to G11_grid.csv 6.0 MB]
+  eligible by L: or5 6671  or15 4704  or30 3663  pd 929
+  eligible by K: c1 4543  c5 6094  c15 5330
+  eligible by D: none 7821  fvg 6127  ext 2019
+  eligible by N: edge 4243  conf 4185  zone 3580  mid 1619  poc 2340
+  eligible by S: near 6439  mid 4141  far 5387
+  eligible by X: 1.5R 3955  2R 3968  3R 4007  hold 4037
+  eligible by W: 11 7161  12 8806
+  eligible by E: one 7688  re 8279
+  eligible by F: none 4339  ema200 3800  vwap 4309  ema921 3519
+
+top 20 eligible by t
+                                                     n days   net   totR      mR     t  win    dd
+name                                                                                             
+Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200   328  245 +4641 +157.6 +0.4804 +2.14 18.3 -1286
+Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Eone.Fema200  245  245 +4132 +139.3 +0.5688 +2.12 18.8 -1107
+Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200  478  409 +6204 +111.1 +0.2324 +2.03 26.8 -2128
+Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fema200  258  258 +3906 +130.8 +0.5068 +1.97 18.2 -1144
+Lor15.Kc5.Dfvg.Nedge.Sfar.X2R.W12.Eone.Fema200     568  568 +5996  +53.4 +0.0941 +1.85 47.0 -2580
+Lor30.Kc5.Dfvg.Nzone.Snear.Xhold.W12.Ere.Fema200   455  390 +5576  +98.1 +0.2156 +1.85 26.6 -2461
+Lor15.Kc5.Dfvg.Nedge.Sfar.X2R.W11.Eone.Fema200     516  516 +5318  +51.4 +0.0997 +1.84 46.7 -3026
+Lor15.Kc5.Dnone.Nedge.Sfar.X2R.W12.Eone.Fema200    595  595 +6301  +53.6 +0.0901 +1.82 46.9 -2562
+Lor15.Kc5.Dfvg.Nedge.Sfar.X2R.W11.Ere.Fema200      521  516 +5119  +50.9 +0.0977 +1.82 46.6 -3192
+Lor15.Kc5.Dfvg.Nzone.Sfar.X3R.W11.Eone.Fema200     360  360 +3878  +51.3 +0.1424 +1.81 41.4 -2685
+Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Ere.Fema200   382  258 +3352 +134.9 +0.3530 +1.78 17.5 -1496
+Lor15.Kc5.Dnone.Nedge.Sfar.X2R.W11.Eone.Fema200    541  541 +5355  +50.6 +0.0936 +1.78 46.6 -3050
+Lor15.Kc5.Dfvg.Nzone.Snear.X3R.W11.Eone.Fema200    360  360 +5348  +58.7 +0.1630 +1.76 33.6 -1092
+Lor15.Kc5.Dnone.Nedge.Sfar.X2R.W11.Ere.Fema200     546  541 +5156  +50.1 +0.0918 +1.75 46.5 -3215
+Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W11.Eone.Fema200   249  249 +4102  +65.3 +0.2624 +1.73 28.5 -2857
+Lor15.Kc5.Dnone.Nconf.Snear.Xhold.W11.Eone.Fema200 528  528 +5111 +133.1 +0.2521 +1.73 18.4 -1959
+Lor15.Kc5.Dfvg.Nzone.Sfar.X3R.W11.Ere.Fema200      365  360 +3498  +49.0 +0.1341 +1.72 41.4 -2685
+Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W12.Eone.Fema200   259  259 +4275  +65.7 +0.2535 +1.72 28.6 -2318
+Lor15.Kc5.Dfvg.Nedge.Sfar.X2R.W12.Ere.Fema200      597  568 +5747  +50.4 +0.0844 +1.71 46.6 -3090
+Lor15.Kc5.Dnone.Nconf.Snear.Xhold.W11.Ere.Fema200  716  528 +6019 +150.5 +0.2102 +1.71 18.9 -1846
+
+picks (rank = place in the eligible ranking by t; picks 1-5 by t with the overlap rule on (day, side); pick 6 = the largest total R if not already a pick)
+  pick 1  rank     1  Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200   n  328  days  245  net    +4641  totR  +157.6  R +0.4804  t +2.14  win 18.3  dd -1286   [t]
+  pick 2  rank     3  Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200  n  478  days  409  net    +6204  totR  +111.1  R +0.2324  t +2.03  win 26.8  dd -2128   [t]
+  pick 3  rank    87  Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fnone     n  266  days  266  net    +4998  totR   +85.2  R +0.3203  t +1.51  win 19.2  dd -978   [t]
+  pick 4  rank   195  Lor5.Kc15.Dext.Nmid.Snear.Xhold.W12.Eone.Fema921   n  245  days  245  net    +1626  totR  +108.1  R +0.4412  t +1.31  win 11.8  dd -1377   [t]
+  pick 5  rank   241  Lor15.Kc5.Dfvg.Npoc.Sfar.X1.5R.W11.Ere.Fema200     n  259  days  257  net    +1825  totR   +23.9  R +0.0924  t +1.24  win 47.5  dd -2128   [t]
+  pick 6  rank   535  Lor5.Kc1.Dfvg.Nzone.Smid.Xhold.W12.Ere.Fnone       n  236  days  156  net    +1728  totR  +181.8  R +0.7703  t +0.99  win 14.0  dd -2497   [largest total R]
+  passed over for overlap before the last pick by t: 236   (first: rank 2 Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Eone.Fema200 shares 1.000 with Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200)
+
+largest total R among eligible: Lor5.Kc1.Dfvg.Nzone.Smid.Xhold.W12.Ere.Fnone  n 236  days 156  net +1728  totR +181.8  R +0.7703  t +0.99  rank 535   (pick 6)   day overlap with the picks by t: [{'pick': 1, 'share': 0.3077}, {'pick': 2, 'share': 0.2564}, {'pick': 3, 'share': 1.0}, {'pick': 4, 'share': 0.2244}, {'pick': 5, 'share': 0.3205}]
+
+reality check: 15967 combinations, 884 days, 2000 resamples, seed 1   (float32, 56.5 MB day matrix, column chunks of 4096, 1.6s)
+  observed largest t (day-level) +2.139  (Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200);  trade-level largest t +2.137  (Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200)
+  resampled largest t: median 3.044  90% 3.702  95% 3.902  99% 4.213  max 4.870     p = 0.9845
+
+each choice on its own: average of mean R over the 15967 eligible combinations using the level
+choice  level  combos_is    R_is trades_is
+     L    or5       6671 -0.1097       452
+     L   or15       4704 -0.0294       469
+     L   or30       3663 -0.0329       442
+     L     pd        929 -0.1670       339
+     K     c1       4543 -0.0729       471
+     K     c5       6094 -0.0715       479
+     K    c15       5330 -0.0710       394
+     D   none       7821 -0.0788       504
+     D    fvg       6127 -0.0605       419
+     D    ext       2019 -0.0788       321
+     N   edge       4243 -0.0469       530
+     N   conf       4185 -0.0530       508
+     N   zone       3580 -0.0611       392
+     N    mid       1619 -0.1026       354
+     N    poc       2340 -0.1453       343
+     S   near       6439 -0.0960       454
+     S    mid       4141 -0.0797       457
+     S    far       5387 -0.0366       435
+     X   1.5R       3955 -0.0855       442
+     X     2R       3968 -0.0832       446
+     X     3R       4007 -0.0816       450
+     X   hold       4037 -0.0373       455
+     W     11       7161 -0.0657       423
+     W     12       8806 -0.0767       468
+     E    one       7688 -0.0730       419
+     E     re       8279 -0.0706       476
+     F   none       4339 -0.0765       482
+     F ema200       3800 -0.0622       414
+     F   vwap       4309 -0.0750       478
+     F ema921       3519 -0.0722       407
+
+total 5s

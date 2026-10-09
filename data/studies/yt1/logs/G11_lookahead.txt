@@ -1,0 +1,32 @@
+G11 base     Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200   orders  336  look-ahead test: PASS   | re-entry orders alone (86): PASS
+G11 nb1      Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Ere.Fema200   orders  392  look-ahead test: PASS   | re-entry orders alone (128): PASS
+G11 nb2      Lor15.Kc1.Dfvg.Nconf.Snear.X3R.W11.Ere.Fema200     orders  333  look-ahead test: PASS   | re-entry orders alone (83): PASS
+G11 p2       Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200  orders  759  look-ahead test: PASS   | re-entry orders alone (72): PASS
+G11 p2_nb1   Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W11.Ere.Fema200  orders  641  look-ahead test: PASS   | re-entry orders alone (33): PASS
+G11 p2_nb2   Lor30.Kc5.Dnone.Nzone.Snear.X3R.W12.Ere.Fema200    orders  757  look-ahead test: PASS   | re-entry orders alone (70): PASS
+G11 p3       Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fnone     orders  275  look-ahead test: PASS
+G11 p3_nb1   Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Eone.Fnone     orders  273  look-ahead test: PASS
+G11 p3_nb2   Lor5.Kc1.Dfvg.Nconf.Snear.X3R.W12.Eone.Fnone       orders  275  look-ahead test: PASS
+G11 p4       Lor5.Kc15.Dext.Nmid.Snear.Xhold.W12.Eone.Fema921   orders  724  look-ahead test: PASS
+G11 p4_nb1   Lor5.Kc15.Dext.Nmid.Snear.Xhold.W11.Eone.Fema921   orders  669  look-ahead test: PASS
+G11 p4_nb2   Lor5.Kc15.Dext.Nmid.Snear.X3R.W12.Eone.Fema921     orders  724  look-ahead test: PASS
+G11 p5       Lor15.Kc5.Dfvg.Npoc.Sfar.X1.5R.W11.Ere.Fema200     orders  689  look-ahead test: PASS   | re-entry orders alone (3): PASS
+G11 p5_nb1   Lor15.Kc5.Dfvg.Npoc.Sfar.X1.5R.W12.Ere.Fema200     orders  732  look-ahead test: PASS   | re-entry orders alone (13): PASS
+G11 p5_nb2   Lor15.Kc5.Dfvg.Npoc.Sfar.X2R.W11.Ere.Fema200       orders  689  look-ahead test: PASS   | re-entry orders alone (3): PASS
+G11 p6       Lor5.Kc1.Dfvg.Nzone.Smid.Xhold.W12.Ere.Fnone       orders  281  look-ahead test: PASS   | re-entry orders alone (82): PASS
+G11 p6_nb1   Lor5.Kc1.Dfvg.Nzone.Smid.Xhold.W11.Ere.Fnone       orders  264  look-ahead test: PASS   | re-entry orders alone (65): PASS
+G11 p6_nb2   Lor5.Kc1.Dfvg.Nzone.Smid.X3R.W12.Ere.Fnone         orders  253  look-ahead test: PASS   | re-entry orders alone (54): PASS
+G11 chk1     Lor5.Kc1.Dnone.Nedge.Snear.X1.5R.W11.Eone.Fnone    orders  925  look-ahead test: PASS
+G11 chk2     Lor15.Kc5.Dfvg.Nconf.Snear.X2R.W12.Ere.Fema200     orders  812  look-ahead test: PASS   | re-entry orders alone (220): PASS
+G11 chk3     Lor30.Kc15.Dext.Nzone.Snear.X3R.W11.Ere.Fvwap      orders  187  look-ahead test: PASS   | no re-entry orders
+G11 chk4     Lpd.Kc5.Dnone.Nconf.Snear.Xhold.W12.Eone.Fema921   orders  339  look-ahead test: PASS
+G11 chk5     Lor15.Kc1.Dext.Nmid.Snear.X2R.W12.Ere.Fnone        orders  492  look-ahead test: PASS   | no re-entry orders
+G11 chk6     Lor5.Kc5.Dnone.Npoc.Snear.X3R.W11.Eone.Fvwap       orders  913  look-ahead test: PASS
+G11 chk7     Lor30.Kc5.Dfvg.Nedge.Smid.Xhold.W12.Ere.Fnone      orders  880  look-ahead test: PASS   | re-entry orders alone (86): PASS
+G11 chk8     Lor15.Kc15.Dnone.Npoc.Sfar.X1.5R.W12.Eone.Fema200  orders  745  look-ahead test: PASS
+G11 chk9     Lpd.Kc1.Dext.Nedge.Snear.X2R.W12.Ere.Fnone         orders  626  look-ahead test: PASS   | re-entry orders alone (101): PASS
+G11 chk10    Lpd.Kc15.Dfvg.Nzone.Snear.X1.5R.W11.Eone.Fnone     orders  376  look-ahead test: PASS
+G11 chk11    Lor5.Kc15.Dext.Nconf.Sfar.X2R.W11.Ere.Fema921      orders  290  look-ahead test: PASS   | re-entry orders alone (7): PASS
+G11 chk12    Lor30.Kc1.Dnone.Nzone.Smid.X3R.W12.Ere.Fnone       orders  887  look-ahead test: PASS   | re-entry orders alone (98): PASS
+G11 chk13    Lor5.Kc1.Dext.Nconf.Smid.Xhold.W11.Eone.Fnone      orders  298  look-ahead test: PASS
+G11 chk14    Lor15.Kc5.Dnone.Nmid.Sfar.X2R.W11.Ere.Fnone        orders  875  look-ahead test: PASS   | re-entry orders alone (11): PASS

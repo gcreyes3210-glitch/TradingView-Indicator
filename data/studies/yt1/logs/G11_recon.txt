@@ -1,0 +1,35 @@
+every variant of s_G11 through the harness against the grid row (trade by trade: bars, prices, pnl, R):
+  base     Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200   grid n  328 net   +4641.00 R +0.480429 | harness n  328 net   +4641.00 R +0.480429  OK   run.py file: n 328 net +4641.00 R +0.480429 OK
+  nb1      Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Ere.Fema200   grid n  382 net   +3352.00 R +0.353048 | harness n  382 net   +3352.00 R +0.353048  OK   run.py file: n 382 net +3352.00 R +0.353048 OK
+  nb2      Lor15.Kc1.Dfvg.Nconf.Snear.X3R.W11.Ere.Fema200     grid n  325 net    -668.50 R -0.056553 | harness n  325 net    -668.50 R -0.056553  OK   run.py file: n 325 net -668.50 R -0.056553 OK
+  p2       Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200  grid n  478 net   +6203.50 R +0.232443 | harness n  478 net   +6203.50 R +0.232443  OK   run.py file: n 478 net +6203.50 R +0.232443 OK
+  p2_nb1   Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W11.Ere.Fema200  grid n  334 net   +4999.50 R +0.216418 | harness n  334 net   +4999.50 R +0.216418  OK   run.py file: n 334 net +4999.50 R +0.216418 OK
+  p2_nb2   Lor30.Kc5.Dnone.Nzone.Snear.X3R.W12.Ere.Fema200    grid n  476 net   +5102.00 R +0.132717 | harness n  476 net   +5102.00 R +0.132717  OK   run.py file: n 476 net +5102.00 R +0.132717 OK
+  p3       Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fnone     grid n  266 net   +4998.00 R +0.320310 | harness n  266 net   +4998.00 R +0.320310  OK   run.py file: n 266 net +4998.00 R +0.320310 OK
+  p3_nb1   Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Eone.Fnone     grid n  264 net   +4868.00 R +0.290400 | harness n  264 net   +4868.00 R +0.290400  OK   run.py file: n 264 net +4868.00 R +0.290400 OK
+  p3_nb2   Lor5.Kc1.Dfvg.Nconf.Snear.X3R.W12.Eone.Fnone       grid n  266 net    +598.50 R -0.009362 | harness n  266 net    +598.50 R -0.009362  OK   run.py file: n 266 net +598.50 R -0.009362 OK
+  p4       Lor5.Kc15.Dext.Nmid.Snear.Xhold.W12.Eone.Fema921   grid n  245 net   +1626.50 R +0.441152 | harness n  245 net   +1626.50 R +0.441152  OK   run.py file: n 245 net +1626.50 R +0.441152 OK
+  p4_nb1   Lor5.Kc15.Dext.Nmid.Snear.Xhold.W11.Eone.Fema921   grid n  161 net   +1176.00 R +0.520179 | harness n  161 net   +1176.00 R +0.520179  OK   run.py file: n 161 net +1176.00 R +0.520179 OK
+  p4_nb2   Lor5.Kc15.Dext.Nmid.Snear.X3R.W12.Eone.Fema921     grid n  245 net    -578.50 R -0.078711 | harness n  245 net    -578.50 R -0.078711  OK   run.py file: n 245 net -578.50 R -0.078711 OK
+  p5       Lor15.Kc5.Dfvg.Npoc.Sfar.X1.5R.W11.Ere.Fema200     grid n  259 net   +1825.00 R +0.092430 | harness n  259 net   +1825.00 R +0.092430  OK   run.py file: n 259 net +1825.00 R +0.092430 OK
+  p5_nb1   Lor15.Kc5.Dfvg.Npoc.Sfar.X1.5R.W12.Ere.Fema200     grid n  352 net    +476.00 R +0.050248 | harness n  352 net    +476.00 R +0.050248  OK   run.py file: n 352 net +476.00 R +0.050248 OK
+  p5_nb2   Lor15.Kc5.Dfvg.Npoc.Sfar.X2R.W11.Ere.Fema200       grid n  259 net   +2009.50 R +0.081955 | harness n  259 net   +2009.50 R +0.081955  OK   run.py file: n 259 net +2009.50 R +0.081955 OK
+  p6       Lor5.Kc1.Dfvg.Nzone.Smid.Xhold.W12.Ere.Fnone       grid n  236 net   +1728.50 R +0.770334 | harness n  236 net   +1728.50 R +0.770334  OK   run.py file: n 236 net +1728.50 R +0.770334 OK
+  p6_nb1   Lor5.Kc1.Dfvg.Nzone.Smid.Xhold.W11.Ere.Fnone       grid n  211 net   +1240.50 R +0.672468 | harness n  211 net   +1240.50 R +0.672468  OK   run.py file: n 211 net +1240.50 R +0.672468 OK
+  p6_nb2   Lor5.Kc1.Dfvg.Nzone.Smid.X3R.W12.Ere.Fnone         grid n  210 net   -2097.00 R -0.370619 | harness n  210 net   -2097.00 R -0.370619  OK   run.py file: n 210 net -2097.00 R -0.370619 OK
+  chk1     Lor5.Kc1.Dnone.Nedge.Snear.X1.5R.W11.Eone.Fnone    grid n  809 net   -1942.50 R -0.166441 | harness n  809 net   -1942.50 R -0.166441  OK   run.py file: n 809 net -1942.50 R -0.166441 OK
+  chk2     Lor15.Kc5.Dfvg.Nconf.Snear.X2R.W12.Ere.Fema200     grid n  775 net   -1729.00 R -0.093316 | harness n  775 net   -1729.00 R -0.093316  OK   run.py file: n 775 net -1729.00 R -0.093316 OK
+  chk3     Lor30.Kc15.Dext.Nzone.Snear.X3R.W11.Ere.Fvwap      grid n   20 net    +434.50 R +0.065607 | harness n   20 net    +434.50 R +0.065607  OK   run.py file: n 20 net +434.50 R +0.065607 OK
+  chk4     Lpd.Kc5.Dnone.Nconf.Snear.Xhold.W12.Eone.Fema921   grid n  328 net   -5897.00 R -0.406749 | harness n  328 net   -5897.00 R -0.406749  OK   run.py file: n 328 net -5897.00 R -0.406749 OK
+  chk5     Lor15.Kc1.Dext.Nmid.Snear.X2R.W12.Ere.Fnone        grid n   77 net    +380.00 R +0.152792 | harness n   77 net    +380.00 R +0.152792  OK   run.py file: n 77 net +380.00 R +0.152792 OK
+  chk6     Lor5.Kc5.Dnone.Npoc.Snear.X3R.W11.Eone.Fvwap       grid n  515 net   -2569.00 R -0.222118 | harness n  515 net   -2569.00 R -0.222118  OK   run.py file: n 515 net -2569.00 R -0.222118 OK
+  chk7     Lor30.Kc5.Dfvg.Nedge.Smid.Xhold.W12.Ere.Fnone      grid n  714 net   +3153.50 R +0.020121 | harness n  714 net   +3153.50 R +0.020121  OK   run.py file: n 714 net +3153.50 R +0.020121 OK
+  chk8     Lor15.Kc15.Dnone.Npoc.Sfar.X1.5R.W12.Eone.Fema200  grid n  283 net    -176.00 R +0.039731 | harness n  283 net    -176.00 R +0.039731  OK   run.py file: n 283 net -176.00 R +0.039731 OK
+  chk9     Lpd.Kc1.Dext.Nedge.Snear.X2R.W12.Ere.Fnone         grid n  285 net   -1854.00 R -0.220789 | harness n  285 net   -1854.00 R -0.220789  OK   run.py file: n 285 net -1854.00 R -0.220789 OK
+  chk10    Lpd.Kc15.Dfvg.Nzone.Snear.X1.5R.W11.Eone.Fnone     grid n  190 net   +1323.00 R +0.021841 | harness n  190 net   +1323.00 R +0.021841  OK   run.py file: n 190 net +1323.00 R +0.021841 OK
+  chk11    Lor5.Kc15.Dext.Nconf.Sfar.X2R.W11.Ere.Fema921      grid n  274 net   -1725.00 R -0.067237 | harness n  274 net   -1725.00 R -0.067237  OK   run.py file: n 274 net -1725.00 R -0.067237 OK
+  chk12    Lor30.Kc1.Dnone.Nzone.Smid.X3R.W12.Ere.Fnone       grid n  670 net   -1096.50 R -0.025558 | harness n  670 net   -1096.50 R -0.025558  OK   run.py file: n 670 net -1096.50 R -0.025558 OK
+  chk13    Lor5.Kc1.Dext.Nconf.Smid.Xhold.W11.Eone.Fnone      grid n  285 net    -217.50 R -0.075828 | harness n  285 net    -217.50 R -0.075828  OK   run.py file: n 285 net -217.50 R -0.075828 OK
+  chk14    Lor15.Kc5.Dnone.Nmid.Sfar.X2R.W11.Ere.Fnone        grid n  322 net     -51.50 R +0.019131 | harness n  322 net     -51.50 R +0.019131  OK   run.py file: n 322 net -51.50 R +0.019131 OK
+random combinations trade by trade: 96 of 96 match (96 of them have trades; levels covered: L 4/4, K 3/3, D 3/3, N 5/5, S 3/3, X 4/4, W 2/2, E 2/2, F 4/4)
+total mismatches: 0

@@ -1,0 +1,1490 @@
+{
+ "min_trades": 215,
+ "n_grid": 25920,
+ "n_with_a_trade": 25920,
+ "n_eligible": 15967,
+ "n_eligible_positive": 3698,
+ "picks": [
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "combo": {
+    "L": "or15",
+    "K": "c1",
+    "D": "fvg",
+    "N": "conf",
+    "S": "near",
+    "X": "hold",
+    "W": "11",
+    "E": "re",
+    "F": "ema200"
+   },
+   "n": 328,
+   "days": 245,
+   "net": 4641.0,
+   "totR": 157.58056947098447,
+   "R": 0.48042856546031854,
+   "sd": 4.072058731497105,
+   "t": 2.136740149622835,
+   "win": 18.29268292682927,
+   "dd": -1286.0,
+   "by_year": {
+    "2019": 429.5,
+    "2020": 573.5,
+    "2021": 473.0,
+    "2022": 3165.0
+   },
+   "rank": 1,
+   "pick": 1,
+   "how": "t"
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "combo": {
+    "L": "or30",
+    "K": "c5",
+    "D": "none",
+    "N": "zone",
+    "S": "near",
+    "X": "hold",
+    "W": "12",
+    "E": "re",
+    "F": "ema200"
+   },
+   "n": 478,
+   "days": 409,
+   "net": 6203.5,
+   "totR": 111.10785495772598,
+   "R": 0.23244321120863176,
+   "sd": 2.5083648107322785,
+   "t": 2.02600314586702,
+   "win": 26.778242677824267,
+   "dd": -2128.5,
+   "by_year": {
+    "2019": -53.5,
+    "2020": 1097.5,
+    "2021": 593.5,
+    "2022": 4566.0
+   },
+   "rank": 3,
+   "pick": 2,
+   "how": "t"
+  },
+  {
+   "name": "Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fnone",
+   "combo": {
+    "L": "or5",
+    "K": "c1",
+    "D": "fvg",
+    "N": "conf",
+    "S": "near",
+    "X": "hold",
+    "W": "12",
+    "E": "one",
+    "F": "none"
+   },
+   "n": 266,
+   "days": 266,
+   "net": 4998.0,
+   "totR": 85.20253580618429,
+   "R": 0.3203102849856552,
+   "sd": 3.4633454519298876,
+   "t": 1.5083977977864609,
+   "win": 19.172932330827066,
+   "dd": -977.5,
+   "by_year": {
+    "2019": -411.0,
+    "2020": 950.0,
+    "2021": -449.5,
+    "2022": 4908.5
+   },
+   "rank": 87,
+   "pick": 3,
+   "how": "t"
+  },
+  {
+   "name": "Lor5.Kc15.Dext.Nmid.Snear.Xhold.W12.Eone.Fema921",
+   "combo": {
+    "L": "or5",
+    "K": "c15",
+    "D": "ext",
+    "N": "mid",
+    "S": "near",
+    "X": "hold",
+    "W": "12",
+    "E": "one",
+    "F": "ema921"
+   },
+   "n": 245,
+   "days": 245,
+   "net": 1626.5,
+   "totR": 108.08225439584254,
+   "R": 0.44115205875854097,
+   "sd": 5.287897502797033,
+   "t": 1.305835058061184,
+   "win": 11.83673469387755,
+   "dd": -1377.0,
+   "by_year": {
+    "2019": -116.5,
+    "2020": -167.5,
+    "2021": -421.0,
+    "2022": 2331.5
+   },
+   "rank": 195,
+   "pick": 4,
+   "how": "t"
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Npoc.Sfar.X1.5R.W11.Ere.Fema200",
+   "combo": {
+    "L": "or15",
+    "K": "c5",
+    "D": "fvg",
+    "N": "poc",
+    "S": "far",
+    "X": "1.5R",
+    "W": "11",
+    "E": "re",
+    "F": "ema200"
+   },
+   "n": 259,
+   "days": 257,
+   "net": 1825.0,
+   "totR": 23.939371248828852,
+   "R": 0.09243000482173303,
+   "sd": 1.199949419085841,
+   "t": 1.2396523782171613,
+   "win": 47.49034749034749,
+   "dd": -2127.5,
+   "by_year": {
+    "2019": -88.5,
+    "2020": -917.0,
+    "2021": 1439.5,
+    "2022": 1391.0
+   },
+   "rank": 241,
+   "pick": 5,
+   "how": "t"
+  },
+  {
+   "name": "Lor5.Kc1.Dfvg.Nzone.Smid.Xhold.W12.Ere.Fnone",
+   "combo": {
+    "L": "or5",
+    "K": "c1",
+    "D": "fvg",
+    "N": "zone",
+    "S": "mid",
+    "X": "hold",
+    "W": "12",
+    "E": "re",
+    "F": "none"
+   },
+   "n": 236,
+   "days": 156,
+   "net": 1728.5,
+   "totR": 181.79876967554105,
+   "R": 0.7703337698116146,
+   "sd": 11.964811410187108,
+   "t": 0.989074671981904,
+   "win": 13.983050847457626,
+   "dd": -2497.0,
+   "by_year": {
+    "2019": -241.5,
+    "2020": 1596.5,
+    "2021": -879.5,
+    "2022": 1253.0
+   },
+   "rank": 535,
+   "same_as_pick": null,
+   "day_overlap_with_picks": [
+    {
+     "pick": 1,
+     "share": 0.3077
+    },
+    {
+     "pick": 2,
+     "share": 0.2564
+    },
+    {
+     "pick": 3,
+     "share": 1.0
+    },
+    {
+     "pick": 4,
+     "share": 0.2244
+    },
+    {
+     "pick": 5,
+     "share": 0.3205
+    }
+   ],
+   "pick": 6,
+   "how": "largest total R"
+  }
+ ],
+ "n_skipped_for_overlap": 236,
+ "skipped_for_overlap_first_200": [
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Eone.Fema200",
+   "rank": 2,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fema200",
+   "rank": 4,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nedge.Sfar.X2R.W12.Eone.Fema200",
+   "rank": 5,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8122
+  },
+  {
+   "name": "Lor30.Kc5.Dfvg.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "rank": 6,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nedge.Sfar.X2R.W11.Eone.Fema200",
+   "rank": 7,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7959
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nedge.Sfar.X2R.W12.Eone.Fema200",
+   "rank": 8,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8204
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nedge.Sfar.X2R.W11.Ere.Fema200",
+   "rank": 9,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7959
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Sfar.X3R.W11.Eone.Fema200",
+   "rank": 10,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Ere.Fema200",
+   "rank": 11,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nedge.Sfar.X2R.W11.Eone.Fema200",
+   "rank": 12,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8041
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Snear.X3R.W11.Eone.Fema200",
+   "rank": 13,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nedge.Sfar.X2R.W11.Ere.Fema200",
+   "rank": 14,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8041
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W11.Eone.Fema200",
+   "rank": 15,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Snear.Xhold.W11.Eone.Fema200",
+   "rank": 16,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7837
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Sfar.X3R.W11.Ere.Fema200",
+   "rank": 17,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W12.Eone.Fema200",
+   "rank": 18,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nedge.Sfar.X2R.W12.Ere.Fema200",
+   "rank": 19,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8122
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "rank": 20,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7837
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.Xhold.W11.Eone.Fema200",
+   "rank": 21,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7633
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Snear.Xhold.W11.Eone.Fema200",
+   "rank": 22,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.X3R.W12.Ere.Fema200",
+   "rank": 23,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.Xhold.W11.Eone.Fema200",
+   "rank": 24,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.X2R.W11.Ere.Fema200",
+   "rank": 25,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7633
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.X2R.W11.Eone.Fema200",
+   "rank": 26,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7633
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Snear.Xhold.W11.Eone.Fema200",
+   "rank": 27,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nedge.Sfar.X2R.W12.Ere.Fema200",
+   "rank": 28,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8204
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Snear.Xhold.W11.Ere.Fema200",
+   "rank": 29,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Snear.X3R.W12.Eone.Fema200",
+   "rank": 30,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.649
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W11.Eone.Fnone",
+   "rank": 31,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W11.Eone.Fvwap",
+   "rank": 32,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.Xhold.W12.Eone.Fema200",
+   "rank": 33,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nconf.Smid.Xhold.W11.Eone.Fema921",
+   "rank": 34,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5061
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W12.Eone.Fnone",
+   "rank": 35,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W12.Eone.Fvwap",
+   "rank": 36,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Snear.X3R.W12.Eone.Fema200",
+   "rank": 37,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.649
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.Xhold.W11.Ere.Fema200",
+   "rank": 38,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7633
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Smid.X3R.W11.Eone.Fema200",
+   "rank": 39,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7347
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nconf.Smid.Xhold.W11.Eone.Fema200",
+   "rank": 40,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.6163
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Snear.Xhold.W11.Ere.Fema200",
+   "rank": 41,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.X3R.W12.Eone.Fema200",
+   "rank": 42,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Eone.Fema200",
+   "rank": 43,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W12.Ere.Fnone",
+   "rank": 44,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W12.Ere.Fvwap",
+   "rank": 45,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Snear.X3R.W11.Eone.Fema200",
+   "rank": 46,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Sfar.X2R.W11.Ere.Fema200",
+   "rank": 47,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7551
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Sfar.X2R.W11.Eone.Fema200",
+   "rank": 48,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7551
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W11.Ere.Fnone",
+   "rank": 49,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W11.Ere.Fvwap",
+   "rank": 50,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "rank": 51,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7755
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Sfar.Xhold.W11.Eone.Fema200",
+   "rank": 52,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7551
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Sfar.X3R.W11.Eone.Fema200",
+   "rank": 53,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Smid.Xhold.W11.Eone.Fnone",
+   "rank": 54,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7388
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Smid.Xhold.W11.Eone.Fvwap",
+   "rank": 55,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7388
+  },
+  {
+   "name": "Lor30.Kc15.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "rank": 56,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.8889
+  },
+  {
+   "name": "Lor30.Kc15.Dfvg.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "rank": 57,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.8889
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Snear.X3R.W11.Ere.Fema200",
+   "rank": 58,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.Xhold.W11.Ere.Fema200",
+   "rank": 59,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Smid.X3R.W12.Ere.Fema921",
+   "rank": 60,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8724
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Smid.Xhold.W11.Eone.Fema200",
+   "rank": 61,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7347
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema921",
+   "rank": 62,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.9267
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nconf.Smid.Xhold.W11.Ere.Fema200",
+   "rank": 63,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.6163
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W11.Ere.Fnone",
+   "rank": 64,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W11.Ere.Fvwap",
+   "rank": 65,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.Xhold.W12.Ere.Fema200",
+   "rank": 66,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W11.Ere.Fema200",
+   "rank": 67,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Smid.Xhold.W11.Ere.Fema200",
+   "rank": 68,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.Xhold.W12.Eone.Fema200",
+   "rank": 69,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7959
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Sfar.Xhold.W11.Ere.Fema200",
+   "rank": 70,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7551
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "rank": 71,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.649
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Eone.Fnone",
+   "rank": 72,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Eone.Fvwap",
+   "rank": 73,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.X3R.W11.Eone.Fema200",
+   "rank": 74,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7633
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W11.Ere.Fema200",
+   "rank": 75,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Snear.Xhold.W11.Eone.Fema200",
+   "rank": 76,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7755
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nconf.Sfar.Xhold.W11.Eone.Fema200",
+   "rank": 77,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.6245
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nconf.Sfar.Xhold.W11.Ere.Fema200",
+   "rank": 78,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.6245
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Smid.Xhold.W11.Eone.Fema200",
+   "rank": 79,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W12.Ere.Fema200",
+   "rank": 80,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "rank": 81,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.649
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W11.Eone.Fema200",
+   "rank": 82,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Smid.Xhold.W11.Eone.Fnone",
+   "rank": 83,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7306
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Smid.Xhold.W11.Eone.Fvwap",
+   "rank": 84,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7306
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Sfar.X3R.W11.Ere.Fema200",
+   "rank": 85,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X2R.W12.Ere.Fema200",
+   "rank": 86,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fvwap",
+   "rank": 88,
+   "overlaps": "Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fnone",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc5.Dfvg.Nzone.Snear.Xhold.W12.Eone.Fema200",
+   "rank": 89,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fnone",
+   "rank": 90,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fvwap",
+   "rank": 91,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W11.Ere.Fema200",
+   "rank": 92,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Sfar.Xhold.W12.Eone.Fema200",
+   "rank": 93,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7878
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Sfar.X2R.W11.Eone.Fema200",
+   "rank": 94,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.X2R.W12.Eone.Fema200",
+   "rank": 95,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7959
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W12.Ere.Fnone",
+   "rank": 96,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W12.Ere.Fvwap",
+   "rank": 97,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Smid.X3R.W11.Eone.Fema200",
+   "rank": 98,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7265
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Sfar.X2R.W12.Eone.Fema200",
+   "rank": 99,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7878
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W12.Ere.Fema200",
+   "rank": 100,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc15.Dnone.Nzone.Snear.Xhold.W12.Ere.Fnone",
+   "rank": 101,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.7835
+  },
+  {
+   "name": "Lor30.Kc15.Dnone.Nzone.Snear.Xhold.W12.Ere.Fvwap",
+   "rank": 102,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.7835
+  },
+  {
+   "name": "Lor30.Kc15.Dfvg.Nzone.Snear.Xhold.W12.Ere.Fnone",
+   "rank": 103,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.7835
+  },
+  {
+   "name": "Lor30.Kc15.Dfvg.Nzone.Snear.Xhold.W12.Ere.Fvwap",
+   "rank": 104,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.7835
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W12.Eone.Fema200",
+   "rank": 105,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Smid.Xhold.W11.Ere.Fnone",
+   "rank": 106,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9306
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Smid.Xhold.W11.Ere.Fvwap",
+   "rank": 107,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9306
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.X3R.W11.Ere.Fema200",
+   "rank": 108,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7633
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fnone",
+   "rank": 109,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fvwap",
+   "rank": 110,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nconf.Smid.Xhold.W11.Eone.Fnone",
+   "rank": 111,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.6163
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nconf.Smid.Xhold.W11.Eone.Fvwap",
+   "rank": 112,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.6163
+  },
+  {
+   "name": "Lor30.Kc5.Dfvg.Nzone.Snear.Xhold.W11.Ere.Fema200",
+   "rank": 113,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fnone",
+   "rank": 114,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fvwap",
+   "rank": 115,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Snear.X3R.W11.Ere.Fema200",
+   "rank": 116,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Sfar.X3R.W12.Ere.Fema200",
+   "rank": 117,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nconf.Smid.Xhold.W11.Ere.Fema921",
+   "rank": 118,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5061
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X2R.W11.Ere.Fema200",
+   "rank": 119,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W12.Eone.Fnone",
+   "rank": 120,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W12.Eone.Fvwap",
+   "rank": 121,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema921",
+   "rank": 122,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9246
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Sfar.X3R.W11.Eone.Fema200",
+   "rank": 123,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7551
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W11.Eone.Fnone",
+   "rank": 124,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X3R.W11.Eone.Fvwap",
+   "rank": 125,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W11.Eone.Fema921",
+   "rank": 126,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.9085
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nzone.Sfar.Xhold.W11.Ere.Fnone",
+   "rank": 127,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.6944
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nzone.Sfar.Xhold.W11.Ere.Fvwap",
+   "rank": 128,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.6944
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Sfar.Xhold.W11.Eone.Fema200",
+   "rank": 129,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nzone.Sfar.Xhold.W11.Ere.Fema200",
+   "rank": 130,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.665
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Smid.Xhold.W11.Eone.Fema200",
+   "rank": 131,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7265
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Snear.Xhold.W12.Eone.Fema200",
+   "rank": 132,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.649
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Smid.Xhold.W12.Eone.Fema200",
+   "rank": 133,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.95
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Sfar.X3R.W12.Eone.Fema200",
+   "rank": 134,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc5.Dfvg.Nzone.Snear.X3R.W12.Ere.Fema200",
+   "rank": 135,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W11.Eone.Fema200",
+   "rank": 136,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nconf.Smid.Xhold.W11.Ere.Fnone",
+   "rank": 137,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.6163
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nconf.Smid.Xhold.W11.Ere.Fvwap",
+   "rank": 138,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.6163
+  },
+  {
+   "name": "Lor30.Kc15.Dnone.Nzone.Snear.Xhold.W12.Eone.Fema200",
+   "rank": 139,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.8889
+  },
+  {
+   "name": "Lor30.Kc15.Dfvg.Nzone.Snear.Xhold.W12.Eone.Fema200",
+   "rank": 140,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.8889
+  },
+  {
+   "name": "Lor15.Kc1.Dnone.Nedge.Sfar.X2R.W12.Ere.Fema200",
+   "rank": 141,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Snear.Xhold.W12.Ere.Fema200",
+   "rank": 142,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8204
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Sfar.Xhold.W11.Ere.Fema200",
+   "rank": 143,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W12.Ere.Fema921",
+   "rank": 144,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8679
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Sfar.Xhold.W11.Eone.Fema200",
+   "rank": 145,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nconf.Sfar.Xhold.W11.Eone.Fema200",
+   "rank": 146,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.7971
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nconf.Sfar.Xhold.W11.Ere.Fema200",
+   "rank": 147,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.7971
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X2R.W11.Eone.Fema200",
+   "rank": 148,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Snear.Xhold.W12.Eone.Fema200",
+   "rank": 149,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.649
+  },
+  {
+   "name": "Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Eone.Fnone",
+   "rank": 150,
+   "overlaps": "Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fnone",
+   "share": 1.0
+  },
+  {
+   "name": "Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Eone.Fvwap",
+   "rank": 151,
+   "overlaps": "Lor5.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Eone.Fnone",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc5.Dfvg.Nzone.Snear.Xhold.W12.Ere.Fema921",
+   "rank": 152,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.8936
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Snear.Xhold.W11.Ere.Fnone",
+   "rank": 153,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7878
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Snear.Xhold.W11.Ere.Fvwap",
+   "rank": 154,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7878
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Sfar.X3R.W11.Ere.Fema200",
+   "rank": 155,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7551
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Sfar.X2R.W11.Ere.Fema200",
+   "rank": 156,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.X3R.W12.Eone.Fema200",
+   "rank": 157,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7959
+  },
+  {
+   "name": "Lor30.Kc5.Dfvg.Nzone.Snear.X3R.W12.Eone.Fema200",
+   "rank": 158,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Smid.Xhold.W11.Ere.Fema921",
+   "rank": 159,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9109
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Sfar.Xhold.W11.Ere.Fema200",
+   "rank": 160,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Smid.X3R.W11.Ere.Fnone",
+   "rank": 161,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9306
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Smid.X3R.W11.Ere.Fvwap",
+   "rank": 162,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9306
+  },
+  {
+   "name": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W11.Ere.Fema921",
+   "rank": 163,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.9085
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Smid.Xhold.W11.Ere.Fema200",
+   "rank": 164,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7347
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Smid.Xhold.W12.Ere.Fema200",
+   "rank": 165,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.95
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Snear.X3R.W12.Ere.Fema200",
+   "rank": 166,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.649
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X2R.W12.Eone.Fema200",
+   "rank": 167,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X2R.W12.Ere.Fnone",
+   "rank": 168,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Sfar.X2R.W12.Ere.Fvwap",
+   "rank": 169,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.9755
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Smid.Xhold.W12.Eone.Fema200",
+   "rank": 170,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7673
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Snear.Xhold.W11.Ere.Fema200",
+   "rank": 171,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nedge.Smid.Xhold.W11.Eone.Fema200",
+   "rank": 172,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8041
+  },
+  {
+   "name": "Lor30.Kc5.Dfvg.Nzone.Snear.Xhold.W12.Ere.Fnone",
+   "rank": 173,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.9535
+  },
+  {
+   "name": "Lor30.Kc5.Dfvg.Nzone.Snear.Xhold.W12.Ere.Fvwap",
+   "rank": 174,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.9535
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W12.Ere.Fema921",
+   "rank": 175,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.872
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Sfar.X3R.W11.Ere.Fema200",
+   "rank": 176,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nzone.Sfar.Xhold.W11.Eone.Fnone",
+   "rank": 177,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.6944
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nzone.Sfar.Xhold.W11.Eone.Fvwap",
+   "rank": 178,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.6944
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Snear.Xhold.W11.Eone.Fnone",
+   "rank": 179,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7878
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Snear.Xhold.W11.Eone.Fvwap",
+   "rank": 180,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7878
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fnone",
+   "rank": 181,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7796
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fvwap",
+   "rank": 182,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7796
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nedge.Sfar.X3R.W11.Eone.Fema200",
+   "rank": 183,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Snear.Xhold.W12.Ere.Fema200",
+   "rank": 184,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8122
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Sfar.X2R.W12.Ere.Fema200",
+   "rank": 185,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7878
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Smid.X3R.W11.Ere.Fema200",
+   "rank": 186,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7347
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nzone.Snear.X3R.W12.Ere.Fema200",
+   "rank": 187,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.649
+  },
+  {
+   "name": "Lor15.Kc1.Dfvg.Nconf.Smid.Xhold.W12.Ere.Fema921",
+   "rank": 188,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8724
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Smid.Xhold.W12.Eone.Fnone",
+   "rank": 189,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7714
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Smid.Xhold.W12.Eone.Fvwap",
+   "rank": 190,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7714
+  },
+  {
+   "name": "Lor30.Kc1.Dnone.Nzone.Sfar.Xhold.W11.Eone.Fema200",
+   "rank": 191,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.665
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nedge.Sfar.X3R.W11.Eone.Fema200",
+   "rank": 192,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7959
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.X3R.W11.Eone.Fnone",
+   "rank": 193,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7673
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.X3R.W11.Eone.Fvwap",
+   "rank": 194,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7673
+  },
+  {
+   "name": "Lor30.Kc1.Dfvg.Nconf.Smid.Xhold.W12.Ere.Fema921",
+   "rank": 196,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.6
+  },
+  {
+   "name": "Lor30.Kc5.Dfvg.Nzone.Snear.Xhold.W11.Eone.Fema200",
+   "rank": 197,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 1.0
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Sfar.X3R.W11.Eone.Fema921",
+   "rank": 198,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.5318
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nedge.Sfar.X3R.W12.Eone.Fema200",
+   "rank": 199,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.8122
+  },
+  {
+   "name": "Lor30.Kc5.Dfvg.Nzone.Snear.Xhold.W11.Eone.Fema921",
+   "rank": 200,
+   "overlaps": "Lor30.Kc5.Dnone.Nzone.Snear.Xhold.W12.Ere.Fema200",
+   "share": 0.9048
+  },
+  {
+   "name": "Lor15.Kc5.Dnone.Nconf.Sfar.X2R.W12.Ere.Fema200",
+   "rank": 201,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7959
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Sfar.X3R.W12.Eone.Fema200",
+   "rank": 202,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.649
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nconf.Sfar.X3R.W12.Eone.Fema200",
+   "rank": 203,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.7878
+  },
+  {
+   "name": "Lor15.Kc5.Dfvg.Nzone.Smid.Xhold.W11.Eone.Fema200",
+   "rank": 204,
+   "overlaps": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+   "share": 0.5184
+  }
+ ],
+ "largest_total_R": {
+  "name": "Lor5.Kc1.Dfvg.Nzone.Smid.Xhold.W12.Ere.Fnone",
+  "combo": {
+   "L": "or5",
+   "K": "c1",
+   "D": "fvg",
+   "N": "zone",
+   "S": "mid",
+   "X": "hold",
+   "W": "12",
+   "E": "re",
+   "F": "none"
+  },
+  "n": 236,
+  "days": 156,
+  "net": 1728.5,
+  "totR": 181.79876967554105,
+  "R": 0.7703337698116146,
+  "sd": 11.964811410187108,
+  "t": 0.989074671981904,
+  "win": 13.983050847457626,
+  "dd": -2497.0,
+  "by_year": {
+   "2019": -241.5,
+   "2020": 1596.5,
+   "2021": -879.5,
+   "2022": 1253.0
+  },
+  "rank": 535,
+  "same_as_pick": null,
+  "day_overlap_with_picks": [
+   {
+    "pick": 1,
+    "share": 0.3077
+   },
+   {
+    "pick": 2,
+    "share": 0.2564
+   },
+   {
+    "pick": 3,
+    "share": 1.0
+   },
+   {
+    "pick": 4,
+    "share": 0.2244
+   },
+   {
+    "pick": 5,
+    "share": 0.3205
+   }
+  ]
+ },
+ "spec": "YT8_SPEC.md",
+ "phase": "is",
+ "first_day": "2019-06-21",
+ "last_day": "2022-12-30",
+ "n_days": 884,
+ "n_trades_file": 705413,
+ "grid_file": "G11_grid.csv",
+ "sha256_grid": "1e16aa19579696eb7b38224ab975dc04adbf6ae6a17d7d63a4ebc5762fab5dad",
+ "sha256_trades": "46a65529d23c4c0ac78f523bfa7a2709a4d6bda2fe47e26fb15e9c94fccc608c",
+ "sha256_setups": "c5d786283e480e35cfd6e1ed78f7de0256817ce839a174b2d00df6bb3e1ec4c5"
+}

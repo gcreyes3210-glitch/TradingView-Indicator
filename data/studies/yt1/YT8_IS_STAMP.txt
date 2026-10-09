@@ -1,0 +1,10 @@
+155eb7115a89f0c5876eb908ed4396c6f90ced202f0f274de7d47748ce928967  tools/yt1/g11_sim.py
+7073eecbc3a55b12761607b742c4ff3794142b2ca03e9845d74e7c78b3d4c287  tools/yt1/g11_grid.py
+498b5dc3794aee3a6816b6169e9693030bb1e4ff5f0e1efd0bbe1157002ead62  tools/yt1/s_G11.py
+d9ca8e12ff1bcd6fbb538664ffb56714b990d52a11e5c00549498f1543e2a95c  tools/yt1/s_H1.py
+9f8d581d0ca3784b5ea360002c695bd43bb78ed0a86083aecd0e732af3277444  tools/yt1/s_H2.py
+f8e4b27a6cf065974ee8e4696983faff8ef377115f3d7739967fba815b6bf406  tools/yt1/s_H3.py
+337da9519b78ebc677eb99493b0625b6bb65e01924be77c01f13791a7d2e85dc  tools/yt1/s_H4.py
+a73a389f925a52936ef33a47c65aa266d86811ae6447d8bf88b75595b24af0b9  data/studies/yt1/G11_selected.json
+1e16aa19579696eb7b38224ab975dc04adbf6ae6a17d7d63a4ebc5762fab5dad  data/studies/yt1/is/G11_grid.csv
+YT8 in-sample step (G11 grid, six picks, reality check; H1-H4) frozen 2026-10-09T20:40:32Z (bars cut at 2022-12-31 23:59 only); later bars not yet run

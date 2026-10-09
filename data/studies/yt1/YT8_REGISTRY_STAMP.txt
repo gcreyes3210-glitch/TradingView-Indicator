@@ -1,0 +1,7 @@
+43815fe96b53305e0d3e1785f104e5301e00cb9b2f975ae061409e97f9966818  YT8_SPEC.md
+c001bb445695625bff69dab9f06d8ce514bf56612a71a55aa8d902d0fab1b01f  tools/yt1/cal_orb.py
+21e1ed5a92c4d0de846c3edc55a2a6346ba828753434b5bd051a3d17d6e044ea  data/studies/yt1/research/I_jdub.md
+d13d8e7428ffe52e57d52ccf2ecc78d41e9a61170f4fd844009a45254f9c8475  data/studies/yt1/research/J_fabervaale.md
+5757ee11bbe721e7b034ed14a681b3e6bb62b2bb954a0916ce9458e664bc814e  data/studies/yt1/research/K_mattowen.md
+3e11f4cbb421f20d39b1e794666a6c66b682a09349ee87912373532d050591a7  data/studies/yt1/research/L_playlist.md
+YT8 registered 2026-10-09T19:54:57Z, before any YT8 code existed

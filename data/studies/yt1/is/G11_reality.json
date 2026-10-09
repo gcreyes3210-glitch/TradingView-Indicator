@@ -1,0 +1,27 @@
+{
+ "n_eligible": 15967,
+ "n_days": 884,
+ "n_boot": 2000,
+ "seed": 1,
+ "statistic": "largest day-level t over the eligible combinations: sqrt(D) * mean / sd of the daily R series (sum of the day's R, 0 on days without a trade)",
+ "t_obs_max": 2.1394888656754767,
+ "t_obs_max_name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+ "t_trade_max": 2.136740149622835,
+ "t_trade_max_name": "Lor15.Kc1.Dfvg.Nconf.Snear.Xhold.W11.Ere.Fema200",
+ "boot_max_t": {
+  "mean": 3.0706487645506857,
+  "min": 1.822014570236206,
+  "max": 4.869864463806152,
+  "q5": 2.3313954710960387,
+  "q25": 2.7384327054023743,
+  "q50": 3.0437828302383423,
+  "q75": 3.3735928535461426,
+  "q90": 3.702159357070923,
+  "q95": 3.9023284792900084,
+  "q99": 4.212775778770447
+ },
+ "p": 0.9845,
+ "dtype": "float32",
+ "chunk": 4096,
+ "matrix_MB": 56.5
+}

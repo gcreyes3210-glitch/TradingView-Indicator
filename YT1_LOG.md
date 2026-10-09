@@ -587,3 +587,102 @@ Every measure with the frozen thresholds (win rate high side vs low side; descri
   deleted.
 - Order flow exists only on ORB trade days, 09:30–11:34, to 2026-09-22.
 - Count of things tried: 102 rules (G10 added), two grid searches, 31 claim checks, FLOW3's eleven measures.
+
+---
+# YT8 — Jdub Trades, Trade with Pat, Fabio Valentini, Matt Owen: break-and-retest grid (G11) and four fixed rules (H1–H4) (rules in `YT8_SPEC.md`, registered 2026-10-09)
+
+**Verdict: nothing here beats ORB v1.4, and nothing is a candidate.** All six picks from the 25,920-combination grid
+fail out of sample; all four fixed rules fail. Even in hindsight, with every bar visible, **no combination in the grid
+has more net dollars than ORB v1.4 (best +14,885 $ against +20,900 $) or a better net ÷ drawdown (best 4.29 against
+5.38) over the full span.** The grid's own least-bad choices are ORB's: the 15-minute range, the stop at the far side
+of the range and no target.
+
+**What was read.** Jdub Trades: 39 of 70 videos found (about 440 uploads, most of the rest daily live streams; no
+playlist could be listed). Trade with Pat (the linked playlist): 34 videos read by targeted questions, the
+playlist's own list not readable. Fabio Valentini: 10 of 13 long-form videos plus 7 interviews. Matt Owen: 6 of 206
+uploads plus one interview; he calls his trading "very discretionary", teaches it in a paid group and needs an order
+book, so **nothing of his is coded**. Notes: `data/studies/yt1/research/I_jdub.md`, `J_fabervaale.md`,
+`K_mattowen.md`, `L_playlist.md`, each listing what was not read.
+
+## The grid: level breaks with a close, entry on the retest, near stop, fixed target
+
+Choices crossed: level (5-, 15-, 30-minute opening range; previous day's high / low) × breaking candle (1, 5, 15
+minutes) × displacement test (none, fair value gap, 0.7 × range extension) × entry (limit at the edge, confirmation
+candle, demand candle, midline, opening-range point of control) × stop (near, midline, far side) × target (1.5R,
+2R, 3R, none) × cut-off (11:00, 12:00) × re-entry after a stop (Jdub's "84 % rule") × side filter (none, EMA 200,
+VWAP, EMA 9 / 21). Searched on 2019–2022 among combinations with at least 60 trades a year.
+
+**ORB v1.4 on 2023–2026, the bar to beat:** 460 trades (122 a year), +15,417 $, total R +68.8, max drawdown −3,143 $,
+net ÷ drawdown 4.91.
+
+| Pick | Combination | In-sample: trades, net $, R | Out of sample: trades, net $, R | Win % | Net ÷ DD | p | Verdict |
+|---|---|---|---|---|---|---|---|
+| 1 | 15m range, 1m close out with a gap, confirmation-candle entry, stop under the pullback, no target, EMA 200 side, re-entry | 328, +4,641, +0.480 | 328, +1,250, +0.313 | 15.9 | 0.59 | 0.073 | fails (3R neighbour negative) |
+| 2 | 30m range, 5m close out, demand-candle limit, no target, EMA 200, re-entry | 478, +6,204, +0.232 | 494, −5,483, −0.140 | 23.7 | −0.88 | 0.95 | fails |
+| 3 | 5m range, 1m close out with a gap, confirmation candle, no target | 266, +4,998, +0.320 | 286, +1,866, −0.059 | 14.3 | 0.52 | 0.64 | fails |
+| 4 | 5m range, 15m close out, 0.7 × extension, midline limit, no target, EMA 9 / 21 | 245, +1,626, +0.441 | 293, −192, +0.029 | 11.3 | −0.09 | 0.46 | fails |
+| 5 | 15m range, 5m close out with a gap, limit at the range's point of control, far stop, 1.5R, EMA 200, re-entry | 259, +1,825, +0.092 | 328, +540, −0.032 | 42.7 | 0.26 | 0.69 | fails |
+| 6 | Largest in-sample total R: 5m range, 1m close out with a gap, demand-candle limit, midline stop, no target, re-entry | 236, +1,728, +0.770 | 297, −1,564, −0.222 | 12.1 | −0.47 | 0.87 | fails |
+
+- **None beats ORB v1.4.** Pick 1 has a larger total R than ORB (+102.7 against +68.8) because its stops are tiny, but
+  it won 16 % of its trades for +1,250 $ against ORB's +15,417 $, with a net ÷ drawdown of 0.59 against 4.91.
+- **The picks make their money on ORB days and lose it on the others.** Pick 1: +2,964 $ on ORB days, −1,714 $ off
+  them; pick 3: +6,766 $ and −4,900 $; pick 6: +5,016 $ and −6,580 $. On shared days they are on ORB's side 68–97 %
+  of the time.
+- **Luck check:** largest in-sample t 2.14 against a luck median of 3.04 (p 0.98); full span 2.52 against 3.08
+  (p 0.90).
+- In-sample rank did carry information here (Spearman +0.48; the in-sample top 10 % averaged +0.012 R out of sample
+  against −0.044 for all eligible), which is the grid learning that the far stop and no target are less bad.
+
+Each choice on its own (average mean R over the combinations using it):
+
+| Choice | Level | 2019–22 | 2023–26 |
+|---|---|---|---|
+| Level | 5m / 15m / 30m range / previous day | −0.110 / −0.029 / −0.033 / −0.167 | −0.071 / −0.016 / −0.017 / −0.105 |
+| Breaking candle | 1m / 5m / 15m | −0.073 / −0.072 / −0.071 | −0.031 / −0.058 / −0.040 |
+| Displacement | none / gap / 0.7 × extension | −0.079 / −0.061 / −0.079 | −0.037 / −0.041 / −0.083 |
+| Entry | edge / confirmation / demand candle / midline / point of control | −0.047 / −0.053 / −0.061 / −0.103 / −0.145 | −0.028 / −0.032 / −0.059 / −0.004 / −0.101 |
+| Stop | near / midline / far side | −0.096 / −0.080 / −0.037 | −0.063 / −0.088 / **+0.012** |
+| Target | 1.5R / 2R / 3R / none | −0.086 / −0.083 / −0.082 / −0.037 | −0.058 / −0.055 / −0.047 / −0.017 |
+| Cut-off | 11:00 / 12:00 | −0.066 / −0.077 | −0.041 / −0.047 |
+| Re-entry | one trade / re-entry | −0.073 / −0.071 | −0.042 / −0.046 |
+| Side filter | none / EMA 200 / VWAP / EMA 9-21 | −0.077 / −0.062 / −0.075 / −0.072 | −0.045 / −0.044 / −0.043 / −0.045 |
+
+- The stop at the far side of the range is the only level above zero out of sample, and no target is the least
+  negative target in both halves: the two things ORB v1.4 already does. Near stops and fixed targets, the heart of
+  what these channels teach, are what cost.
+- Jdub's re-entry rule, the displacement tests and the side filters make no difference either way. Fabio's
+  point-of-control entry is the worst entry in both halves. The previous day's levels are the worst level.
+
+**Hindsight (the top of 25,920 over the full span; selection, not evidence).** Most dollars: 15m range, 1m close out,
+confirmation candle, far stop, 3R, re-entry, EMA 200: 1,392 trades, +14,885 $, drawdown −5,017 $, net ÷ drawdown
+2.97. Best net ÷ drawdown among 16,940 combinations of 430+ trades: 4.29. ORB v1.4: 879 trades, +20,900 $, −3,883 $,
+5.38. On 2023–2026 no combination with 60+ trades a year out-earned ORB, and none had both a larger total R and a
+better net ÷ drawdown.
+
+## The four fixed rules, full span
+
+| ID | Rule | Trades | Net $ | R / trade | Win % | + years | R 2019–22 | R 2023–26 | Neighbours R | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|
+| H1 | Pat's manipulation-candle fade (oversized 09:30 15m candle, limit at its extreme, 38.2 % target) | 1,516 | −4,960 | −0.127 | 38.6 | 2 / 8 | −0.224 | −0.040 | −0.075 / −0.200 | fails |
+| H2 | Pat's 01:00–05:00 candle (3+ closes outside, entry on the close back inside) | 1,297 | +2,927 | +0.020 | 39.1 | 5 / 8 | +0.099 | −0.052 | −0.005 / −0.025 | fails |
+| H3 | Previous-day box, edges only (Pat, Jdub) | 545 | −6,586 | −0.075 | 34.1 | 2 / 8 | −0.017 | −0.127 | −0.079 / −0.084 | fails |
+| H4 | Fabio's 30m range break with rising volume, stop under the candle, 1R | 1,278 | −4,679 | −0.176 | 47.8 | 0 / 8 | −0.184 | −0.168 | −0.117 / +0.038 | fails |
+
+H4's second neighbour (the same break with the stop at the far side of the range) is the only positive line:
+1,280 trades, +7,660 $, +0.038 R. It is ORB on a 30-minute range, which the log already found worse than the
+15-minute rule.
+
+## Readings and limits
+
+- Readings: the fair-value-gap test looks at the breaking candle and the two candles of the same timeframe before it;
+  a resting limit expires with the 10:59 / 11:59 bar; H1's size test passes on 910 of 925 in-sample days, so it barely
+  filters; H2 enters before 09:30 on two thirds of its trades; H4 does not test the candle's colour.
+- The grid coder's session ended before its notes were written. The coordinator finished the look-ahead test on the
+  last 19 variants with the coder's command (all pass) and assembled `notes/G11.md` from the code and logs. Grid and
+  standard runner agree on every pick, neighbour and check variant, in-sample and out.
+- Coverage is partial for every channel (see the research notes). A strategy taught only in an unread video is not
+  ruled out by this.
+- The out-of-sample years had been run on 102 rules and two grids before this.
+- Count of things tried: 112 rules (6 picks and 4 fixed rules added), three grid searches (5,184, 230,850 and 25,920
+  combinations), 31 claim checks, FLOW3's eleven measures.
