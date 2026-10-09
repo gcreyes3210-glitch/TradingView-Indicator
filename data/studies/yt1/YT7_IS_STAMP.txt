@@ -1,0 +1,6 @@
+d1fdb0d556097e4baeac91d8284278d13412fe3f6054389eb6be0a988e5ea1f5  tools/yt1/s_G10.py
+badaab31632847592f63b4a271e1e11782688679bfb3e1bf3c9eee44eed8c1cd  tools/yt1/flow3.py
+6de50eaa9a5d0e7c74ee7fdac40fef818e10a3d80ab8d49e88a296bf980b3c04  tools/yt1/tt.py
+2ec19811617b51dd8927a595fc9f5297d2a38bcb2436dc1f26849f3c3c7a4675  data/studies/yt1/FLOW3_selected.json
+489cc5ca85f571dbc258fa56cc39d11ea1727b8bc7bc07254d4a65d7d636b09b  data/studies/yt1/is/FLOW3_table.csv
+YT7 in-sample step (G10 variants; FLOW3 thresholds and two picks) frozen 2026-10-09T19:03:44Z (bars and flow cut at 2022-12-31 only); later data not yet run

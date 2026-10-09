@@ -498,3 +498,92 @@ not what the cash session does.
   per-confluence table when writing this grid.
 - Count of things tried, for the next batch: 53 + 29 + 1 + 7 + 5 + 6 = 101 rules (plus two in-sample grid searches,
   5,184 and 230,850 combinations), 31 claim checks.
+
+---
+# YT7 — the hourly add to an open ORB trade (G10) and the footprint study on it (FLOW3) (rules in `YT7_SPEC.md`, registered 2026-10-09)
+
+**Verdict.** **G10 is a candidate found in hindsight; forward test required.** It meets every part of the usual
+criterion except the p level (0.0006 against 0.05 / 102 = 0.00049), but the rule was found by splitting YT6's pick 1
+after its results were known on both halves, so that p-value is not a test. **FLOW3: neither footprint pick counts.**
+The first one, net aggressive volume beyond the broken overnight level, missed by the narrowest margin (difference in
+win rate +24 points out of sample, p 0.0258 against 0.025) with the same direction and size as in-sample; it is
+logged as a lead for forward tracking, not a filter. Nothing is adopted.
+
+## G10 — full span 2019-06 → 2026-10 (house fills)
+
+The rule: the day's first 1-minute CISD between 09:30 and 10:59 whose protected low is above the overnight high
+(18:00–08:29; mirror for shorts); enter at the open of the next clock hour unless the stop has traded; stop 1 tick
+beyond the protected low; target 2R; **taken only if an ORB v1.4 trade entered earlier that day is still open on the
+same side.** It is a separate position with its own stop and target.
+
+| Variant | Trades | Net $ | R / trade | Win % | PF | Max DD $ | p | + years | R 2019–22 | R 2023–26 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **base** (2R) | 194 | +10,354 | +0.322 | 52.6 | 1.95 | −1,239 | 0.0006 | 7 / 8 | +0.433 | +0.239 |
+| nb1 (1.5R) | 194 | +8,336 | +0.232 | 55.2 | 1.81 | −1,239 | 0.0023 | 6 / 8 | +0.314 | +0.171 |
+| nb2 (3R) | 194 | +11,961 | +0.372 | 49.0 | 2.06 | −1,239 | 0.0004 | 7 / 8 | +0.395 | +0.355 |
+| `retry` (a later signal may be used) | 256 | +10,897 | +0.255 | 50.0 | 1.74 | −1,626 | 0.0011 | 6 / 8 | +0.367 | +0.164 |
+| `alone` (the signal when ORB is not open on its side) | 268 | +4,954 | +0.090 | 41.8 | 1.44 | −1,000 | 0.14 | 5 / 8 | +0.174 | +0.018 |
+| `naive` benchmark (second contract on the hour whenever ORB is open, ORB's stop, no target) | 774 | +17,566 | +0.100 | 48.2 | 1.28 | −2,651 | 0.018 | 6 / 8 | +0.103 | +0.097 |
+
+- **Re-code:** a second coder wrote G10 from the text without the YT6 code. The signal matches YT6's pick 1 on 207 of
+  207 in-sample trades in every field, and base reproduces the disclosed 83 trades / +5,116 $. Look-ahead test passed
+  for all seven variants (the 2R target is attached after the fill, as in YT6); a planted leak was caught.
+- **What the signal adds over "ORB is still in":** per trade, about three times the naive add (+0.32 R against
+  +0.10 R; +53 $ against +23 $) with half the drawdown, on a quarter of the trades. The naive add makes more
+  dollars in total because it trades four times as often with a wider stop.
+- **Without ORB the signal has nothing** out of sample (`alone` +0.018 R in 2023–2026).
+- Average win +208 $, average loss −118 $ (realised 1.76 : 1). One reading carries 13 of the 194 trades: an ORB
+  entry at the 09:59 / 10:59 close counts as "entered earlier" than the hour's open.
+- It is the same edge as ORB v1.4, sized up on the days ORB is holding beyond the overnight range. Both positions lose
+  together on a reversal.
+
+## FLOW3 — footprint and order flow at the add (searched on 2019–2022, tested once on 2023–2026)
+
+193 of the 194 base trades are on order-flow days (83 in-sample, 110 out of sample). Eleven measures at the last
+minute before the entry, each split at its in-sample median; the two with the largest in-sample difference in win
+rate were the picks.
+
+| Pick | Favourable side | 2019–22: favourable vs not | 2023–26: favourable vs not | Difference (OOS) | p (OOS) | Verdict |
+|---|---|---|---|---|---|---|
+| 1 `brk_delta` ≥ +0.0217 | Of the volume traded beyond the broken overnight level since 09:30, buyers out-hit sellers by at least 2.2 % (longs; mirror for shorts) | 69.0 % (42) vs 41.5 % (41) | **56.1 % (82) vs 32.1 % (28)** | +24.0 pts | 0.0258 | does not count (level 0.025) |
+| 2 `div` ≥ −0.0033 | NQ's delta share minus ES's | 64.3 % (42) vs 46.3 % (41) | 50.0 % (62) vs 50.0 % (48) | 0.0 pts | 0.58 | does not count |
+
+Pick 1 by the numbers: favourable side, full span 124 trades, 75 wins (60.5 %), +8,874 $; unfavourable side 69
+trades, 26 wins (37.7 %), +1,293 $, and −636 $ on 28 trades out of sample. Mean R out of sample +0.380 against
+−0.233. Realised reward to risk is about 1.5 : 1 on the favourable side, so the gain is in the win rate, not in the
+size of the winners. Both picks together (reported): 79.3 % of 29 in-sample, 57.1 % of 49 out of sample.
+
+Every measure with the frozen thresholds (win rate high side vs low side; description):
+
+| Measure | 2019–22 | 2023–26 |
+|---|---|---|
+| `cum` NQ delta ÷ volume since 09:30 | 57.1 % vs 53.7 % | 56.8 % vs 36.1 % |
+| `last15` last 15 minutes | 59.5 % vs 51.2 % | 56.4 % vs 34.4 % |
+| `since` from the signal to the entry | 62.5 % vs 50.0 % | 59.5 % vs 28.1 % |
+| `pull` during the pullback | 54.8 % vs 56.1 % | 50.7 % vs 48.8 % |
+| `es_cum` ES delta ÷ volume | 47.6 % vs 63.4 % | 54.2 % vs 45.1 % |
+| `div` NQ − ES | 64.3 % vs 46.3 % | 50.0 % vs 50.0 % |
+| `vol_rel` recent volume | 52.4 % vs 58.5 % | 53.5 % vs 43.6 % |
+| `poc` price against the point of control | 61.9 % vs 48.8 % | 56.7 % vs 42.0 % |
+| `stack` stacked imbalances | 56.8 % vs 53.8 % | 50.8 % vs 48.9 % |
+| `brk_delta` | 69.0 % vs 41.5 % | 56.1 % vs 32.1 % |
+| `brk_share` share of volume beyond the level | 57.1 % vs 53.7 % | 53.2 % vs 45.8 % |
+
+- The measures that say "aggressive flow agrees with the trade" (`cum`, `last15`, `since`, `brk_delta`, `poc`) all
+  point the same way in 2023–2026, more strongly than in 2019–2022. FLOW1 saw the same thing on ORB itself: flow
+  agreeing with the breakout helped only in the recent half. `brk_delta` is the one that shows up in both halves.
+- Stacked imbalances and delta during the pullback, the two most "footprint-pattern" measures, show nothing.
+- The out-of-sample split is uneven (82 / 28) because net buying beyond the level was higher in 2023–2026 than the
+  in-sample median; the unfavourable side is the weakest quarter of days.
+- Small samples throughout. The miss at p 0.0258 is a miss; it is also one of two picks, and the reading that it is a
+  real effect rests on 28 unfavourable trades.
+
+## Readings and limits
+
+- NQ order flow against MNQ trades: the basis is at most one tick on every trade with flow; moving the level one tick
+  moves 1–3 trades across the `brk_delta` threshold.
+- `poc` uses the NQ 30-second close at the decision; `stack` follows FLOW2's definition; deltas are summed from 09:30
+  (19 days carry a stray 09:29 row). All measures are unchanged when every flow row and bar after the decision is
+  deleted.
+- Order flow exists only on ORB trade days, 09:30–11:34, to 2026-09-22.
+- Count of things tried: 102 rules (G10 added), two grid searches, 31 claim checks, FLOW3's eleven measures.

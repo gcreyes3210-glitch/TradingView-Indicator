@@ -1,0 +1,11 @@
+{
+ "verdict": "passes",
+ "checks": {
+  "years": true,
+  "r": true,
+  "halves": true,
+  "neighbours": true,
+  "p": true
+ },
+ "bonf": 0.0009433962264150943
+}
