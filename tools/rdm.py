@@ -17,7 +17,7 @@ TZ = "America/New_York"
 ROOT = pathlib.Path("data/studies/rdm")
 RES = ROOT / "results"
 ZONE_DAYS = 12
-P = dict(pivot_len=3, rsmt_window=5, entry_window=15, zone_days=ZONE_DAYS)
+P = dict(pivot_len=3, rsmt_window=5, entry_window=15, zone_days=ZONE_DAYS, fresh=5, min_gap=1.0)   # fresh / min_gap: amendment 2
 AGG = {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
 
 
@@ -230,6 +230,14 @@ def prep():
              E={k: es[k].to_numpy() for k in ("open", "high", "low", "close")},
              day_first=np.r_[0, np.flatnonzero(np.diff(tdi)) + 1])
     D["day_last"] = np.r_[D["day_first"][1:] - 1, len(ts) - 1]
+    # amendment 2: IFVG-1m strong candle (body >= 60 % of range, range >= ATR(20) of 1m, Wilder), as ifvg1m_engine
+    O_, H_, L_, C_ = (D["N"][k] for k in ("open", "high", "low", "close"))
+    pc = np.r_[np.nan, C_[:-1]]
+    tr = np.nanmax(np.c_[H_ - L_, np.abs(H_ - pc), np.abs(L_ - pc)], axis=1); tr[0] = H_[0] - L_[0]
+    atr1 = pd.Series(tr).ewm(alpha=1 / 20, adjust=False).mean().to_numpy()
+    rng_ = np.maximum(H_ - L_, 1e-9)
+    strong = (np.abs(C_ - O_) >= 0.6 * rng_) & (rng_ >= atr1)
+    D["strong_bear"], D["strong_bull"] = strong & (C_ < O_), strong & (C_ > O_)
     for k in (5, 15):
         key = ts.floor(f"{k}min")
         new = np.r_[True, key[1:] != key[:-1]]
@@ -332,46 +340,62 @@ def setups_day(d, p, F=None):
         piv = pl1 if side < 0 else ph1                     # the last confirmed NQ 1m swing low before a short's sweep
         conf = [i0 + c for c in np.flatnonzero(piv) if i0 + c + n <= t1]
         start = conf[-1] if conf else i0
-        g = [x for x in gaps if x[1] == -side and start < i0 + x[0] <= t1]
+        # amendment 2 (IFVG-1m): gaps >= min_gap against the trade, third candle in the move into the sweep
+        g = [(i0 + x[0], x[2], x[3]) for x in gaps if x[1] == -side and start < i0 + x[0] <= t1 and x[3] - x[2] >= p["min_gap"]]
         if not g:
             continue
-        F["3 inverse-FVG candidate in the move"] += 1
-        gi, _, gbot, gtop = g[-1]
-        far = gbot if side < 0 else gtop
-        # trigger
+        F["3 inverse-FVG candidate (gap ≥ 1 pt) in the move"] += 1
         tmax = min(i1, t1 + p["entry_window"])
-        trig, cancel, sets, closed, rsmt_any = None, False, None, False, False
-        for te in range(t1, tmax + 1):
+        alive = list(g)                                    # (third candle i, bottom, top)
+        trig, cancel, sets, closed, rsmt_any, gsel = None, False, None, False, False, None
+        C_, sb, sB = N["close"], D["strong_bear"], D["strong_bull"]
+        for te in range(min(x[0] for x in g) + 1, tmax + 1):
+            inv_now = []
+            keep = []
+            for (i, bot, top) in alive:
+                if te <= i:
+                    keep.append((i, bot, top)); continue
+                if side < 0:                               # bullish gap broken downward
+                    inv = C_[te] < bot or (C_[te] <= top - 0.8 * (top - bot) and sb[te])
+                else:
+                    inv = C_[te] > top or (C_[te] >= bot + 0.8 * (top - bot) and sB[te])
+                if inv:
+                    if te >= t1 and te - i <= p["fresh"]:
+                        inv_now.append((i, bot, top))      # a fresh inversion on or after the sweep
+                else:
+                    keep.append((i, bot, top))             # a gap's first inversion uses it up
+            alive = keep
+            if not inv_now or te < t1:
+                continue
+            i, bot, top = max(inv_now)                     # the freshest gap inverting on this bar
             if not (9 * 60 + 29 <= tod[te] <= 14 * 60 + 59):
                 continue
-            if (N["close"][te] < far) if side < 0 else (N["close"][te] > far):
-                if te < known5 or (p.get("req15") and (known15 is None or te < known15)):
-                    continue
-                closed = True
-                w0, w1 = max(t1 - p["rsmt_window"], i0), min(t1 + p["rsmt_window"], te)
-                bt = np.arange(w0, w1 + 1)
-                sN = zone_touch(N["low"][w0:w1 + 1], N["high"][w0:w1 + 1], bt, ZN["lo"][zsel["N"]], ZN["hi"][zsel["N"]],
-                                ZN["frm"][zsel["N"]], ZN["unt"][zsel["N"]], ZN["zid"][zsel["N"]])
-                sE = zone_touch(E["low"][w0:w1 + 1], E["high"][w0:w1 + 1], bt, ZE["lo"][zsel["E"]], ZE["hi"][zsel["E"]],
-                                ZE["frm"][zsel["E"]], ZE["unt"][zsel["E"]], ZE["zid"][zsel["E"]])
-                if sN == sE or not (sN or sE):
-                    continue
-                rsmt_any = True
-                # cancel: a close beyond the far edge of a zone in the difference, on its own symbol, before entry
-                for sym, only, Z, X_ in (("N", sN - sE, ZN, N), ("E", sE - sN, ZE, E)):
-                    for zid in only:
-                        j = zsel[sym][np.flatnonzero(Z["zid"][zsel[sym]] == zid)[0]]
-                        edge = Z["hi"][j] if side < 0 else Z["lo"][j]
-                        lo_, hi_ = X_["low"][w0:w1 + 1], X_["high"][w0:w1 + 1]
-                        touch0 = w0 + int(np.argmax((lo_ <= Z["hi"][j]) & (hi_ >= Z["lo"][j])))
-                        cl = X_["close"][touch0:te + 1]
-                        if ((cl > edge) if side < 0 else (cl < edge)).any():
-                            cancel = True
-                if cancel:
-                    break
-                trig, sets = te, (sN, sE)
+            if te < known5 or (p.get("req15") and (known15 is None or te < known15)):
+                continue
+            closed = True
+            w0, w1 = max(t1 - p["rsmt_window"], i0), min(t1 + p["rsmt_window"], te)
+            bt = np.arange(w0, w1 + 1)
+            sN = zone_touch(N["low"][w0:w1 + 1], N["high"][w0:w1 + 1], bt, ZN["lo"][zsel["N"]], ZN["hi"][zsel["N"]],
+                            ZN["frm"][zsel["N"]], ZN["unt"][zsel["N"]], ZN["zid"][zsel["N"]])
+            sE = zone_touch(E["low"][w0:w1 + 1], E["high"][w0:w1 + 1], bt, ZE["lo"][zsel["E"]], ZE["hi"][zsel["E"]],
+                            ZE["frm"][zsel["E"]], ZE["unt"][zsel["E"]], ZE["zid"][zsel["E"]])
+            if sN == sE or not (sN or sE):
+                continue
+            rsmt_any = True
+            for sym, only, Z, X_ in (("N", sN - sE, ZN, N), ("E", sE - sN, ZE, E)):
+                for zid in only:
+                    j = zsel[sym][np.flatnonzero(Z["zid"][zsel[sym]] == zid)[0]]
+                    edge = Z["hi"][j] if side < 0 else Z["lo"][j]
+                    lo_, hi_ = X_["low"][w0:w1 + 1], X_["high"][w0:w1 + 1]
+                    touch0 = w0 + int(np.argmax((lo_ <= Z["hi"][j]) & (hi_ >= Z["lo"][j])))
+                    cl = X_["close"][touch0:te + 1]
+                    if ((cl > edge) if side < 0 else (cl < edge)).any():
+                        cancel = True
+            if cancel:
                 break
-        F["4 close through the gap in the window (SMT known)"] += int(closed)
+            trig, sets, gsel = te, (sN, sE), (i - i0, bot, top)
+            break
+        F["4 fresh inversion (IFVG-1m, within 5 bars) in the window, SMT known"] += int(closed)
         F["5 RSMT"] += int(rsmt_any)
         if trig is None or cancel or trig + 1 > i1:
             continue
@@ -380,7 +404,7 @@ def setups_day(d, p, F=None):
         took = [lv for lv in levels if lv[1] == ("high" if side < 0 else "low") and
                 ((N["high"][t1] > lv[2]) if side < 0 else (N["low"][t1] < lv[2])) and untaken(lv[2], lv[1], lv[3], t1 - 1)]
         out.append(dict(t1=t1, trig=trig, side=side, grade="A" if X == "NQ" else "B", p=pp, X=X, has15=has15,
-                        gap=(i0 + gi, gbot, gtop), ext=ext, zN=sorted(sets[0]), zE=sorted(sets[1]),
+                        gap=(i0 + gsel[0], gsel[1], gsel[2]), ext=ext, zN=sorted(sets[0]), zE=sorted(sets[1]),
                         took_level=bool(took), day=d))
     return out
 
@@ -389,8 +413,8 @@ def trade(su, p, levels, piv5):
     """Entry, stop, targets for setup su; returns a dict, or a skip reason string."""
     N, ts, tod = D["N"], D["ts"], D["tod"]
     side, trig = su["side"], su["trig"]
-    e_i = trig + 1
-    entry = N["open"][e_i] + side * TICK
+    e_i = trig + 1                                     # management starts on the bar after the inverting candle
+    entry = N["close"][trig] + side * TICK             # amendment 2: entry at the inverting candle's close
     if p.get("swing_stop"):
         ph1, pl1 = piv5["p1"]
         i0 = D["day_first"][su["day"]]
@@ -422,7 +446,7 @@ def trade(su, p, levels, piv5):
     fin = max(lv, key=lambda x: x[2])[2] if side < 0 else min(lv, key=lambda x: x[2])[2]
     if abs(fin - entry) < 2 * risk:
         return "final target < 2R"
-    return dict(e_i=e_i, entry=entry, stop=stop, risk=risk, tp1=tp1, final=fin)
+    return dict(e_i=e_i, entry=entry, stop=stop, risk=risk, tp1=tp1, final=fin, close_entry=True)
 
 
 def flat_bar(d):
@@ -451,7 +475,7 @@ def manage(tr, side, flat_i, opp_triggers):
     while q < flat_i and rem > 0:
         if opp and q == opp[0] + 1:
             legs.append((rem, O[q] - side * TICK, "opposite setup")); rem = 0; break
-        first = q == tr["e_i"]
+        first = q == tr["e_i"] and not tr.get("close_entry")   # a close entry: the next bar is an ordinary bar
         o = O[q]
         if not first and side * (o - stop) <= 0:
             legs.append((rem, o - side * TICK, "BE" if tp1_done else "stop")); rem = 0; break
@@ -600,7 +624,7 @@ def charts(T, n=10, seed=11):
                 ax.add_patch(Rectangle((gi - 2.5, r.gap_bot), len(idx) - gi + 2, r.gap_top - r.gap_bot, color="#ffb300", alpha=0.35))
                 ax.text(gi - 2, r.gap_top if side < 0 else r.gap_bot, " 1m FVG (to invert)", fontsize=8, color="#e65100")
                 ax.plot(len(idx) - 1, X["close"][int(r.trig)], "o", color="black", ms=6)
-                for lvl, lab, col in ((r.entry, "entry (next open)", "black"), (r.stop, "stop", "#c62828"),
+                for lvl, lab, col in ((r.entry, "entry (inverting close)", "black"), (r.stop, "stop", "#c62828"),
                                       (r.tp1, "TP1 (5m swing)", "#2e7d32"), (r.final, "final (session level)", "#1b5e20")):
                     ax.axhline(lvl, color=col, lw=1, ls="-" if lab == "stop" else "--")
                     ax.text(len(idx) + 0.5, lvl, f" {lab} {lvl:,.2f}", fontsize=8, color=col, va="center")
@@ -704,10 +728,11 @@ def report():
     # report.md
     B = TT[TT.run == "baseline"]
     L = ["# RDM — report", "",
-         "> **16 baseline trades in 7.3 years cannot support a verdict.** The numbers below describe what this coded reading did; "
-         "they cannot tell a real edge from luck. Read every table with its n.", "",
-         "Coded reading of the Ryze Divergence Model as pre-registered in BACKTEST_LOG.md (\"RDM\"), with the logged amendment "
-         "(early-close and holiday sessions excluded). MNQ for NQ, Databento 1m, 2019-06 → 2026-10-07, roll days excluded, "
+         f"> **{len(B)} baseline trades in 7.3 years cannot support a verdict.** The numbers below describe what this coded "
+         "reading did; they cannot tell a real edge from luck. Read every table with its n.", "",
+         "Coded reading of the Ryze Divergence Model as pre-registered in BACKTEST_LOG.md (\"RDM\"), with the logged amendments: "
+         "(1) early-close and holiday sessions excluded; (2) the IFVG-1m inverse-FVG definition with entry at the inverting close "
+         "(results-aware: made after the first report, commit 839290d). MNQ for NQ, Databento 1m, 2019-06 → 2026-10-07, roll days excluded, "
          "$1 per side + 1 tick per fill, 1 MNQ. 8 runs, Bonferroni α = 0.05 / 8 = 0.00625.", "",
          "## Detection funnel (baseline)", "", "| Step | Count | Removed by this step |", "|---|---|---|"]
     fb = funnels["baseline"]

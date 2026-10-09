@@ -2054,5 +2054,42 @@ The RDM inverse-FVG step is replaced by the definition in `data/studies/audit/IF
 - **The setup is still required within 15 minutes of the sweep and 09:30–15:00,** with the validated SMT and the RSMT known by the inverting candle's close. An inversion before they are known uses up that gap.
 - **Everything else is unchanged,** including amendment 1 (early-close and holiday sessions excluded). The 8 runs are re-run; the first report stays in the git history.
 
+### RDM — re-run with amendment 2 (`python3 tools/rdm.py report`; `data/studies/rdm/results/` replaced; the first report stays in git at `839290d`)
+**Detection change:**
+- **Baseline:** 16 trades (15 after amendment 1) → **5**. All 5 are among the original 16, with the same sweep bars and different entry prices (entry at the inverting close). 11 dropped; none is new.
+- **Against the round-1 chart check:** the 2 survivors are both ones the user marked right; the 8 dropped are 2 marked right and all 6 marked wrong.
+- **New charts:** `charts/rdm_01…05.png` (only 5 trades exist). Round 1 is kept in `charts/round1/`, `answers_round1.csv`, `charts_key_round1.csv`.
+
+**Funnel, baseline:**
+
+| Step | Left | Removed |
+|---|---|---|
+| 1m SMT, sweep 09:14–14:59 | 34,647 | |
+| Validated on 5m | 1,981 | 32,666 |
+| Gap ≥ 1 pt in the move | 1,127 | 854 |
+| Fresh inversion (within 5 bars) in the window, SMT known | 82 | 1,045 |
+| RSMT | 69 | 13 |
+| Not cancelled (= setups) | 10 | 59 |
+| Grade A | 6 | 4 |
+| Trades | 5 | 1 (final < 2 R) |
+
+**All 8 runs** (α 0.00625; neighbours `pivot_len` 2 / 4):
+
+| Run | n | R/trade | 95 % CI | p | Positive years | R 2019–22 / 2023–26 (first 70 % / last 30 % identical) | Neighbours R (n) | Passes |
+|---|---|---|---|---|---|---|---|---|
+| Baseline | 5 | +1.229 | −0.19 to +2.87 | 0.058 | 2 of 8 | +1.13 (2) / +1.30 (3) | −1.10 (5) / +0.62 (6) | no |
+| V1 Grade B | 9 | +0.352 | −0.63 to +1.56 | 0.30 | 2 | +0.35 (3) / +0.35 (6) | −0.53 (8) / +0.38 (8) | no |
+| V2 15m SMT | 1 | +0.711 | — | — | 1 | — / +0.71 (1) | none / none | no |
+| V3 session level | 0 | | | | | | none / −1.04 (1) | no |
+| V4 1m-swing stop | 6 | +1.199 | −0.50 to +2.97 | 0.08 | 2 | +1.11 (3) / +1.28 (3) | −1.15 (5) / +0.22 (8) | no |
+| V5 skip news | 4 | +0.474 | −0.63 to +1.54 | 0.15 | 1 | +1.13 (2) / −0.18 (2) | −1.10 (5) / +0.14 (4) | no |
+| V6 first trade only | 5 | identical to the baseline | | | | | | no |
+| V7 all fractions | 0 | | | | | | none / none | no |
+
+- **Baseline trades:** 2021-11-11 long +0.31 R (break-even after TP1), 2021-12-31 long +1.95 R (final target), 2024-09-13 short −1.07 R (stop), 2024-10-18 long +0.71 R (15:55), 2024-11-01 short +4.25 R (15:55). Net +$260 on 1 MNQ.
+- **Verdict: 5 trades cannot support any verdict** (and 16 could not), so the answer is **not enough data to tell**. No run passes; nothing is adopted.
+- **The three assumptions most likely to change the result** (report.md): the inverse-FVG rule (16 → 5 trades on that choice alone); the SMT definition and timeframe (the neighbours flip sign); the 12-day zone life with the RSMT cancel rule.
+- **Results-aware caveat:** amendment 2 was made after the first report.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
