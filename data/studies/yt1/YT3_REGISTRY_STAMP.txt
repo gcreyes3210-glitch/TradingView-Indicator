@@ -1,0 +1,2 @@
+a86ef76f8d156c2ba81cc6bfe6394b3d4f6194eeeb1f059cef3099d34a181ac0  YT3_SPEC.md
+YT3 registered 2026-10-09T13:57:48Z, before any YT3 module existed

@@ -217,3 +217,30 @@ Schaff recursion (TradingView has no built-in); the article is long-only on gold
 high / low break and retest, the "8AM model", first one-minute-candle rules, other Asian-range and London-open
 breakouts, three 15-minute ORB videos, Trader Kane's Lab Model, Daxton Trades' 1-trade-a-day setup, Heikin-Ashi and
 "AI-built" strategy videos.
+
+---
+# YT3 — NQSimon's standard-deviation method, one mechanical reading (rules in `YT3_SPEC.md`, registered 2026-10-09)
+
+**Verdict: N01 fails.** 425 trades, −2,763 $, **−0.317 R per trade**, win 7.3 %, PF 0.69, 2 of 8 positive years,
+p 0.97; 2019–2022 −0.316 R, 2023–2026 −0.318 R; neighbours (stop 7.5 / 15 points) −0.372 / −0.233 R. Level
+0.05 / 83. Exits: 394 stops, 18 targets, 13 flat-bar. The average winner is +203 $ (about 10 R) and the average loser
+−23 $, so the rule needs about 11 % winners to break even and gets 7 %.
+Reported: `scaled` (stop 0.04 % of price) −0.291 R; `bias` (his one stated bias example) 100 trades, −0.127 R, p 0.65.
+In-sample first (167 trades, −0.316 R), look-ahead test passed, module not changed after its first run
+(`data/studies/yt1/notes/N01.md`).
+
+**What this does and does not show.** The rule tested is: Asia range 20:00–23:59 as the leg; the first side taken
+after midnight sets the direction; limit orders at 2 and 4 range-widths beyond that side, 09:30–11:29; 10-point stop;
+target the far side of the Asia range. The 10-point stop, the −2 / −4 zones, the New York morning and the session
+target are his. The leg, the tool's anchoring, the clock times and the entry price are readings, because his three
+videos do not define them and disagree on the entry (`data/studies/yt1/research/F_nqsim0n.md`). He also requires a
+daily bias, a daily fair-value gap at the zone and a lower-timeframe block to enter on, all chosen by eye. So this
+closes the mechanical reading, not his discretionary trading. The way to test his version is the agreement audit used
+for IFVG-1m: cut 10 charts at the 09:30 decision, have the user mark the leg and the zone he would use, and see whether
+the code picks the same ones before any further run.
+
+**TTrades.** Not tested. `data/studies/yt1/research/G_ttrades_concepts.md` lists 12 concepts from six of his videos with
+the rule each implies and 11 claims that can be measured directly (the channel's playlist page could not be read, so
+the grouping is by topic, not by his playlists). First three to test: the daily bias from the previous day's close
+(claims A and B, which every other TTrades rule depends on), the candle-3 closure with candle 4 holding the near half,
+and the opposing run at 08:30 / 09:30 that closes back over the open.
