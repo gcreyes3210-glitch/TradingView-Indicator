@@ -1993,5 +1993,14 @@ Engine `tools/rdm.py`.
 
 **Stopped here for the user's check of the charts,** as the spec asks; no report has been written.
 
+### RDM — user's chart check and an amendment (2026-10-08, before the baseline and variants were run)
+**Chart check** (`data/studies/rdm/charts/answers.csv`): the user agrees with the detection on **4 of 10** (rdm_01, 05, 07, 08).
+- **Wrong gap or entry:** 4 charts (rdm_03 "not the right gap, not the right entry" and no SMT seen; rdm_04 the entry would have been at 12:45; rdm_06 the gap "too far"; rdm_09 right setup, the gap should be the one at 11:55).
+- **Discretionary reads:** 1 chart, rdm_02, "no strong reaction after tapping the zone".
+- **Holiday session:** 1 chart, rdm_10, July 4, "consolidating inside the zone".
+- **Reading:** the coded gap choice (the most recent 1m FVG against the trade in the move into the sweep) is where the coding and the user's reading part most often.
+- **No rule is changed because of this;** changing it after seeing charts would be tuning. It is carried into the report as the assumption most likely to change the result.
+**Amendment (the user's, logged before the run): early-close and holiday sessions are excluded.** These are the 64 `early_close` dates in `data/events.csv`: NYSE half days and US holidays with a shortened CME session, such as July 4 (rdm_10). No setup is looked for on them. The early-close flatten rule therefore never applies. Everything else is as pre-registered.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
