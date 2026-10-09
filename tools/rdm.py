@@ -287,8 +287,10 @@ def untaken(level, kind, end, t):
     return not ((seg > level).any() if kind == "high" else (seg < level).any())
 
 
-def setups_day(d, p):
-    """All setups of trading day d (triggers 09:30-15:00) with every field the trade rules and variants need."""
+def setups_day(d, p, F=None):
+    """All setups of trading day d (triggers 09:30-15:00) with every field the trade rules and variants need.
+    F (a Counter) collects the detection funnel: how many 1m SMT events survive each condition."""
+    F = F if F is not None else collections.Counter()
     i0, i1 = D["day_first"][d], D["day_last"][d]
     ts, tod, N, E = D["ts"], D["tod"], D["N"], D["E"]
     n = p["pivot_len"]
@@ -312,10 +314,15 @@ def setups_day(d, p):
     zsel = {nm: np.flatnonzero((Z["frm"] <= i1) & (Z["unt"] > i0)) for nm, Z in (("N", ZN), ("E", ZE))}
     levels = session_levels(i0, d)
     out = []
+    tod_ = D["tod"]
     for t1, dd, pp, X in ev1:
+        if not (9 * 60 + 14 <= tod_[t1] <= 14 * 60 + 59):
+            continue                                       # a sweep that cannot reach the 09:30-15:00 trigger window
+        F["1 1m SMT (sweep 09:14-14:59)"] += 1
         f5 = D["first5"][D["of5"][t1]]
         if (f5, dd, X) not in htf[5]:
             continue                                       # not validated on 5m
+        F["2 validated on 5m"] += 1
         known5 = htf[5][(f5, dd, X)]
         f15 = D["first15"][D["of15"][t1]]
         has15 = (f15, dd, X) in htf[15]
@@ -328,17 +335,19 @@ def setups_day(d, p):
         g = [x for x in gaps if x[1] == -side and start < i0 + x[0] <= t1]
         if not g:
             continue
+        F["3 inverse-FVG candidate in the move"] += 1
         gi, _, gbot, gtop = g[-1]
         far = gbot if side < 0 else gtop
         # trigger
         tmax = min(i1, t1 + p["entry_window"])
-        trig, cancel, sets = None, False, None
+        trig, cancel, sets, closed, rsmt_any = None, False, None, False, False
         for te in range(t1, tmax + 1):
             if not (9 * 60 + 29 <= tod[te] <= 14 * 60 + 59):
                 continue
             if (N["close"][te] < far) if side < 0 else (N["close"][te] > far):
                 if te < known5 or (p.get("req15") and (known15 is None or te < known15)):
                     continue
+                closed = True
                 w0, w1 = max(t1 - p["rsmt_window"], i0), min(t1 + p["rsmt_window"], te)
                 bt = np.arange(w0, w1 + 1)
                 sN = zone_touch(N["low"][w0:w1 + 1], N["high"][w0:w1 + 1], bt, ZN["lo"][zsel["N"]], ZN["hi"][zsel["N"]],
@@ -347,6 +356,7 @@ def setups_day(d, p):
                                 ZE["frm"][zsel["E"]], ZE["unt"][zsel["E"]], ZE["zid"][zsel["E"]])
                 if sN == sE or not (sN or sE):
                     continue
+                rsmt_any = True
                 # cancel: a close beyond the far edge of a zone in the difference, on its own symbol, before entry
                 for sym, only, Z, X_ in (("N", sN - sE, ZN, N), ("E", sE - sN, ZE, E)):
                     for zid in only:
@@ -361,8 +371,11 @@ def setups_day(d, p):
                     break
                 trig, sets = te, (sN, sE)
                 break
+        F["4 close through the gap in the window (SMT known)"] += int(closed)
+        F["5 RSMT"] += int(rsmt_any)
         if trig is None or cancel or trig + 1 > i1:
             continue
+        F["6 not cancelled = setup"] += 1
         ext = (N["high"][t1:trig + 1].max() if side < 0 else N["low"][t1:trig + 1].min())
         took = [lv for lv in levels if lv[1] == ("high" if side < 0 else "low") and
                 ((N["high"][t1] > lv[2]) if side < 0 else (N["low"][t1] < lv[2])) and untaken(lv[2], lv[1], lv[3], t1 - 1)]
@@ -488,21 +501,20 @@ def run(p, label="baseline"):
     for d in range(1, len(D["tdays"])):
         day = D["tdays"][d]
         ds = day.strftime("%Y-%m-%d")
-        if day in D["roll"] or (p.get("skip_news") and ds in D["news"]):
-            continue
+        if day in D["roll"] or ds in D["early"] or (p.get("skip_news") and ds in D["news"]):
+            continue                                       # roll days; early-close / holiday sessions (amendment)
         tod = D["tod"]
         i0, i1 = D["day_first"][d], D["day_last"][d]
         if not ((tod[i0:i1 + 1] >= 570) & (tod[i0:i1 + 1] < 900)).any():
             continue
-        S = setups_day(d, p)
-        funnel["setups (SMT validated + RSMT + inverse FVG)"] += len(S)
+        S = setups_day(d, p, funnel)
         S = [s_ for s_ in S if p.get("grade_b") or s_["grade"] == "A"]
-        funnel["grade allowed"] += len(S)
+        funnel["7 grade allowed (A; B in variant 1)"] += len(S)
         if p.get("req15"):
             S = [s_ for s_ in S if s_["has15"]]
         if p.get("took_level"):
             S = [s_ for s_ in S if s_["took_level"]]
-        funnel["after variant filters"] += len(S)
+        funnel["8 after the variant's setup filter"] += len(S)
         if not S:
             continue
         levels = session_levels(i0, d)
@@ -511,16 +523,18 @@ def run(p, label="baseline"):
         busy_until, n_today = -1, 0
         for su in sorted(S, key=lambda x: x["trig"]):
             if su["trig"] < busy_until or su["trig"] + 1 >= flat_i:
+                funnel["skip: a trade already open"] += 1
                 continue
             if p.get("first_only") and n_today >= 1:
-                break
+                funnel["skip: not the day's first trade (variant 6)"] += 1
+                continue
             tr = trade(su, p, levels, piv5)
             if isinstance(tr, str):
                 funnel["skip: " + tr] += 1
                 continue
             opp = [x["trig"] for x in S if x["side"] == -su["side"] and x["trig"] > su["trig"]]
             m = manage(tr, su["side"], flat_i, opp)
-            funnel["trades"] += 1
+            funnel["9 trades"] += 1
             n_today += 1
             busy_until = m["exit_i"]
             trades.append(dict(day=ds, sweep_time=D["ts"][su["t1"]], trigger_time=D["ts"][su["trig"]],
@@ -620,9 +634,119 @@ def stage2():
     return T, f
 
 
+RUNS = [("baseline", {}), ("V1 Grade B included", dict(grade_b=True)), ("V2 15m SMT required", dict(req15=True)),
+        ("V3 sweep takes an untaken session level", dict(took_level=True)),
+        ("V4 stop at the most recent 1m swing", dict(swing_stop=True)), ("V5 skip 08:30 / 10:00 news days", dict(skip_news=True)),
+        ("V6 first trade of the day only", dict(first_only=True)), ("V7 zones of all fractions", dict(all_fractions=True))]
+ALPHA = 0.05 / 8
+
+
+def stats(T, all_days):
+    if len(T) == 0:
+        return dict(n=0)
+    R = T.R.to_numpy()
+    y = pd.to_datetime(T.day).dt.year
+    by = T.groupby(y).usd.sum()
+    years = range(2019, 2027)
+    eq = np.cumsum(R)
+    streak = mx = 0
+    for r in R:
+        streak = streak + 1 if r < 0 else 0
+        mx = max(mx, streak)
+    rng = np.random.default_rng(1)
+    boots = R[rng.integers(0, len(R), size=(10000, len(R)))].mean(axis=1)
+    gw, gl = T.usd[T.usd > 0].sum(), -T.usd[T.usd < 0].sum()
+    cut = sorted(all_days)[int(0.7 * len(all_days))]
+    first70, last30 = T[T.day < cut], T[T.day >= cut]
+    h1, h2 = T[y <= 2022], T[y >= 2023]
+    m = lambda x: round(x.R.mean(), 3) if len(x) else None
+    return dict(n=len(T), win=round(100 * (T.usd > 0).mean(), 1), R=round(R.mean(), 3), exp_usd=round(T.usd.mean(), 1),
+                pts=round(T.pts.mean(), 2), net=round(T.usd.sum()), pf=round(gw / gl, 2) if gl else None,
+                ddR=round((eq - np.maximum.accumulate(eq)).min(), 2), lose_streak=mx,
+                ci=(round(np.quantile(boots, 0.025), 3), round(np.quantile(boots, 0.975), 3)),
+                p=float((boots <= 0).mean()), pos_years=int(sum(by.get(k, 0) > 0 for k in years)),
+                R_h1=m(h1), n_h1=len(h1), R_h2=m(h2), n_h2=len(h2), R_70=m(first70), n_70=len(first70),
+                R_30=m(last30), n_30=len(last30), cut=cut)
+
+
+def report():
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    RES.mkdir(parents=True, exist_ok=True)
+    prep()
+    all_days = [d.strftime("%Y-%m-%d") for d in D["tdays"][1:] if d not in D["roll"] and d.strftime("%Y-%m-%d") not in D["early"]]
+    rows, allT, funnels = [], [], {}
+    for name, v in RUNS:
+        T, f = run({**P, **v}, name)
+        funnels[name] = f
+        nb = [stats(run({**P, **v, "pivot_len": k}, name)[0], all_days) for k in (2, 4)]
+        s_ = stats(T, all_days)
+        if len(T):
+            T.insert(0, "run", name); allT.append(T)
+        ok = (s_.get("n", 0) > 0 and s_["pos_years"] >= 6 and s_["R"] >= 0.05 and (s_["R_h1"] or -1) >= 0 and
+              (s_["R_h2"] or -1) >= 0 and all(x.get("n", 0) > 0 and np.sign(x["R"]) == np.sign(s_["R"]) for x in nb) and s_["p"] < ALPHA)
+        rows.append(dict(run=name, **s_, nb2=nb[0].get("R"), nb4=nb[1].get("R"), nb2_n=nb[0].get("n"), nb4_n=nb[1].get("n"),
+                         passes=ok))
+        print(f"{name}: " + "  ".join(f"{k} {x}" for k, x in rows[-1].items() if k != "run"))
+    S_ = pd.DataFrame(rows)
+    TT = pd.concat(allT, ignore_index=True)
+    TT.drop(columns=["t1", "trig", "p_ref", "gap_i"]).to_csv(RES / "trades.csv", index=False)
+    S_.to_csv(RES / "summary.csv", index=False)
+    # equity curves
+    fig, ax = plt.subplots(figsize=(13, 6))
+    for name, g in TT.groupby("run", sort=False):
+        ax.plot(pd.to_datetime(g.day), g.R.cumsum(), lw=2.2 if name == "baseline" else 1, label=f"{name} ({len(g)})",
+                marker="o" if name == "baseline" else None, ms=4)
+    ax.axhline(0, color="gray", lw=0.6); ax.set_ylabel("cumulative R"); ax.legend(fontsize=8); ax.grid(alpha=0.2)
+    ax.set_title("RDM equity in R, baseline and the 7 variants (each one change from the baseline)", loc="left", fontsize=10)
+    fig.tight_layout(); fig.savefig(RES / "equity.png", dpi=90); plt.close(fig)
+    # report.md
+    B = TT[TT.run == "baseline"]
+    L = ["# RDM — report", "",
+         "> **16 baseline trades in 7.3 years cannot support a verdict.** The numbers below describe what this coded reading did; "
+         "they cannot tell a real edge from luck. Read every table with its n.", "",
+         "Coded reading of the Ryze Divergence Model as pre-registered in BACKTEST_LOG.md (\"RDM\"), with the logged amendment "
+         "(early-close and holiday sessions excluded). MNQ for NQ, Databento 1m, 2019-06 → 2026-10-07, roll days excluded, "
+         "$1 per side + 1 tick per fill, 1 MNQ. 8 runs, Bonferroni α = 0.05 / 8 = 0.00625.", "",
+         "## Detection funnel (baseline)", "", "| Step | Count | Removed by this step |", "|---|---|---|"]
+    fb = funnels["baseline"]
+    order = sorted([k for k in fb if k[0].isdigit()])
+    prev = None
+    for k in order:
+        L.append(f"| {k[2:]} | {fb[k]} | {'' if prev is None else prev - fb[k]} |"); prev = fb[k]
+    for k in sorted(k for k in fb if k.startswith("skip")):
+        L.append(f"| {k} | {fb[k]} | |")
+    L += ["", "Steps 1–6 count 1m SMT events of both grades. A step's removals: the event fails that condition. "
+          "Skips are setups that reached the trade rules and were not taken.", "",
+          "## All runs", "",
+          "| Run | n | Win % | R / trade | $ / trade | Net $ | PF | Max DD (R) | Longest losing streak | 95 % CI mean R | p | Positive years | R 2019–22 (n) | R 2023–26 (n) | R first 70 % (n) | R last 30 % (n) | Neighbours R (pivot_len 2 / 4, n) | Passes |",
+          "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    for r in rows:
+        if r.get("n", 0) == 0:
+            L.append(f"| {r['run']} | 0 | | | | | | | | | | | | | | | {r['nb2']} / {r['nb4']} | no |"); continue
+        L.append(f"| {r['run']} | {r['n']} | {r['win']} | {r['R']:+.3f} | {r['exp_usd']:+.1f} | {r['net']:+,} | {r['pf']} | {r['ddR']} | "
+                 f"{r['lose_streak']} | {r['ci'][0]:+.3f} to {r['ci'][1]:+.3f} | {r['p']:.3f} | {r['pos_years']} of 8 | "
+                 f"{r['R_h1']} ({r['n_h1']}) | {r['R_h2']} ({r['n_h2']}) | {r['R_70']} ({r['n_70']}) | {r['R_30']} ({r['n_30']}) | "
+                 f"{r['nb2']} ({r['nb2_n']}) / {r['nb4']} ({r['nb4_n']}) | {'**yes**' if r['passes'] else 'no'} |")
+    L += ["", f"The 70 / 30 split cuts at {rows[0].get('cut')} (70 % of the {len(all_days)} eligible trading days).", ""]
+    if len(B):
+        L += ["## Baseline breakdowns (n is tiny; descriptive only)", ""]
+        Bt = B.assign(et=pd.to_datetime(B.entry_time, utc=True).dt.tz_convert(TZ))
+        for lab, col in (("month", Bt.et.dt.month), ("weekday", Bt.et.dt.day_name().str[:3]), ("hour", Bt.et.dt.hour),
+                         ("side", Bt.direction), ("exit", Bt.exit_reason), ("year", Bt.et.dt.year)):
+            L.append(f"- **By {lab}:** " + " · ".join(f"{k} {len(g)} trades, {g.R.mean():+.2f} R" for k, g in Bt.groupby(col)))
+        L += ["", "Baseline trades: " + ", ".join(f"{r.day} {r.direction} {r.R:+.2f} R ({r.exit_reason})" for r in B.itertuples()), ""]
+    (RES / "report.md").write_text("\n".join(L) + "\n")
+    print("\n".join(L))
+    return rows, funnels
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "summary"
     if cmd == "summary":
         summary()
     elif cmd == "stage2":
         stage2()
+    elif cmd == "report":
+        report()

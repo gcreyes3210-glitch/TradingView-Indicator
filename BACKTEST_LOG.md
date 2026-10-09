@@ -2002,5 +2002,47 @@ Engine `tools/rdm.py`.
 - **No rule is changed because of this;** changing it after seeing charts would be tuning. It is carried into the report as the assumption most likely to change the result.
 **Amendment (the user's, logged before the run): early-close and holiday sessions are excluded.** These are the 64 `early_close` dates in `data/events.csv`: NYSE half days and US holidays with a shortened CME session, such as July 4 (rdm_10). No setup is looked for on them. The early-close flatten rule therefore never applies. Everything else is as pre-registered.
 
+### RDM — baseline, 7 variants and report (`python3 tools/rdm.py report`, 8 min with neighbours; `data/studies/rdm/results/`: report.md, trades.csv, summary.csv, equity.png)
+> **15 baseline trades (16 before the amendment) in 7.3 years cannot support a verdict.**
+
+**Detection funnel, baseline** (1m SMT events of both grades → setups):
+
+| Step | Left | Removed |
+|---|---|---|
+| 1m SMT, sweep 09:14–14:59 | 34,647 | |
+| Validated on 5m | 1,981 | 32,666 |
+| Inverse-FVG candidate in the move | 1,317 | 664 |
+| Close through the gap in the window | 568 | 749 |
+| RSMT | 447 | 121 |
+| Not cancelled (= setups) | 53 | 394 |
+| Grade A | 27 | 26 |
+| Trades | 15 | 12 (target rules: no untaken level beyond TP1 6, final < 2 R 5, no TP1 1) |
+
+**All 8 runs** (Bonferroni α 0.00625; neighbours `pivot_len` 2 / 4):
+
+| Run | n | R/trade | 95 % CI | p | Positive years | R 2019–22 / 2023–26 | R first 70 % / last 30 % | Neighbours R (n) | Passes |
+|---|---|---|---|---|---|---|---|---|---|
+| Baseline | 15 | +0.508 | −0.22 to +1.34 | 0.10 | 4 of 8 | +0.63 (9) / +0.33 (6) | +0.58 (10) / +0.36 (5) | −0.74 (19) / +0.74 (8) | no |
+| V1 Grade B included | 33 | +0.482 | −0.23 to +1.32 | 0.10 | 4 | +0.52 (16) / +0.45 (17) | +0.93 (20) / −0.20 (13) | −0.23 (35) / +0.09 (20) | no |
+| V2 15m SMT required | 1 | +0.690 | — | — | 1 | — / +0.69 (1) | — | none / none | no |
+| V3 sweep takes an untaken session level | 0 | | | | | | | none / −1.04 (1) | no |
+| V4 stop at the most recent 1m swing | 16 | +0.668 | −0.23 to +1.72 | 0.08 | 4 | +0.88 (10) / +0.32 (6) | +0.81 (11) / +0.35 (5) | −0.75 (19) / +0.54 (11) | no |
+| V5 skip 08:30 / 10:00 news days | 10 | +0.354 | −0.36 to +1.14 | 0.18 | 3 | +1.18 (5) / −0.47 (5) | +1.01 (6) / −0.63 (4) | −0.87 (15) / +0.83 (6) | no |
+| V6 first trade of the day only | 15 | identical to the baseline (no day had two trades) | | | | | | | no |
+| V7 zones of all fractions | 3 | −0.647 | −1.07 to +0.14 | 0.96 | 1 | — / −0.65 (3) | — | −0.15 (5) / −0.88 (3) | no |
+
+**Baseline details:**
+- **Summary:** win 66.7 %, +$11.7 per trade on 1 MNQ (+$175 in total), PF 1.68, max drawdown −2.1 R, longest losing streak 2.
+- **Exits:** 5 stops (−1.1 R each), 4 at break-even after TP1, 5 held to 15:55 (+1.99 R on average), 1 final target.
+- **Concentration:** one trade (+4.31 R, 2024-11-01) is a third of the total; without it the baseline is about +0.24 R on 14 trades.
+
+**Verdict:**
+- **Nothing is adopted;** no run passes the usual criterion. The sample cannot separate an edge from chance at about 2 trades a year.
+- **The three assumptions most likely to change the result** (detailed in report.md):
+  1. the choice of gap for the inverse-FVG trigger (the user's chart check disagreed with the gap or entry on 4 of 10);
+  2. the SMT definition and timeframe (the neighbours flip sign);
+  3. the 12-day zone life with the RSMT cancel rule (it removes 394 of 447 events).
+- Of the 8 pre-registered runs, all 8 were run; no other variant was tried.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
