@@ -1833,5 +1833,46 @@ Signals are read on **MNQ 1m** and **ES 1m** (Databento). MNQ prints the same pr
 - **Every candidate zone with its exact high / low** is in `candidate_zones.csv` (1,535 rows), for a direct numeric comparison with the indicator.
 **Status: stopped as instructed.** `data/studies/rdm/zones.csv` (MNQ and ES, 2019-06 → 2026-10) is **not** generated. It waits for either observed zones that one combination matches to the tick, or a visual confirmation of one rendered set (timeframe, day-length method, refraction, reading).
 
+### RDM — the confirmed rule and zones.csv (2026-10-08)
+**Observed zones (user's chart, box readings ±1.0 pt) and the 1m candles they are:** a box on the 5m chart starts at the 5m bar holding the 1m candle.
+
+| City (sunrise) | Box start | 1m candle | High / low | Observed |
+|---|---|---|---|---|
+| London, 2026-10-06 | 02:05 | 02:08 | 31,375.25 / 31,365.50 | 31,375.50 / 31,365.50 |
+| New York, 2026-10-06 | 06:55–06:57 | 06:57 | 31,448.25 / 31,441.00 | 31,448.00 / 31,441.00 |
+| Tokyo, 2026-10-07 | 16:40 | 16:40 | 31,386.50 / 31,382.50 | 31,386.75 / 31,382.50 |
+
+**Variants tested against the three candle minutes:**
+
+| Sunrise formula | Zenith | London | New York | Tokyo | All 3 |
+|---|---|---|---|---|---|
+| **Almanac (simplified), naive UTC date** | **90.833** | **02:08:40 ✓** | **06:57:22 ✓** | **16:40:28 ✓** | **yes** |
+| Almanac, true local date | 90.833 | 02:08:40 ✓ | 06:57:22 ✓ | 16:41:17 ✗ | no |
+| NOAA fractional-year | 90.833 | 02:07:18 ✗ | 06:56:07 ✗ | 16:40:41 ✓ | no |
+| NOAA spreadsheet (Meeus) | 90.833 | 02:09:16 ✗ | 06:57:44 ✓ | 16:41:34 ✗ | no |
+| Any formula | 90.0 (no refraction) | 4–6 min late | | | no |
+| Clock reading (UTC-5 clock placed at that New York time) | — | 1 hour off in October | | | no |
+
+**Chosen rule** (`tools/rdm_zones.py`, docstring):
+- **Sunrise and sunset:** the almanac sunrise / sunset algorithm with refraction (zenith 90.833°), **dated naively by UTC date**. For calendar date D, the event is D 00:00 UTC plus the algorithm's UTC hour for day-of-year D, wrapped mod 24. That is why Tokyo's "2026-10-07" sunrise is 05:40 on 8 October in Tokyo, computed with 7 October's day of year.
+- **Times:** true instants. The fixed UTC-5 offset is only the display of the same moment.
+- **Day length:** (sunset hour − sunrise hour) mod 24. Events at sunrise + f × day length, f = 0, 0.25, 0.5, 0.75, 1.0.
+- **Zone:** the high / low of the 1m bar whose open is at or before the event and whose next open is after it.
+- **Halts:** an event inside a session halt or weekend makes no zone (the bar before is followed by a gap over 30 minutes; read literally, the rule would pick the last bar before the halt).
+- **Sunrise times on the observed dates (ET):** London 2026-10-06 02:08:40, New York 2026-10-06 06:57:22, Tokyo 2026-10-07 16:40:28.
+
+**`data/studies/rdm/zones.csv`** (`python3 tools/rdm_zones.py build`): MNQ and ES (Databento continuous, each from its own 1m bars), 2019-06 → 2026-10-08 09:33. Columns symbol, city, fraction, created_date (the calendar date D of the computation), event_time_et, zone_high, zone_low.
+- **Rows:** 55,975 (MNQ 27,984, ES 27,991). 12,285 / 12,278 events fell in a halt or weekend and made no zone.
+- **Zones per calendar date** (15 possible: 3 cities × 5 fractions):
+
+  | Mon | Tue | Wed | Thu | Fri | Sat | Sun | All dates with zones |
+  |---|---|---|---|---|---|---|---|
+  | 14.5 | 14.8 | 14.7 | 14.5 | 10.0 | 0 | 4.7 | 12.2 |
+
+  Weekdays miss a zone when an event (mostly New York's sunset, f = 1.0) falls in the 17:00–18:00 halt. Friday loses its events after 17:00; Sunday has only those after the 18:00 open. 1,238 MNQ dates have all 15.
+- **The three observed zones reproduce** on the same candles, within 0.25 points of the box readings.
+
+**Final check charts:** `data/studies/rdm/final/rdm_final_2026-10-06.png`, `…10-07.png`. MNQ 5m with every final zone labelled city, fraction, event time and levels.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
