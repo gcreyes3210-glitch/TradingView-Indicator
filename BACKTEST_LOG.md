@@ -1874,5 +1874,75 @@ Signals are read on **MNQ 1m** and **ES 1m** (Databento). MNQ prints the same pr
 
 **Final check charts:** `data/studies/rdm/final/rdm_final_2026-10-06.png`, `…10-07.png`. MNQ 5m with every final zone labelled city, fraction, event time and levels.
 
+## RDM — Ryze Divergence Model — pre-registered 2026-10-08 (written before any RDM code was run)
+> **Caveat.** The setup is a discretionary course method turned into fixed rules here; results test this coding, not the course author's trading. The zones (`data/studies/rdm/zones.csv`) are the verified reconstruction of the Ryze indicator (see "RDM — the confirmed rule").
+
+**Runs: closed list of 8 = the baseline + 7 variants; Bonferroni α = 0.05 / 8 = 0.00625.** No parameter is searched beyond this list.
+**Adoption bar = the usual criterion:**
+- ≥ 6 of 8 calendar years net positive;
+- ≥ +0.05 R per trade;
+- both halves (2019–2022, 2023–2026) ≥ 0 in R per trade;
+- the sign of R per trade holding on both neighbours (`pivot_len` 2 and 4);
+- one-sided bootstrap p (mean R > 0; 10,000 resamples, seed 1) < 0.00625.
+
+Also reported: the spec's split, the first 70 % of trading dates against the last 30 %.
+**Stages (the user's):**
+1. **Data summary,** then stop for confirmation.
+2. **Detection, with the unit tests and 10 trade charts** (`data/studies/rdm/charts/`, cut at entry), then stop for confirmation.
+3. **The report.**
+
+Engine `tools/rdm.py`.
+
+**Data (repo adaptations):**
+- **Prices:** "NQ" = Databento MNQ 1m and ES = Databento ES 1m (front month by volume, continuous), New York time. The two are aligned on MNQ's minutes. 5m and 15m bars are built from 1m, stamped by open time; 5m and 15m boundaries are the same clock-aligned or 18:00-anchored.
+- **Roll days:** a trading day (18:00 → 17:00) on which either market's instrument changes is flagged and **excluded**; no setup is looked for on it.
+- **Costs:** $1 per side per MNQ + 1 tick of slippage on every fill. Dollars are for 1 MNQ. With the 1/3 partial, a trade is computed as 3 thirds of one MNQ (fractional dollars, costs $1 per side for the whole contract).
+- **News (variant 5):** the days with an 08:30 or 10:00 ET release in `data/events.csv` (CPI, PPI, NFP, GDP, PCE, retail sales, the one 10:00 FOMC). That file has no ISM / JOLTS / consumer-sentiment 10:00 releases, a known gap.
+- **Early-close days:** flat 10 minutes before the halt instead of 15:55.
+
+**Zones:**
+- **Source:** `data/studies/rdm/zones.csv`, each symbol's own zones (MNQ zones for NQ, ES zones for ES). Step 2 of the spec is done.
+- **Zone ID** = (city, fraction, created_date); the same ID exists on both symbols, which is what makes the set comparison meaningful.
+- **Lifetime:** a zone exists from the close of its event candle (event minute + 1) and is **active for 12 trading days** (`zone_days`) from its event time.
+- **Primary set:** fraction 0.0 (sunrise) zones. Variant 7: all fractions.
+
+**Definitions (every number a named parameter; defaults in brackets):**
+- **Swing** (`pivot_len` [3]): a high above the `pivot_len` bars before it and not below the `pivot_len` after it (mirror for lows). It exists only after the `pivot_len`-th later bar has closed.
+- **SMT on a timeframe (live sweep reading).** Bearish SMT on bar t: the sweeping market X makes the first bar since its latest confirmed swing high (at bar p) whose high exceeds that swing high. The other market Y's highs over bars p+1 … t stay at or below Y's corresponding high (Y's highest high over bars p−1 … p+1). It is known at bar t's close. Bullish is the mirror on lows.
+  - *Reading:* the spec's "between two consecutive swing highs" read with the second high as the live sweep rather than a later-confirmed pivot. A confirmed second pivot comes `pivot_len` bars after the sweep (15–20 minutes on 5m), after the 15-minute entry window, so the strict reading could almost never trade.
+  - Both swings must be in the same trading day.
+- **Grade:** A = NQ is X (NQ sweeps, ES fails); B = ES is X.
+- **Validated SMT:** a 1m SMT at sweep bar t1 plus a 5m SMT in the same direction with the same sweeping market, whose sweep 5m bar contains t1. Known at that 5m bar's close. Whether a 15m SMT also holds (its sweep 15m bar containing t1) is recorded.
+- **RSMT** (`rsmt_window` [5]):
+  - **Window:** over 1m bars t1 − 5 … t1 + 5, never beyond the bar being evaluated.
+  - **Divergence:** the set of zone IDs touched by NQ (a bar's range overlapping an active NQ zone) differs from the set touched by ES (ES bars, ES zones), and at least one is non-empty.
+  - **Cancel:** the setup is cancelled if, before entry, a 1m close on the same symbol is beyond the far edge of any zone in the two sets' difference (above `zone_high` for a bearish setup, below `zone_low` for a bullish one).
+- **Inverse FVG trigger** (`entry_window` [15]):
+  - **Gap:** the most recent NQ 1m FVG against the trade (a bullish gap for a short: low[i] > high[i−2]) whose third candle closed between NQ's last confirmed 1m swing low before the sweep and the sweep bar ("the move into the sweep").
+  - **Trigger:** the first 1m bar, within `entry_window` minutes after the sweep bar, that closes beyond the gap's far side (below its bottom for a short) **and** by whose close the validated SMT and the RSMT are known.
+- **Session levels:** Asia 18:00–02:00, London 02:00–09:30, New York 09:30–16:00 highs and lows, on NQ. Only completed sessions are used (today's Asia and London, and the previous trading day's three). A level is untaken until price trades through it after its session ends.
+
+**Trade logic:**
+- **Window:** entries only on trigger bars closing 09:30–15:00 ET; flat at 15:55 (the 15:55 bar's open). One position at a time; setups during a position are ignored, except as an exit signal (below).
+- **Setup:** validated **Grade A** SMT + RSMT + inverse-FVG trigger, all in the same direction.
+- **Entry:** the next 1m bar's open ± 1 tick.
+- **Stop:** 1 tick beyond NQ's sweep extreme, the highest NQ high from the sweep bar through the trigger bar for a short.
+- **TP1:** the nearest untaken confirmed NQ 5m swing low below the entry for a short (mirror for longs), from the current and previous trading day. At TP1, close 1/3 and move the stop to the entry fill.
+- **Final target:** the nearest untaken session level beyond TP1. **Skip the trade** if there is no TP1, no such level, or the final target is less than 2 R from the entry (R = |entry − stop|).
+- **Early exit:** the remainder is closed at the next bar's open if a valid opposite-direction setup triggers.
+- **Fills:** stop first on a bar touching both; a bar opening beyond a level fills at its open; target fills 1 tick worse.
+- **Reported in** R, points and dollars for 1 MNQ.
+
+**The 7 variants (each one change from the baseline):**
+1. Grade B setups included.
+2. 15m SMT required as well.
+3. The sweep must take an untaken session level: NQ's sweep bar trades through one.
+4. Stop at the most recent confirmed 1m swing beyond the entry (+1 tick) instead of the sweep extreme.
+5. Skip days with an 08:30 or 10:00 ET release in `events.csv`.
+6. First trade of the day only.
+7. Zones of all fractions (0, 0.25, 0.5, 0.75, 1.0) instead of sunrise only. This replaces the spec's add-on variant, so the count stays at eight runs.
+
+**Outputs:** `data/studies/rdm/results/`: trades.csv, report.md (the spec's statistics), the equity curve, and the 10 trade charts in `data/studies/rdm/charts/`.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
