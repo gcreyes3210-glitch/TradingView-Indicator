@@ -1,0 +1,5 @@
+71fbc84c788ebf4c0f820338789297aec0fa930362e53c030a6aacf840c9888a  YT4_SPEC.md
+YT4 part 1 registered 2026-10-09T14:12:01Z, before any YT4 code
+15386e893b689f40faf8c3caba79cf5c83eea3221df4364210831251957682c3  YT4_SPEC.md
+b2c390a8db2f2ba5d11f9717db2ded130c24c76a9ee763a03dd87dfb673842ad  tools/yt1/tt.py
+YT4 part 2 registered 2026-10-09T14:27:19Z, before any G1-G7 module existed

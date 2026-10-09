@@ -239,8 +239,71 @@ closes the mechanical reading, not his discretionary trading. The way to test hi
 for IFVG-1m: cut 10 charts at the 09:30 decision, have the user mark the leg and the zone he would use, and see whether
 the code picks the same ones before any further run.
 
-**TTrades.** Not tested. `data/studies/yt1/research/G_ttrades_concepts.md` lists 12 concepts from six of his videos with
-the rule each implies and 11 claims that can be measured directly (the channel's playlist page could not be read, so
-the grouping is by topic, not by his playlists). First three to test: the daily bias from the previous day's close
-(claims A and B, which every other TTrades rule depends on), the candle-3 closure with candle 4 holding the near half,
-and the opposing run at 08:30 / 09:30 that closes back over the open.
+**TTrades.** Tested in YT4, below.
+
+---
+# YT4 — TTrades (@TTrades_edu): candle claims and seven mechanical readings of his models (rules in `YT4_SPEC.md`, registered 2026-10-09)
+
+**Verdict: all seven rules fail (G1–G7), none is a candidate.** Level 0.05 / 90. Two of his candle statistics are
+real and held in 2023–2026 (A and G below); neither turns into a trade here, for the reason under "Why".
+In-sample first (stamp `YT4_IS_STAMP.txt`), full span run once, every module passed the look-ahead test and none was
+changed after its first run. Notes per rule in `data/studies/yt1/notes/G1.md … G7.md`, `K-G.md`.
+
+## Rules, full span 2019-06 → 2026-10 (house fills)
+
+| ID | Rule | Trades | Net $ | R / trade | Win % | PF | Max DD $ | p | + years | R 2019–22 | R 2023–26 | Neighbours R | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | Daily bias alone: 09:30 open → flat bar, no stop (R = 0.1 ATR) | 1,498 | −15,274 | −0.247 | 49.1 | 0.92 | −27,192 | 0.96 | 2 / 8 | −0.438 | −0.060 | −0.390 / −0.007 | fails |
+| G2 | Candle 4 continuation: daily candle 3 closure, EQ held, morning 3m CISD | 242 | −2,562 | −0.168 | 31.8 | 0.70 | −3,180 | 0.97 | 1 / 8 | −0.210 | −0.119 | −0.059 / −0.158 | fails |
+| G3 | EQ continuation day: hourly closes respect EQ, morning 5m CISD above EQ | 662 | −2,952 | −0.097 | 34.0 | 0.89 | −5,040 | 0.96 | 2 / 8 | −0.247 | +0.056 | −0.122 / −0.094 | fails |
+| G4 | Fractal Model day trade: hourly closure inside candle 1, second 5m CISD | 791 | −3,408 | −0.143 | 32.7 | 0.89 | −4,126 | 1.00 | 1 / 8 | −0.178 | −0.108 | −0.095 / −0.194 | fails |
+| G5 | 4-hour power of three: 4H candle 2 closure, 15m CISD in the next 4H candle | 657 | +303 | +0.008 | 44.7 | 1.01 | −2,002 | 0.42 | 4 / 8 | +0.022 | −0.006 | +0.009 / +0.027 | fails |
+| G6 | Scalping model: 1H closure, 15m candle 2 closure, 1m CISD in the next hour | 1,532 | −9,942 | −0.217 | 33.7 | 0.72 | −9,953 | 1.00 | 0 / 8 | −0.268 | −0.164 | −0.220 / −0.215 | fails |
+| G7 | Silver Bullet without a daily bias: raid of the 09:00 hour, 1m swing break, limit at the 1m FVG | 611 | −2,546 | −0.031 | 25.9 | 0.92 | −8,401 | 0.66 | 3 / 8 | +0.047 | −0.109 | −0.057 / −0.083 | fails |
+
+Reported variants (no verdict): G1 on `fail` days only 558 trades, +1,855 $, −0.007 R; G3 `pdh` (target candle 1's
+high) 301 trades, −354 $, −0.080 R; G4 `first` (first CISD, no confirmation) 830 trades, −9,546 $, −0.161 R; G4
+`retest` (limit at the opening price closed through) 651 trades, +2,033 $ but −0.113 R (the dollars come from the
+wider-stop trades; per unit of risk it loses), p 0.98. Full table `data/studies/yt1/yt4_full_table.md`, variants `yt4_full_variants.csv`.
+
+G5 is the only rule not clearly negative: 657 trades for +303 $, i.e. zero. G6, the highest-frequency one, lost in
+every one of the eight years.
+
+## Claim checks (each rate next to the base rate; `yt4_claims_table.csv`)
+
+| Claim | 2019–22 | 2023–26 | Base rate | Holds? |
+|---|---|---|---|---|
+| **A** A day that closes beyond the previous day's high / low → the next day trades beyond that day's high / low | 76.2 % (n 470) | 73.5 % (n 465) | 50.4 % | **Yes**, both halves, also on 4H (69.5 %) and 1H (69.2 %) |
+| A, order: next day takes that extreme before the opposite one | 73.8 % | 71.8 % | 44.0 % | **Yes** |
+| **B** A day that runs the previous extreme and closes back inside → the next day takes the other side | 66.7 % (n 267) | 58.9 % (n 285) | 50.4 % | Yes, weaker out of sample (+8.5 pp, p 0.008) |
+| **C** Candle 3 closure → candle 4 expands, against candles that simply closed the same way | 4H 66.2 % | 4H 60.7 % | 65.6 % | **No**: no better than any up-close candle (daily +0.0 pp, 4H −2.3 pp, 1H +0.7 pp) |
+| C, candle 4 holds the near half of candle 3 | daily 42.4 % | daily 37.2 % | 33.8 % | Small (+6.0 pp daily, +2.9 pp 4H over the span) |
+| **F** The day's low is set 08:00–09:59 on up days (high on down days) | 17.4 % | 18.1 % | 13.8 % | Small (+4.0 pp); more up-day lows are set 18:00–21:59 (39 %) than in any other four hours |
+| **G** In a 4H candle continuing the trend, the wick sits inside the last 1H candle's range | 57.3 % | 58.3 % | 30.8 % | **Yes**, +27 pp both halves |
+| **I** The run against the bias that closes back over the 08:30 / 09:30 open holds for the day | 32.3 % / 10.8 % | 31.0 % / 14.5 % | 32.4 % / 14.3 % | **No** difference from other days |
+| **J** On bullish-bias days the cash-session low comes before the high | 49.7 % | 47.2 % | 50.0 % | **No** |
+| **K** Inside day in a trend → next day continues | 57.5 % (n 87) | 49.1 % (n 108) | 44.0 % | Not established (in-sample +13 pp, out of sample +5 pp, p 0.28) |
+
+## Why a 75 % statistic does not make a trade (description, measured after the result; not a test)
+
+On the 1,459 bias days, the previous day's extreme was taken on 70.7 %. On **55.7 % it had already been taken before
+09:30**; only 15.1 % of days took it for the first time in the cash session. From the 09:30 open to the close, price
+moved in the bias direction on 49.7 % of days, mean −3.7 points. So claim A is true and almost all of it is used up
+overnight: it describes where price goes between 18:00 and the open, and says nothing about the session this account
+trades. That is the same pattern as the NQ Stats / edgeful hit rates in YT1: the published number reproduces, the
+trade built on it does not pay.
+
+## Readings, corrections and limits
+
+- His point of interest, session and entry are discretionary. Each rule closes those gaps with a stated reading
+  (`YT4_SPEC.md` Part 2, the coders' "(R)" lists in the notes). This closes these seven mechanical readings, not his
+  trading by eye. Models that need a hand-marked higher-timeframe zone (order block, fair value gap on the weekly or
+  daily chart, SMT divergence against ES) were not coded.
+- `tools/yt1/tt.py`: the roll exclusion in `bias` depends on the roll day's candle having at least 690 bars; one
+  day (2020-03-16, 571 bars after limit-down halts) keeps a bias. The harness drops that day as a roll day, so no trade
+  is affected. Not changed after registration.
+- G2 skips days whose three daily candles include a roll candle (coder's reading, at most 9 trades).
+- G4's window runs from the hourly gate's close to 11:30 with no 08:30 floor, as registered; 125 of 389 in-sample
+  entries are before 08:30.
+- G7: 192 of 630 in-sample confirmed raids have no fair value gap and are no trade.
+- Count of things tried, for the next batch: 53 (YT1) + 29 (YT2) + 1 (YT3) + 7 (YT4) = 90 rules, 14 + 13 claim checks.
