@@ -44,7 +44,8 @@ def load_tv(path):
         if r["Type"].startswith("Entry"):
             tag = dict(x.split(":", 1) for x in r["Signal"].split("|")[2:] if ":" in x)
             d.update(side=r["Signal"][0], entry_time=t, entry=float(r["Price USD"]), or_w=float(tag["or"]),
-                     on=tag["on"], pnl=float(r["Net PnL USD"]), risk=float(tag["risk"]))
+                     on=tag["on"], pnl=float(r["Net PnL USD"]), risk=float(tag["risk"]),
+                     es_tag=tag["ES"].strip() if "ES" in tag else None)          # v1.5+: "confirm" / "DIVERGE" / "n/a"
         else:
             d.update(exit_time=t, exit=float(r["Price USD"]), reason=r["Signal"])
     df = pd.DataFrame.from_dict(tr, orient="index").sort_index()
@@ -201,6 +202,19 @@ if __name__ == "__main__":
         diff = m[(m._merge != "both") | (m.entry_tv != m.entry_loc)]
         cols = ["day", "side", "_merge", "entry_time_tv", "entry_time_loc", "entry_tv", "entry_loc", "or_w_tv", "or_w_loc", "on_tv", "on_loc", "pnl_tv", "pnl_loc"]
         print(diff[cols].to_string())
+
+    if tv.es_tag.notna().any():                       # v1.5 export: the strategy's ES flag against the weekly check's
+        from es_filters import load_es, es_confirm
+        _, e = load_es()
+        x = tv[tv.es_tag.notna()].copy()
+        ref = [es_confirm(e, t, sd) for t, sd in zip(x.entry_time, x.side)]
+        x["ref"] = ["n/a" if pd.isna(c) else ("confirm" if c else "DIVERGE") for c in ref]
+        both = x[(x.es_tag != "n/a") & (x.ref != "n/a")]
+        bad = both[both.es_tag != both.ref]
+        print(f"\nES flag (v1.5 tag) against es_confirm(): {len(x)} trades tagged; strategy n/a {int((x.es_tag == 'n/a').sum())}, "
+              f"Databento n/a {int((x.ref == 'n/a').sum())}; compared {len(both)}, agree {len(both) - len(bad)}, disagree {len(bad)}")
+        if len(bad):
+            print(bad[["entry_time", "side", "es_tag", "ref"]].to_string())
 
     shadow_report(tv, shadow_flags(bars), since)
     import bias_log

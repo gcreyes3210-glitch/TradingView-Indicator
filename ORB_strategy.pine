@@ -1,6 +1,12 @@
 //@version=5
 // =====================================================================================================
-//  Opening Range Breakout  ·  v1.4  (strategy + chart drawings in one file)
+//  Opening Range Breakout  ·  v1.5  (strategy + chart drawings in one file)
+//  v1.5: information only, no change to any trade. The ES-diverge flag of the weekly forward-test check: at the entry
+//        bar, has ES closed beyond its own 09:30-09:45 range on the trade's side since 09:45 (ES: confirm) or not
+//        (ES: DIVERGE)? ES's range comes from ES 5m bars over the same session input; the test uses ES's 1-minute
+//        closes (request.security_lower_tf) from 09:45 through the last minute of the entry bar, exactly as
+//        tools/es_filters.py es_confirm(). Shown in the entry tag, the entry alert and the debug table. Where
+//        TradingView has no ES 1-minute data for a bar (older history) the flag reads "n/a".
 //  v1.4: flattens before the halt on early-close days (half days 13:15 ET, US holiday futures sessions 13:00 ET)
 //        instead of holding into the 18:00 reopen. Rule otherwise identical to v1.3.
 //  Defaults = the forward-test candidate after ORB1-ORB5 (see BACKTEST_LOG.md): no target, hold to the close,
@@ -25,7 +31,7 @@
 //  Costs: $1 commission per contract per side and 1 tick of slippage per order are built in, because at
 //  ~200 trades a year the fills decide whether the rule is real.
 // =====================================================================================================
-strategy("Opening Range Breakout [v1.4]", "ORB v1.4", overlay = true, pyramiding = 0,
+strategy("Opening Range Breakout [v1.5]", "ORB v1.5", overlay = true, pyramiding = 0,
      default_qty_type = strategy.fixed, default_qty_value = 1, initial_capital = 25000,
      commission_type = strategy.commission.cash_per_contract, commission_value = 1.0, slippage = 1,
      calc_on_every_tick = false, process_orders_on_close = true, margin_long = 0, margin_short = 0,
@@ -71,6 +77,11 @@ s_to     = input.time(timestamp("2030-01-01T00:00:00"), "Test window end", group
 showDbg  = input.bool(true, "Show debug table", group = grpS)
 showDraw = input.bool(true, "Draw the opening range and overnight range", group = grpS)
 s_alerts = input.bool(true, "Fire alert() messages (range set, entries, flatten)", group = grpS, tooltip = "Create one alert on this strategy with condition 'Any alert() function call'.")
+
+// ================================ 6 · ES INFORMATION ================================
+grpES = "6 · ES information (no effect on trades)"
+esOn  = input.bool(true, "Compute the ES-diverge flag", group = grpES, tooltip = "Information only: tags each entry ES: confirm or ES: DIVERGE (has ES closed beyond its own opening range on the trade's side since the range ended, on 1-minute closes through the entry bar?). Trades are identical with this on or off.")
+esSym = input.symbol("CME_MINI:ES1!", "ES symbol", group = grpES)
 
 // ================================ SESSION STATE ================================
 bool inOR    = not na(time(timeframe.period, orSess, tz))
@@ -199,9 +210,41 @@ if orEnd
     if s_alerts
         alert("ORB " + syminfo.ticker + " range set: high " + str.tostring(ORH, format.mintick) + " · low " + str.tostring(ORL, format.mintick) + " · width " + str.tostring(orW, "#.##") + " pts (" + str.tostring(pdPct, "#") + "% of yesterday) · open " + openLoc + " the overnight range · gap " + f_signed(gapPts, "#.##") + (orReady ? "" : " · range filtered out, no trade today"), alert.freq_once_per_bar)
 
+// ================================ ES INFORMATION (no effect on trades) ================================
+[esH, esL] = request.security(esSym, timeframe.period, [high, low], gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off)
+esC1 = request.security_lower_tf(esSym, "1", close)          // ES 1-minute closes inside this chart bar
+var float esOrH = na
+var float esOrL = na
+var float esORH = na
+var float esORL = na
+var bool  esUp = false                                       // ES has closed above its range high since the range ended
+var bool  esDn = false                                       // ... below its range low
+var bool  esHave = false                                     // ES 1-minute data seen since the range ended
+var string lastES = "-"
+if tradeStart
+    esORH := na
+    esORL := na
+    esUp := false
+    esDn := false
+    esHave := false
+if inOR
+    esOrH := inOR[1] ? math.max(esOrH, esH) : esH
+    esOrL := inOR[1] ? math.min(esOrL, esL) : esL
+if orEnd
+    esORH := esOrH
+    esORL := esOrL
+if esOn and inTrade and not inOR and not na(esORH) and array.size(esC1) > 0
+    esHave := true
+    for c in esC1
+        if c > esORH
+            esUp := true
+        if c < esORL
+            esDn := true
+f_es(bool isLong) => not esOn ? "" : (not esHave or na(esORH)) ? "n/a" : ((isLong ? esUp : esDn) ? "confirm" : "DIVERGE")
+
 // ================================ TAG ================================
 f_tag(string side, float risk, float rr, int n) =>
-    side + "|ORB|or:" + str.tostring(orW, "#.#") + "|pd:" + str.tostring(pdPct, "#") + "|on:" + openLoc + "|gap:" + f_signed(gapPts, "#.#") + "|ent:" + (entryMode == "Close beyond the range" ? "close" : "stop") + "|risk:" + str.tostring(risk, "#.##") + "|rr:" + str.tostring(rr, "#.#") + "|n:" + str.tostring(n) + "|h:" + str.tostring(hour(time, tz)) + "|m:" + str.tostring(minute(time, tz)) + "|dow:" + str.tostring(dayofweek(time, tz))
+    side + "|ORB|or:" + str.tostring(orW, "#.#") + "|pd:" + str.tostring(pdPct, "#") + "|on:" + openLoc + "|gap:" + f_signed(gapPts, "#.#") + "|ent:" + (entryMode == "Close beyond the range" ? "close" : "stop") + "|risk:" + str.tostring(risk, "#.##") + "|rr:" + str.tostring(rr, "#.#") + "|n:" + str.tostring(n) + "|h:" + str.tostring(hour(time, tz)) + "|m:" + str.tostring(minute(time, tz)) + "|dow:" + str.tostring(dayofweek(time, tz)) + (esOn ? "|ES: " + f_es(side == "L") : "")
 
 // stop / target for a given side and entry price. Returns [stopPx, tpPx, risk, rr]
 f_levels(bool isLong, float entryPx) =>
@@ -238,8 +281,9 @@ if closeMode and canTrade
             strategy.exit("xL", "L", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
             totSignals += 1
             lastNote := "LONG " + tg
+            lastES := f_es(true)
             if s_alerts
-                alert("ORB " + syminfo.ticker + " LONG close above the range · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + (na(tpPx) ? "close" : str.tostring(tpPx, format.mintick)) + " · risk " + str.tostring(risk, "#.##") + " pts", alert.freq_once_per_bar)
+                alert("ORB " + syminfo.ticker + " LONG close above the range · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + (na(tpPx) ? "close" : str.tostring(tpPx, format.mintick)) + " · risk " + str.tostring(risk, "#.##") + " pts" + (esOn ? " · ES: " + f_es(true) : ""), alert.freq_once_per_bar)
         else
             totSkipped += 1
             lastNote := "long skipped: risk " + str.tostring(risk, "#.##") + " vs range " + str.tostring(orW, "#.#")
@@ -254,8 +298,9 @@ if closeMode and canTrade
             strategy.exit("xS", "S", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
             totSignals += 1
             lastNote := "SHORT " + tg
+            lastES := f_es(false)
             if s_alerts
-                alert("ORB " + syminfo.ticker + " SHORT close below the range · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + (na(tpPx) ? "close" : str.tostring(tpPx, format.mintick)) + " · risk " + str.tostring(risk, "#.##") + " pts", alert.freq_once_per_bar)
+                alert("ORB " + syminfo.ticker + " SHORT close below the range · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + (na(tpPx) ? "close" : str.tostring(tpPx, format.mintick)) + " · risk " + str.tostring(risk, "#.##") + " pts" + (esOn ? " · ES: " + f_es(false) : ""), alert.freq_once_per_bar)
         else
             totSkipped += 1
             lastNote := "short skipped: risk " + str.tostring(risk, "#.##") + " vs range " + str.tostring(orW, "#.#")
@@ -287,16 +332,18 @@ if not closeMode
         tradesToday += 1
         totSignals += 1
         lastNote := "LONG " + pendTagL
+        lastES := f_es(true)
         if s_alerts
-            alert("ORB " + syminfo.ticker + " LONG stop order filled at the range high", alert.freq_once_per_bar)
+            alert("ORB " + syminfo.ticker + " LONG stop order filled at the range high" + (esOn ? " · ES: " + f_es(true) : ""), alert.freq_once_per_bar)
     if newTrade and newId == "S"
         strategy.cancel("L")
         shortsToday += 1
         tradesToday += 1
         totSignals += 1
         lastNote := "SHORT " + pendTagS
+        lastES := f_es(false)
         if s_alerts
-            alert("ORB " + syminfo.ticker + " SHORT stop order filled at the range low", alert.freq_once_per_bar)
+            alert("ORB " + syminfo.ticker + " SHORT stop order filled at the range low" + (esOn ? " · ES: " + f_es(false) : ""), alert.freq_once_per_bar)
     // no entries after the entry window: pull the resting orders
     if (entryEnd or not inWindow) and flat
         strategy.cancel_all()
@@ -330,7 +377,7 @@ if showDraw and inTrade and not na(lnH)
 bgcolor(inOR ? color.new(color.yellow, 92) : inEntry ? color.new(color.aqua, 96) : na)
 
 // ================================ DEBUG ================================
-var table dbg = table.new(position.bottom_left, 2, 5, bgcolor = color.new(color.black, 20), border_width = 1)
+var table dbg = table.new(position.bottom_left, 2, 6, bgcolor = color.new(color.black, 20), border_width = 1)
 if showDbg and barstate.islast
     table.cell(dbg, 0, 0, "Range", text_color = color.gray, text_size = size.small)
     table.cell(dbg, 1, 0, orReady ? "high " + str.tostring(ORH, format.mintick) + " · low " + str.tostring(ORL, format.mintick) + " · width " + str.tostring(orW, "#.#") + " · " + str.tostring(pdPct, "#") + "% of prev day" : (inOR ? "building" : "not set"), text_color = color.white, text_size = size.small)
@@ -342,3 +389,5 @@ if showDbg and barstate.islast
     table.cell(dbg, 1, 3, lastNote, text_color = color.white, text_size = size.small)
     table.cell(dbg, 0, 4, "Totals", text_color = color.gray, text_size = size.small)
     table.cell(dbg, 1, 4, "signals " + str.tostring(totSignals) + " · skipped " + str.tostring(totSkipped) + " · closed " + str.tostring(strategy.closedtrades) + " · equity " + str.tostring(strategy.equity, "#.##"), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 5, "ES", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 5, not esOn ? "off" : "range " + str.tostring(esORL, format.mintick) + " - " + str.tostring(esORH, format.mintick) + " · closed above " + (esUp ? "yes" : "no") + " · below " + (esDn ? "yes" : "no") + (esHave ? "" : " · no 1m data") + " · last entry ES: " + lastES, text_color = lastES == "DIVERGE" ? color.yellow : color.white, text_size = size.small)
