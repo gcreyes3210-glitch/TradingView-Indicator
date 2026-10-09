@@ -1751,5 +1751,36 @@ Signals are read on **MNQ 1m** and **ES 1m** (Databento). MNQ prints the same pr
 - **R per trade is −0.018, within 0.05 R of zero, so V2 and V3 run as the user specified.** That is with a 60-point unit; in dollars it is −$2.19 a trade on one contract.
 - **On no-stop risk:** one trade in eight goes more than 60 NQ points against before its exit signal. At his 10-MNQ size that is $1,200 or more of open loss, against the $2,000 drawdown limit he quotes.
 
+### MECH V2 and V3 (`python3 tools/mech.py v23`, 10 min with neighbours; `data/studies/mech/v2.csv`, `v3.csv`)
+**Coding error caught before logging.** In the first run, ES-referenced swept signals compared ES's pointer high (an ES price) with MNQ prices, so the "swept add" always filled. That gave an impossible +$23.9 M.
+- **Fix:** the swept test now runs on the pointer's own index, and the add fills on MNQ at that minute's close + 1 tick.
+- Only the fixed run is reported. **R per trade is per contract** (net ÷ (contracts × 60 points × $2)); α = 0.05 / 4.
+
+| Run | n | Net | Net / trade | R/trade | Win % | DD | Positive years | R 2019–22 / 2023–26 | Neighbours R (SWING_N 2 / 4) | p | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| V2 (grades, 5 / 10 sizing, swept add, §4.4 skips) | 3,063 | −82,808 | −27.0 | **−0.055** | 37.7 | −86,258 | 1 | −0.050 / −0.060 | −0.050 / −0.047 | 1.00 | fails |
+| V3 (V2 + PO3 filter) | 2,867 | −77,972 | −27.2 | **−0.057** | 37.9 | −81,865 | 2 | −0.052 / −0.061 | −0.054 / −0.053 | 1.00 | fails |
+
+**V2:**
+- **By year (R):** −0.025 / −0.052 / −0.096 / −0.014 / −0.054 / −0.047 / −0.035 / −0.125.
+- **By grade:** correlated plain +0.011 (722), SMT −0.050 (1,252), swept −0.105 (1,089).
+- **Sizing:** 192 trades at 10 contracts, 2,871 at 5. 799 swept adds filled.
+- **Skips:**
+
+  | Skip rule | Signals skipped |
+  |---|---|
+  | Swept into an opposing untapped zone or a thick stack | 15,258 |
+  | Other index's path not clear | 14,803 |
+  | Other index pointing the other way | 3,717 |
+  | Over 85 points to the opposing untapped zone | 488 |
+  | Above the prior all-time high | 10 |
+
+**V3:**
+- **PO3 skips 442 more signals,** leaving 2,867 trades, and changes almost nothing (−0.057 against −0.055).
+- **His PO3 claim:** 869 of V2's 3,063 trades (28.4 %) were entered while the PO3 flag was on. They lost −14,268, which is **23.6 % of V2's total losses**.
+- **Losses are not concentrated in accumulation:** that share is smaller than PO3's share of trades. His claim that essentially all losses come from trading inside PO3 does not hold on this coding.
+
+**Verdict:** the skip rules and sizing make the coded model worse per contract (V1 −0.018 → V2 −0.055 R). Correlated plain pointers are the only grade near zero in every stage (V1 −0.011, V1-stop +0.007, V2 +0.011, V3 −0.002), and nowhere near the criterion.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.

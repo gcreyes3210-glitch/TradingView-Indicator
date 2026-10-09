@@ -259,8 +259,9 @@ def in_lock(a_, b_):
     return False
 
 
-def target(W, nm, t, d, e, DI):
-    """Nearest untapped zone ahead acting against d on index nm at 1m t from price e, and whether the path is clear."""
+def target(W, nm, t, d, e, DI, count=False):
+    """Nearest untapped zone ahead acting against d on index nm at 1m t from price e, and whether the path is clear
+    (count=True: the number of live zones in between instead of the flag)."""
     P = W[nm]["P"]
     rows = DI[nm].get(S["tdi"][t])
     if rows is None:
@@ -279,7 +280,7 @@ def target(W, nm, t, d, e, DI):
             return None, False
         tg = c.top.max()
         between = live[(live.top <= e) & (live.top > tg)]
-    return tg, between.empty
+    return tg, (len(between) if count else between.empty)
 
 
 def claims(W, Q):
@@ -579,7 +580,189 @@ def report_v1(name, T, nb, k_stages):
     return dict(run=name, **s, p=p, nb=[x["R"] for x in nb], passes=all(parts.values()))
 
 
-def run_v1(k_stages=2):
+def minute_info(Q):
+    """Per signal minute: reference index (NQ if it printed), its smallest-timeframe pointer (pid, hi, lo)."""
+    info = {}
+    for t, g in Q.groupby("t"):
+        x = g[g.idx == "NQ"] if (g.idx == "NQ").any() else g
+        r = x.sort_values("tf").iloc[0]
+        info[t] = dict(ref=r.idx, pid=int(r.pid), hi=r.hi, lo=r.lo)
+    return info
+
+
+class PO3:
+    """Pointer rule of three: 3 signals alternating in direction within 3 x 5m ATR -> on, with the range of NQ prices
+    between the first and third; resets at the session start, or when NQ closes beyond the range and then touches an
+    untapped zone beyond it."""
+    def __init__(s, W, DI):
+        s.W, s.DI, s.hist, s.on, s.day = W, DI, [], None, None
+        b5 = W["NQ"]["B"][5]
+        s.atr = rma_atr(b5["H"], b5["L"], b5["C"])
+        s.of5 = b5["of"]
+
+    def update(s, t, d):
+        """Record signal (t, d); return the PO3 state at t (before this signal joins the count)."""
+        day = S["tdi"][t]
+        if day != s.day:
+            s.day, s.hist, s.on = day, [], None
+        if s.on is not None and s._reset(t):
+            s.on, s.hist = None, []
+        state = s.on
+        s.hist.append((t, d))
+        h = s.hist[-3:]
+        if s.on is None and len(h) == 3 and h[0][1] == h[2][1] != h[1][1]:
+            H1, L1, C1 = s.W["NQ"]["H1"], s.W["NQ"]["L1"], s.W["NQ"]["C1"]
+            closes = [C1[x] for x, _ in h]
+            a5 = s.atr[s.of5[t] - 1]
+            if np.isfinite(a5) and max(closes) - min(closes) < 3 * a5:
+                s.on = dict(t=t, hi=H1[h[0][0]:t + 1].max(), lo=L1[h[0][0]:t + 1].min())
+        return state
+
+    def _reset(s, t):
+        o = s.on
+        C1, H1, L1 = s.W["NQ"]["C1"], s.W["NQ"]["H1"], s.W["NQ"]["L1"]
+        seg = C1[o["t"] + 1:t + 1]
+        up, dn = seg > o["hi"], seg < o["lo"]
+        for side, br in ((1, up), (-1, dn)):
+            if not br.any():
+                continue
+            j = o["t"] + 1 + int(np.argmax(br))
+            tg, _ = target(s.W, "NQ", j, side, C1[j], s.DI)
+            if tg is None:
+                continue
+            hit = (H1[j + 1:t + 1] >= tg) if side > 0 else (L1[j + 1:t + 1] <= tg)
+            if hit.any():
+                return True
+        return False
+
+
+def v23_trades(W, Q, use_po3=False):
+    """V2 (grades, 5/10 sizing, swept add, skip rules) and V3 (+ PO3 filter). No stop; exits as V1."""
+    DI = {nm: day_index(W[nm]["P"]) for nm in ("NQ", "ES")}
+    G = sig_minutes(Q)
+    info = minute_info(Q)
+    nq = W["NQ"]
+    O1, H1, L1, C1 = S["mk"]["NQ"].open.to_numpy(), nq["H1"], nq["L1"], nq["C1"]
+    ath = np.maximum.accumulate(H1)
+    tod, tdi = S["tod"], S["tdi"]
+    lock_starts = np.array([a for a, b in S["lock"]])
+    latest = {nm: (Q[Q.idx == nm].t.to_numpy(), Q[Q.idx == nm].dir.to_numpy()) for nm in ("NQ", "ES")}
+    po3 = PO3(W, DI)
+    out, skips = [], collections.Counter()
+    for day, g in G.groupby(tdi[G.t.to_numpy()]):
+        d0 = S["day_first"][day]
+        d1 = S["day_first"][day + 1] if day + 1 < len(S["day_first"]) else S["n"]
+        fl = np.flatnonzero(tod[d0:d1] == 15 * 60 + 49)
+        if not len(fl):
+            continue
+        flat = d0 + fl[0]
+        pos, last_dir = None, None
+
+        def close(pos, x, why):
+            d = pos["dir"]
+            px = C1[x] - d * TICK
+            add_px = None
+            if pos["add_at"] is not None:              # swept pointer: +5 when ITS index trades through its extreme
+                hx, lx = W[pos["ref"]]["H1"], W[pos["ref"]]["L1"]
+                seg = (hx[pos["t"] + 1:x + 1] > pos["add_at"]) if d > 0 else (lx[pos["t"] + 1:x + 1] < pos["add_at"])
+                if seg.any():
+                    j = pos["t"] + 1 + int(np.argmax(seg))
+                    add_px = C1[j] + d * TICK            # filled on MNQ at that minute's close
+            pnl = pos["n"] * (d * (px - pos["entry"]) * PV - 2 * COMM)
+            n_tot = pos["n"]
+            if add_px is not None:
+                pnl += 5 * (d * (px - add_px) * PV - 2 * COMM); n_tot += 5
+            sl, sh = L1[pos["t"] + 1:x + 1], H1[pos["t"] + 1:x + 1]
+            mae = ((pos["entry"] - sl.min()) if d > 0 else (sh.max() - pos["entry"])) if len(sl) else 0.0
+            out.append(dict(entry_t=pos["t"], exit_t=x, dir=d, entry=pos["entry"], exit=px, why=why, n=pos["n"],
+                            added=add_px is not None, pnl=pnl, R=pnl / (n_tot * CAT * PV), mae=max(mae, 0),
+                            grade=pos["grade"], po3=pos["po3"]))
+
+        for r in g.itertuples():
+            if r.t >= flat:
+                break
+            state = po3.update(r.t, r.dir)
+            first_of_leg = last_dir != r.dir
+            last_dir = r.dir
+            if pos is not None:
+                k = np.searchsorted(lock_starts, pos["t"], side="right")
+                lk = lock_starts[k] if k < len(lock_starts) and lock_starts[k] <= r.t else None
+                if lk is not None:
+                    close(pos, lk - 1, "news"); pos = None
+            if lock_at(r.t):
+                continue
+            if pos is not None and r.dir == pos["dir"]:
+                continue
+            if pos is not None:
+                close(pos, r.t, "opposite pointer"); pos = None
+            # skip rules
+            inf = info[r.t]
+            X, Y = inf["ref"], ("ES" if inf["ref"] == "NQ" else "NQ")
+            ex = W[X]["C1"][r.t]
+            tg, nbetw = target(W, X, r.t, r.dir, ex, DI, count=True)
+            tgy, nby = target(W, Y, r.t, r.dir, W[Y]["C1"][r.t], DI, count=True)
+            lt, ld = latest[Y]
+            k = np.searchsorted(lt, r.t, side="right") - 1
+            why = None
+            if r.swept and tg is not None and (abs(tg - ex) <= 20 or nbetw > 2):
+                why = "swept into an opposing untapped / thick stack"
+            elif tgy is not None and nby > 0:
+                why = "other index's path not clear"
+            elif k >= 0 and ld[k] != r.dir:
+                why = "other index pointing the other way"
+            elif tg is not None and abs(tg - ex) > 85:
+                why = "over 85 points to the opposing untapped"
+            elif r.t > 0 and C1[r.t] > ath[r.t - 1]:
+                why = "above the prior all-time high"
+            elif use_po3 and state is not None:
+                P = W[X]["P"]; z = P.iloc[inf["pid"]]
+                outside = z.bot > state["hi"] or z.top < state["lo"]
+                if not outside and not (tg is not None and nbetw == 0):
+                    why = "PO3"
+            if why:
+                skips[why] += 1
+                continue
+            plain = not r.swept
+            size = 10 if (plain and r.corr_known and first_of_leg) else 5
+            add_at = (inf["hi"] if r.dir > 0 else inf["lo"]) if r.swept else None
+            pos = dict(t=r.t, dir=r.dir, entry=C1[r.t] + r.dir * TICK, n=size, grade=r.grade, add_at=add_at,
+                       po3=state is not None, ref=X)
+        if pos is not None:
+            k = np.searchsorted(lock_starts, pos["t"], side="right")
+            lk = lock_starts[k] if k < len(lock_starts) and lock_starts[k] <= flat else None
+            close(pos, lk - 1 if lk is not None else flat, "news" if lk is not None else "15:50")
+    T = pd.DataFrame(out)
+    T["et"] = S["ts"][T.entry_t.to_numpy()]
+    T["side"] = np.where(T.dir > 0, "L", "S")
+    return T, skips
+
+
+def run_v23():
+    W = build_all(3)
+    Q = signals(W)
+    res = {}
+    for name, po in (("V2", False), ("V3", True)):
+        T, sk = v23_trades(W, Q, use_po3=po)
+        T.to_csv(OUT / f"{name.lower()}.csv", index=False)
+        nbs = []
+        for sn in (2, 4):
+            Wn = build_all(sn)
+            nbs.append(summ(v23_trades(Wn, signals(Wn), use_po3=po)[0]))
+        row = report_v1(name + (" (V2 + PO3 filter)" if po else " (grades, 5/10 sizing, swept add, skip rules)"), T, nbs, 4)
+        print(f"  contracts: " + ", ".join(f"{k}: {v}" for k, v in T.n.value_counts().items()) +
+              f"; swept adds filled {int(T.added.sum())}; net per trade ${T.pnl.mean():+.1f}")
+        print("  skips: " + ", ".join(f"{k} {v}" for k, v in sk.most_common()))
+        res[name] = (T, row)
+    T2 = res["V2"][0]
+    loss = T2[T2.pnl < 0]
+    print(f"\nV2 trades entered while PO3 was on: {int(T2.po3.sum())} of {len(T2)}; their net {T2[T2.po3].pnl.sum():+,.0f}; "
+          f"share of V2's total loss inside PO3 {loss[loss.po3].pnl.sum() / loss.pnl.sum():.1%} "
+          f"(share of V2 trades {T2.po3.mean():.1%})")
+    pd.DataFrame([r for _, r in res.values()]).to_csv(OUT / "v23_summary.csv", index=False)
+    return res
+
+
+def run_v1(k_stages=4):
     W = build_all(3)
     Q = signals(W)
     res = {}
@@ -607,3 +790,5 @@ if __name__ == "__main__":
         run_v0(opt("--swing", 3))
     elif cmd == "v1":
         run_v1()
+    elif cmd == "v23":
+        run_v23()
