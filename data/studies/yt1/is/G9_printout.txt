@@ -1,0 +1,133 @@
+G9 grid   phase is   signals 118090   2019-06-03 -> 2022-12-30
+    signals  tradable
+tf                   
+1     92141     87936
+5     19396     18488
+15     6553      6255
+pick() agrees with the vectorised scan on 120 random combinations
+
+combinations 230850   order sets 76950   with a trade 128012   eligible (>= 150 trades) 8435   eligible with mean R > 0: 1366   [grid evaluated in 5s, written to G9_grid.csv 38.1 MB]
+eligible by timeframe: {1: 4751, 5: 2636, 15: 1048}   by window: {'am': 2437, 'ldn': 1662, 'open': 1866, 'pm': 1420, 'sb': 1050}   by target: {'2R': 3289, 'liq': 2838, 'pdx': 2308}   by entry: {'close': 3799, 'pos': 1608, 'retest': 3028}
+
+top 20 eligible by t
+                                                            n orders   net      mR     t  win
+name                                                                                         
+T1.Wopen.Bnone.Enone.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos 207    569 +7966 +0.2778 +2.92 49.3
+T1.Wopen.Bnone.Eprem.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos 194    484 +7423 +0.2664 +2.72 49.0
+T15.Wam.Bnone.Enone.Mnone.Rnone.Hnone.Ssmt.Xpdx.Nretest   157    228 +4303 +0.7162 +2.61 30.6
+T5.Wopen.Bnone.Enone.Mnone.Rpd_brk.Hh1.Snone.X2R.Nclose   193    193 +5175 +0.2664 +2.57 46.6
+T5.Wopen.Bnone.Eprem.Mnone.Rpd_brk.Hh1.Snone.X2R.Nclose   193    193 +5175 +0.2664 +2.57 46.6
+T5.Wsb.Binv.Eprem.Mnone.Rnone.Hnone.Snone.X2R.Nclose      192    192 +4493 +0.2587 +2.53 46.9
+T5.Wopen.Bnone.Eprem.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos 225    308 +6424 +0.2035 +2.36 47.6
+T15.Wpm.Binv.Eprem.Mnone.Rnone.Hnone.Snone.X2R.Nclose     169    169 +3590 +0.2019 +2.32 48.5
+T5.Wopen.Bnone.Enone.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos 239    337 +6332 +0.1945 +2.31 46.9
+T5.Wsb.Bnone.Eprem.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos   188    283 +4788 +0.2091 +2.29 48.9
+T15.Wam.Bnone.Edisc.Md18.Rnone.Hnone.Snone.Xpdx.Nclose    403    403 +5676 +0.3104 +2.29 29.5
+T1.Wopen.Bnone.Enone.Mmid.Rpd.Hnone.Snone.X2R.Nclose      211    211 +4794 +0.2305 +2.27 44.1
+T1.Wopen.Bnone.Edisc.Mmid.Rpd.Hnone.Snone.X2R.Nclose      211    211 +4794 +0.2305 +2.27 44.1
+T5.Wsb.Bnone.Enone.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos   200    306 +4864 +0.1992 +2.24 48.0
+T15.Wam.Bnone.Edisc.Md18.Rnone.Hnone.Snone.Xliq.Nclose    404    404 +4373 +0.2298 +2.24 35.1
+T15.Wam.Bnone.Edisc.Md18.Rnone.Hnone.Snone.Xliq.Nretest   289    404 +3200 +0.3761 +2.21 29.1
+T5.Wsb.Binv.Enone.Mnone.Rnone.Hnone.Snone.X2R.Nclose      262    262 +4474 +0.1932 +2.20 44.3
+T15.Wsb.Bnone.Edisc.Mnone.Rnone.Hnone.Snone.Xpdx.Nretest  165    255 +2424 +0.3712 +2.18 37.6
+T15.Wsb.Bnone.Edisc.Mnone.Rnone.Hnone.Snone.Xliq.Nretest  166    256 +1914 +0.3415 +2.17 38.6
+T1.Wam.Bnone.Edisc.Mnone.Rnone.Hh1.Snone.Xpdx.Nretest     609    677 +8296 +0.7508 +2.15 10.5
+
+picks (rank = place in the eligible ranking by t; picks 1-5 by t with the overlap rule, pick 6 = consensus)
+  pick 1  rank      1  T1.Wopen.Bnone.Enone.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos n  207  orders  569  net    +7966  R +0.2778  t +2.92  win 49.3   [t]
+          neighbours: 1.5R: n 207  net +5906  R +0.1714   3R: n 207  net +8305  R +0.3381
+  pick 2  rank      3  T15.Wam.Bnone.Enone.Mnone.Rnone.Hnone.Ssmt.Xpdx.Nretest  n  157  orders  228  net    +4303  R +0.7162  t +2.61  win 30.6   [t]
+          neighbours: pdx min 0.75R: n 164  net +4005  R +0.6565   pdx min 1.5R: n 149  net +4050  R +0.6845
+  pick 3  rank      4  T5.Wopen.Bnone.Enone.Mnone.Rpd_brk.Hh1.Snone.X2R.Nclose  n  193  orders  193  net    +5175  R +0.2664  t +2.57  win 46.6   [t]
+          neighbours: 1.5R: n 193  net +3531  R +0.1765   3R: n 193  net +4012  R +0.2439
+  pick 4  rank      6  T5.Wsb.Binv.Eprem.Mnone.Rnone.Hnone.Snone.X2R.Nclose     n  192  orders  192  net    +4493  R +0.2587  t +2.53  win 46.9   [t]
+          neighbours: 1.5R: n 192  net +2688  R +0.1316   3R: n 192  net +5511  R +0.2783
+  pick 5  rank      7  T5.Wopen.Bnone.Eprem.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos n  225  orders  308  net    +6424  R +0.2035  t +2.36  win 47.6   [t]
+          neighbours: 1.5R: n 225  net +6232  R +0.1731   3R: n 225  net +7012  R +0.2400
+  pick 6  rank   4733  T15.Wopen.Bnone.Enone.Mnone.Rpd.Hnone.Snone.X2R.Nclose   n  163  orders  163  net    -4968  R -0.1301  t -1.49  win 36.2   [consensus]
+          neighbours: 1.5R: n 163  net -4633  R -0.1245   3R: n 163  net -4620  R -0.0962
+  passed over for overlap before the last pick by t: 2   (first: rank 2 T1.Wopen.Bnone.Eprem.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos shares 0.917 with T1.Wopen.Bnone.Enone.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos)
+
+consensus construction (pick 6): average of mean R over the eligible combinations using each level (count)
+  T: 1 -0.1771 (4751)  5 -0.1194 (2636)  15 -0.0458 (1048)   -> 15
+  W: ldn -0.1722 (1662)  am -0.1322 (2437)  open -0.1245 (1866)  sb -0.0764 (1050)  pm -0.1995 (1420)   -> sb
+  B: none -0.1125 (5144)  any -0.1902 (1936)  cont -0.2004 (885)  fail -0.2399 (232)  inv -0.1016 (238)   -> inv
+  E: none -0.1419 (4417)  disc -0.1002 (1880)  prem -0.1819 (2138)   -> disc
+  M: none -0.1511 (3993)  d18 -0.1213 (1856)  mid -0.1350 (1737)  both -0.1661 (849)   -> d18
+  R: none -0.1429 (6581)  pd -0.0831 (229)  sess -0.1209 (934)  pd_brk -0.2266 (378)  sess_brk -0.1476 (313)   -> pd
+  H: none -0.1470 (5236)  h1 -0.1410 (1764)  h4 -0.1296 (1435)   -> h4
+  S: none -0.1434 (7379)  smt -0.1384 (1056)   -> smt
+  X: 2R -0.1443 (3289)  pdx -0.1125 (2308)  liq -0.1655 (2838)   -> pdx
+  N: close -0.1273 (3799)  retest -0.1916 (3028)  pos -0.0873 (1608)   -> pos
+  combination T15.Wsb.Binv.Edisc.Md18.Rpd.Hh4.Ssmt.Xpdx.Npos: 0 in-sample trades < 150
+    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  B +0.0109  E +0.0417  M +0.0298  R +0.0598  H +0.0174  S +0.0049  X +0.0318  N +0.0400
+    smallest margin: S (smt -> none, margin +0.0049)
+  combination T15.Wsb.Binv.Edisc.Md18.Rpd.Hh4.Snone.Xpdx.Npos: 0 in-sample trades < 150
+    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  B +0.0109  E +0.0417  M +0.0298  R +0.0598  H +0.0174  X +0.0318  N +0.0400
+    smallest margin: B (inv -> none, margin +0.0109)
+  combination T15.Wsb.Bnone.Edisc.Md18.Rpd.Hh4.Snone.Xpdx.Npos: 8 in-sample trades < 150
+    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  E +0.0417  M +0.0298  R +0.0598  H +0.0174  X +0.0318  N +0.0400
+    smallest margin: H (h4 -> none, margin +0.0174)
+  combination T15.Wsb.Bnone.Edisc.Md18.Rpd.Hnone.Snone.Xpdx.Npos: 33 in-sample trades < 150
+    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  E +0.0417  M +0.0298  R +0.0598  X +0.0318  N +0.0400
+    smallest margin: M (d18 -> none, margin +0.0298)
+  combination T15.Wsb.Bnone.Edisc.Mnone.Rpd.Hnone.Snone.Xpdx.Npos: 83 in-sample trades < 150
+    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  E +0.0417  R +0.0598  X +0.0318  N +0.0400
+    smallest margin: X (pdx -> 2R, margin +0.0318)
+  combination T15.Wsb.Bnone.Edisc.Mnone.Rpd.Hnone.Snone.X2R.Npos: 88 in-sample trades < 150
+    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  E +0.0417  R +0.0598  N +0.0400
+    smallest margin: N (pos -> close, margin +0.0400)
+  combination T15.Wsb.Bnone.Edisc.Mnone.Rpd.Hnone.Snone.X2R.Nclose: 90 in-sample trades < 150
+    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  E +0.0417  R +0.0598
+    smallest margin: E (disc -> none, margin +0.0417)
+  combination T15.Wsb.Bnone.Enone.Mnone.Rpd.Hnone.Snone.X2R.Nclose: 95 in-sample trades < 150
+    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  R +0.0598
+    smallest margin: W (sb -> open, margin +0.0481)
+  combination T15.Wopen.Bnone.Enone.Mnone.Rpd.Hnone.Snone.X2R.Nclose: 163 in-sample trades >= 150: this is pick 6
+
+largest net $ among eligible: T1.Wam.Bnone.Edisc.Mnone.Rnone.Hh1.Snone.Xpdx.Nretest  n 609  orders 677  net +8296  R +0.7508  t +2.15  rank 20
+
+reality check: 8435 combinations, 884 days, 2000 resamples, seed 1   (float32, 29.8 MB day matrix, column chunks of 4096, 1.5s)
+  observed largest t (day-level) +2.877  (T1.Wopen.Bnone.Enone.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos);  trade-level largest t +2.916  (T1.Wopen.Bnone.Enone.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos)
+  resampled largest t: median 3.257  90% 3.763  95% 3.905  99% 4.276  max 4.822     p = 0.9055
+
+each confluence on its own: average of mean R over the 8435 eligible combinations using the level
+confluence    level  combos_is    R_is trades_is
+         T        1       4751 -0.1771       305
+         T        5       2636 -0.1194       294
+         T       15       1048 -0.0458       273
+         W      ldn       1662 -0.1722       308
+         W       am       2437 -0.1322       298
+         W     open       1866 -0.1245       290
+         W       sb       1050 -0.0764       294
+         W       pm       1420 -0.1995       298
+         B     none       5144 -0.1125       333
+         B      any       1936 -0.1902       263
+         B     cont        885 -0.2004       227
+         B     fail        232 -0.2399       187
+         B      inv        238 -0.1016       202
+         E     none       4417 -0.1419       308
+         E     disc       1880 -0.1002       309
+         E     prem       2138 -0.1819       268
+         M     none       3993 -0.1511       308
+         M      d18       1856 -0.1213       288
+         M      mid       1737 -0.1350       291
+         M     both        849 -0.1661       284
+         R     none       6581 -0.1429       316
+         R       pd        229 -0.0831       200
+         R     sess        934 -0.1209       230
+         R   pd_brk        378 -0.2266       232
+         R sess_brk        313 -0.1476       262
+         H     none       5236 -0.1470       313
+         H       h1       1764 -0.1410       281
+         H       h4       1435 -0.1296       261
+         S     none       7379 -0.1434       304
+         S      smt       1056 -0.1384       254
+         X       2R       3289 -0.1443       300
+         X      pdx       2308 -0.1125       294
+         X      liq       2838 -0.1655       299
+         N    close       3799 -0.1273       315
+         N   retest       3028 -0.1916       300
+         N      pos       1608 -0.0873       253
+
+total 20s

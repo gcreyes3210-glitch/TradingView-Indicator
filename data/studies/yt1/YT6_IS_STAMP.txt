@@ -1,0 +1,9 @@
+9945add8bce0077555f326360dd747d4b8fbebdd007b6d79d58b8f756dc54112  tools/yt1/g9_signals.py
+854d5be3ed2dc5ea2bd5057a295ce9a0daa4c94332808fec316c34bf3ba7f506  tools/yt1/g9_grid.py
+dd6d81b7aa9c039444289745f2e4b15b84fd9fbdf20735c8a5015ea3a77ea099  tools/yt1/s_G9.py
+72285f1f8774e98eb1a337d2f68d324431fb34cb04d99009e0cef0b438474aeb  tools/yt1/k_H.py
+6de50eaa9a5d0e7c74ee7fdac40fef818e10a3d80ab8d49e88a296bf980b3c04  tools/yt1/tt.py
+a7f3b146a22015f5db5cf6d2502df9d1babad94206ff536988388d282c12ef13  data/studies/yt1/G9_selected.json
+7f529f5599907c52633bc7e40ea01c630ee78a077348e69d79ddc99b76db274e  data/studies/yt1/is/G9_grid.csv
+efdb8a0fc54c3c99173be01f67917fd4b22d004717086d3cc51b66b45668be03  data/studies/yt1/is/K-H.json
+YT6 in-sample grid, six picks, reality check and K-H claim counts frozen 2026-10-09T18:10:53Z (bars cut at 2022-12-31 23:59 only); later bars not yet run

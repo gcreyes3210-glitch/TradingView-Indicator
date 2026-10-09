@@ -1,0 +1,540 @@
+{
+ "min_trades": 150,
+ "n_grid": 230850,
+ "n_with_a_trade": 128012,
+ "n_eligible": 8435,
+ "n_eligible_positive": 1366,
+ "picks": [
+  {
+   "name": "T1.Wopen.Bnone.Enone.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos",
+   "combo": {
+    "T": 1,
+    "W": "open",
+    "B": "none",
+    "E": "none",
+    "M": "none",
+    "R": "sess_brk",
+    "H": "none",
+    "S": "none",
+    "X": "2R",
+    "N": "pos"
+   },
+   "n": 207,
+   "orders": 569,
+   "net": 7966.5,
+   "R": 0.27784718703198674,
+   "sd": 1.3707581423961115,
+   "t": 2.916287542678792,
+   "win": 49.275362318840585,
+   "by_year": {
+    "2019": -340.5,
+    "2020": 1578.5,
+    "2021": 2262.0,
+    "2022": 4466.5
+   },
+   "rank": 1,
+   "pick": 1,
+   "how": "t",
+   "neighbours_is": [
+    {
+     "nb": 1,
+     "what": "1.5R",
+     "n": 207,
+     "net": 5905.5,
+     "R": 0.1713516504520399
+    },
+    {
+     "nb": 2,
+     "what": "3R",
+     "n": 207,
+     "net": 8305.0,
+     "R": 0.33810928940589474
+    }
+   ]
+  },
+  {
+   "name": "T15.Wam.Bnone.Enone.Mnone.Rnone.Hnone.Ssmt.Xpdx.Nretest",
+   "combo": {
+    "T": 15,
+    "W": "am",
+    "B": "none",
+    "E": "none",
+    "M": "none",
+    "R": "none",
+    "H": "none",
+    "S": "smt",
+    "X": "pdx",
+    "N": "retest"
+   },
+   "n": 157,
+   "orders": 228,
+   "net": 4303.0,
+   "R": 0.7162384392713534,
+   "sd": 3.4382986917174096,
+   "t": 2.6101402832752547,
+   "win": 30.573248407643312,
+   "by_year": {
+    "2019": 800.5,
+    "2020": 1371.5,
+    "2021": 937.5,
+    "2022": 1193.5
+   },
+   "rank": 3,
+   "pick": 2,
+   "how": "t",
+   "neighbours_is": [
+    {
+     "nb": 1,
+     "what": "pdx min 0.75R",
+     "n": 164,
+     "net": 4005.0,
+     "R": 0.656507123351302
+    },
+    {
+     "nb": 2,
+     "what": "pdx min 1.5R",
+     "n": 149,
+     "net": 4050.0,
+     "R": 0.6845401109269003
+    }
+   ]
+  },
+  {
+   "name": "T5.Wopen.Bnone.Enone.Mnone.Rpd_brk.Hh1.Snone.X2R.Nclose",
+   "combo": {
+    "T": 5,
+    "W": "open",
+    "B": "none",
+    "E": "none",
+    "M": "none",
+    "R": "pd_brk",
+    "H": "h1",
+    "S": "none",
+    "X": "2R",
+    "N": "close"
+   },
+   "n": 193,
+   "orders": 193,
+   "net": 5175.0,
+   "R": 0.2664277542427967,
+   "sd": 1.4418052384455957,
+   "t": 2.5671516196205126,
+   "win": 46.63212435233161,
+   "by_year": {
+    "2019": 254.5,
+    "2020": 350.5,
+    "2021": 1478.0,
+    "2022": 3092.0
+   },
+   "rank": 4,
+   "pick": 3,
+   "how": "t",
+   "neighbours_is": [
+    {
+     "nb": 1,
+     "what": "1.5R",
+     "n": 193,
+     "net": 3531.0,
+     "R": 0.17649519921388976
+    },
+    {
+     "nb": 2,
+     "what": "3R",
+     "n": 193,
+     "net": 4011.5,
+     "R": 0.24390084271054854
+    }
+   ]
+  },
+  {
+   "name": "T5.Wsb.Binv.Eprem.Mnone.Rnone.Hnone.Snone.X2R.Nclose",
+   "combo": {
+    "T": 5,
+    "W": "sb",
+    "B": "inv",
+    "E": "prem",
+    "M": "none",
+    "R": "none",
+    "H": "none",
+    "S": "none",
+    "X": "2R",
+    "N": "close"
+   },
+   "n": 192,
+   "orders": 192,
+   "net": 4493.0,
+   "R": 0.2586622175880684,
+   "sd": 1.4180219223312192,
+   "t": 2.5275552982957263,
+   "win": 46.875,
+   "by_year": {
+    "2019": -43.5,
+    "2020": 566.0,
+    "2021": 2188.0,
+    "2022": 1782.5
+   },
+   "rank": 6,
+   "pick": 4,
+   "how": "t",
+   "neighbours_is": [
+    {
+     "nb": 1,
+     "what": "1.5R",
+     "n": 192,
+     "net": 2687.5,
+     "R": 0.13158312471591357
+    },
+    {
+     "nb": 2,
+     "what": "3R",
+     "n": 192,
+     "net": 5511.0,
+     "R": 0.2782829357750127
+    }
+   ]
+  },
+  {
+   "name": "T5.Wopen.Bnone.Eprem.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos",
+   "combo": {
+    "T": 5,
+    "W": "open",
+    "B": "none",
+    "E": "prem",
+    "M": "none",
+    "R": "sess_brk",
+    "H": "none",
+    "S": "none",
+    "X": "2R",
+    "N": "pos"
+   },
+   "n": 225,
+   "orders": 308,
+   "net": 6424.0,
+   "R": 0.20349007077539238,
+   "sd": 1.2944672420360117,
+   "t": 2.357997917992868,
+   "win": 47.55555555555556,
+   "by_year": {
+    "2019": -206.0,
+    "2020": 475.0,
+    "2021": 2006.0,
+    "2022": 4149.0
+   },
+   "rank": 7,
+   "pick": 5,
+   "how": "t",
+   "neighbours_is": [
+    {
+     "nb": 1,
+     "what": "1.5R",
+     "n": 225,
+     "net": 6232.5,
+     "R": 0.17306777215735755
+    },
+    {
+     "nb": 2,
+     "what": "3R",
+     "n": 225,
+     "net": 7012.0,
+     "R": 0.24001094878704513
+    }
+   ]
+  },
+  {
+   "name": "T15.Wopen.Bnone.Enone.Mnone.Rpd.Hnone.Snone.X2R.Nclose",
+   "combo": {
+    "T": 15,
+    "W": "open",
+    "B": "none",
+    "E": "none",
+    "M": "none",
+    "R": "pd",
+    "H": "none",
+    "S": "none",
+    "X": "2R",
+    "N": "close"
+   },
+   "n": 163,
+   "orders": 163,
+   "net": -4968.5,
+   "R": -0.13008052793960462,
+   "sd": 1.1123548354156534,
+   "t": -1.4930101012347838,
+   "win": 36.19631901840491,
+   "by_year": {
+    "2019": 519.0,
+    "2020": -348.5,
+    "2021": -1482.5,
+    "2022": -3656.5
+   },
+   "rank": 4733,
+   "pick": 6,
+   "how": "consensus",
+   "same_as_pick": null,
+   "order_overlap_with_picks": [
+    {
+     "pick": 1,
+     "share": 0.0061
+    },
+    {
+     "pick": 2,
+     "share": 0.227
+    },
+    {
+     "pick": 3,
+     "share": 0.0
+    },
+    {
+     "pick": 4,
+     "share": 0.0061
+    },
+    {
+     "pick": 5,
+     "share": 0.0
+    }
+   ],
+   "neighbours_is": [
+    {
+     "nb": 1,
+     "what": "1.5R",
+     "n": 163,
+     "net": -4633.0,
+     "R": -0.12447439054597988
+    },
+    {
+     "nb": 2,
+     "what": "3R",
+     "n": 163,
+     "net": -4620.5,
+     "R": -0.09623178600986136
+    }
+   ]
+  }
+ ],
+ "skipped_for_overlap": [
+  {
+   "name": "T1.Wopen.Bnone.Eprem.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos",
+   "rank": 2,
+   "overlaps": "T1.Wopen.Bnone.Enone.Mnone.Rsess_brk.Hnone.Snone.X2R.Npos",
+   "share": 0.9174
+  },
+  {
+   "name": "T5.Wopen.Bnone.Eprem.Mnone.Rpd_brk.Hh1.Snone.X2R.Nclose",
+   "rank": 5,
+   "overlaps": "T5.Wopen.Bnone.Enone.Mnone.Rpd_brk.Hh1.Snone.X2R.Nclose",
+   "share": 1.0
+  }
+ ],
+ "consensus": {
+  "levels": {
+   "T:1": -0.17712100279227613,
+   "T:5": -0.11938469748258339,
+   "T:15": -0.04578080715546466,
+   "W:ldn": -0.17222564644608124,
+   "W:am": -0.1321658228431473,
+   "W:open": -0.12447688664071647,
+   "W:sb": -0.07641081775348087,
+   "W:pm": -0.1995393443339801,
+   "B:none": -0.11252198848953095,
+   "B:any": -0.19016211016515505,
+   "B:cont": -0.2004067878502647,
+   "B:fail": -0.23993111578070356,
+   "B:inv": -0.10162711155725075,
+   "E:none": -0.14190708957763,
+   "E:disc": -0.10019509275270716,
+   "E:prem": -0.18194941238991552,
+   "M:none": -0.1511074612676344,
+   "M:d18": -0.12133252410754608,
+   "M:mid": -0.1350499586659731,
+   "M:both": -0.1661144840295118,
+   "R:none": -0.14289526602395997,
+   "R:pd": -0.0830699789356139,
+   "R:sess": -0.12088205175348275,
+   "R:pd_brk": -0.22658391407914472,
+   "R:sess_brk": -0.14763228750643748,
+   "H:none": -0.1469674979355158,
+   "H:h1": -0.14097994017746296,
+   "H:h4": -0.12959428506321624,
+   "S:none": -0.14337649009970932,
+   "S:smt": -0.1384499169350053,
+   "X:2R": -0.14431244744828,
+   "X:pdx": -0.11252372689207728,
+   "X:liq": -0.1655496234689265,
+   "N:close": -0.12729497816004443,
+   "N:retest": -0.19161795724883343,
+   "N:pos": -0.08729193790400765
+  },
+  "steps": [
+   {
+    "name": "T15.Wsb.Binv.Edisc.Md18.Rpd.Hh4.Ssmt.Xpdx.Npos",
+    "in_grid": true,
+    "n": 0
+   },
+   {
+    "name": "T15.Wsb.Binv.Edisc.Md18.Rpd.Hh4.Snone.Xpdx.Npos",
+    "in_grid": true,
+    "n": 0
+   },
+   {
+    "name": "T15.Wsb.Bnone.Edisc.Md18.Rpd.Hh4.Snone.Xpdx.Npos",
+    "in_grid": true,
+    "n": 8
+   },
+   {
+    "name": "T15.Wsb.Bnone.Edisc.Md18.Rpd.Hnone.Snone.Xpdx.Npos",
+    "in_grid": true,
+    "n": 33
+   },
+   {
+    "name": "T15.Wsb.Bnone.Edisc.Mnone.Rpd.Hnone.Snone.Xpdx.Npos",
+    "in_grid": true,
+    "n": 83
+   },
+   {
+    "name": "T15.Wsb.Bnone.Edisc.Mnone.Rpd.Hnone.Snone.X2R.Npos",
+    "in_grid": true,
+    "n": 88
+   },
+   {
+    "name": "T15.Wsb.Bnone.Edisc.Mnone.Rpd.Hnone.Snone.X2R.Nclose",
+    "in_grid": true,
+    "n": 90
+   },
+   {
+    "name": "T15.Wsb.Bnone.Enone.Mnone.Rpd.Hnone.Snone.X2R.Nclose",
+    "in_grid": true,
+    "n": 95
+   },
+   {
+    "name": "T15.Wopen.Bnone.Enone.Mnone.Rpd.Hnone.Snone.X2R.Nclose",
+    "in_grid": true,
+    "n": 163
+   }
+  ],
+  "changed": [
+   {
+    "confluence": "S",
+    "from": "smt",
+    "to": "none",
+    "margin": 0.004926573164704018
+   },
+   {
+    "confluence": "B",
+    "from": "inv",
+    "to": "none",
+    "margin": 0.010894876932280195
+   },
+   {
+    "confluence": "H",
+    "from": "h4",
+    "to": "none",
+    "margin": 0.017373212872299565
+   },
+   {
+    "confluence": "M",
+    "from": "d18",
+    "to": "none",
+    "margin": 0.029774937160088333
+   },
+   {
+    "confluence": "X",
+    "from": "pdx",
+    "to": "2R",
+    "margin": 0.03178872055620273
+   },
+   {
+    "confluence": "N",
+    "from": "pos",
+    "to": "close",
+    "margin": 0.04000304025603678
+   },
+   {
+    "confluence": "E",
+    "from": "disc",
+    "to": "none",
+    "margin": 0.04171199682492285
+   },
+   {
+    "confluence": "W",
+    "from": "sb",
+    "to": "open",
+    "margin": 0.04806606888723561
+   }
+  ],
+  "name": "T15.Wopen.Bnone.Enone.Mnone.Rpd.Hnone.Snone.X2R.Nclose",
+  "log": [
+   "  T: 1 -0.1771 (4751)  5 -0.1194 (2636)  15 -0.0458 (1048)   -> 15",
+   "  W: ldn -0.1722 (1662)  am -0.1322 (2437)  open -0.1245 (1866)  sb -0.0764 (1050)  pm -0.1995 (1420)   -> sb",
+   "  B: none -0.1125 (5144)  any -0.1902 (1936)  cont -0.2004 (885)  fail -0.2399 (232)  inv -0.1016 (238)   -> inv",
+   "  E: none -0.1419 (4417)  disc -0.1002 (1880)  prem -0.1819 (2138)   -> disc",
+   "  M: none -0.1511 (3993)  d18 -0.1213 (1856)  mid -0.1350 (1737)  both -0.1661 (849)   -> d18",
+   "  R: none -0.1429 (6581)  pd -0.0831 (229)  sess -0.1209 (934)  pd_brk -0.2266 (378)  sess_brk -0.1476 (313)   -> pd",
+   "  H: none -0.1470 (5236)  h1 -0.1410 (1764)  h4 -0.1296 (1435)   -> h4",
+   "  S: none -0.1434 (7379)  smt -0.1384 (1056)   -> smt",
+   "  X: 2R -0.1443 (3289)  pdx -0.1125 (2308)  liq -0.1655 (2838)   -> pdx",
+   "  N: close -0.1273 (3799)  retest -0.1916 (3028)  pos -0.0873 (1608)   -> pos",
+   "  combination T15.Wsb.Binv.Edisc.Md18.Rpd.Hh4.Ssmt.Xpdx.Npos: 0 in-sample trades < 150",
+   "    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  B +0.0109  E +0.0417  M +0.0298  R +0.0598  H +0.0174  S +0.0049  X +0.0318  N +0.0400",
+   "    smallest margin: S (smt -> none, margin +0.0049)",
+   "  combination T15.Wsb.Binv.Edisc.Md18.Rpd.Hh4.Snone.Xpdx.Npos: 0 in-sample trades < 150",
+   "    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  B +0.0109  E +0.0417  M +0.0298  R +0.0598  H +0.0174  X +0.0318  N +0.0400",
+   "    smallest margin: B (inv -> none, margin +0.0109)",
+   "  combination T15.Wsb.Bnone.Edisc.Md18.Rpd.Hh4.Snone.Xpdx.Npos: 8 in-sample trades < 150",
+   "    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  E +0.0417  M +0.0298  R +0.0598  H +0.0174  X +0.0318  N +0.0400",
+   "    smallest margin: H (h4 -> none, margin +0.0174)",
+   "  combination T15.Wsb.Bnone.Edisc.Md18.Rpd.Hnone.Snone.Xpdx.Npos: 33 in-sample trades < 150",
+   "    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  E +0.0417  M +0.0298  R +0.0598  X +0.0318  N +0.0400",
+   "    smallest margin: M (d18 -> none, margin +0.0298)",
+   "  combination T15.Wsb.Bnone.Edisc.Mnone.Rpd.Hnone.Snone.Xpdx.Npos: 83 in-sample trades < 150",
+   "    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  E +0.0417  R +0.0598  X +0.0318  N +0.0400",
+   "    smallest margin: X (pdx -> 2R, margin +0.0318)",
+   "  combination T15.Wsb.Bnone.Edisc.Mnone.Rpd.Hnone.Snone.X2R.Npos: 88 in-sample trades < 150",
+   "    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  E +0.0417  R +0.0598  N +0.0400",
+   "    smallest margin: N (pos -> close, margin +0.0400)",
+   "  combination T15.Wsb.Bnone.Edisc.Mnone.Rpd.Hnone.Snone.X2R.Nclose: 90 in-sample trades < 150",
+   "    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  E +0.0417  R +0.0598",
+   "    smallest margin: E (disc -> none, margin +0.0417)",
+   "  combination T15.Wsb.Bnone.Enone.Mnone.Rpd.Hnone.Snone.X2R.Nclose: 95 in-sample trades < 150",
+   "    margins of the chosen level over its first-listed level (T, W: over the second-highest): T +0.0736  W +0.0481  R +0.0598",
+   "    smallest margin: W (sb -> open, margin +0.0481)",
+   "  combination T15.Wopen.Bnone.Enone.Mnone.Rpd.Hnone.Snone.X2R.Nclose: 163 in-sample trades >= 150: this is pick 6"
+  ]
+ },
+ "largest_net": {
+  "name": "T1.Wam.Bnone.Edisc.Mnone.Rnone.Hh1.Snone.Xpdx.Nretest",
+  "combo": {
+   "T": 1,
+   "W": "am",
+   "B": "none",
+   "E": "disc",
+   "M": "none",
+   "R": "none",
+   "H": "h1",
+   "S": "none",
+   "X": "pdx",
+   "N": "retest"
+  },
+  "n": 609,
+  "orders": 677,
+  "net": 8295.5,
+  "R": 0.7508076839857122,
+  "sd": 8.63263330420367,
+  "t": 2.1463179693929373,
+  "win": 10.50903119868637,
+  "by_year": {
+   "2019": 663.5,
+   "2020": 1309.5,
+   "2021": 1470.5,
+   "2022": 4852.0
+  },
+  "rank": 20
+ },
+ "spec": "YT6_SPEC.md",
+ "phase": "is",
+ "first_day": "2019-06-03",
+ "last_day": "2022-12-30",
+ "n_signals": 118090,
+ "grid_file": "G9_grid.csv",
+ "sha256_grid": "7f529f5599907c52633bc7e40ea01c630ee78a077348e69d79ddc99b76db274e",
+ "sha256_signals": "3567cd1cda94e9ad5f150f23811e4dd2619e8b995a405c1ccb1c2eda1a6e0af1"
+}

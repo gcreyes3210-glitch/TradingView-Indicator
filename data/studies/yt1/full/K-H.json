@@ -1,0 +1,468 @@
+{
+ "claim": "TTrades weekly and sequence claims (YT6_SPEC.md Part 2), each rate next to its base rate",
+ "span": "2019-06-02 -> 2026-10-08",
+ "key": "<claim>.<series>.<side>.<outcome>.<base>",
+ "bonferroni": 0.00625,
+ "legend": {
+  "side": "the direction of the move the claim predicts. L1 long = close above the previous week's high; L2 short = failed run above the previous week's high; L3 long = closes above the previous day's high; L4 short = UP week whose Friday is claimed to retrace down (the version written in the spec), L4 long = DOWN week whose Friday is claimed to retrace up (the mirror).",
+  "L1.wk.<side>.beyond.all": "long: close(W) > high(W-1) -> W+1 trades above high(W). short: close(W) < low(W-1) -> W+1 trades below low(W). Base: every week W (with W-1, W, W+1 usable).",
+  "L2.wk.<side>.beyond_w.all": "short: W trades above high(W-1), close(W) < high(W-1), W does not trade below low(W-1) -> W+1 trades below low(W). long: W trades below low(W-1), close(W) > low(W-1), W does not trade above high(W-1) -> W+1 trades above high(W). Base: every week W.",
+  "L2.wk.<side>.beyond_prev.all": "same condition -> short: W+1 trades below low(W-1); long: W+1 trades above high(W-1). Base: every week W, the same outcome.",
+  "L3.day.<side>.cont.run12": "long: day D is exactly the third consecutive day that closes above the previous day's high (D-3 did not) -> close(D+1) > high(D). short: mirror with lows. Base: days D that are exactly the first or the second such close in a row. A fourth or later close in a row is in neither group. Cases: D-4 .. D+1 exist, none a roll candle.",
+  "L3.day.<side>.beyond.run12": "same cases -> long: D+1 trades above high(D); short: D+1 trades below low(D).",
+  "L4.wk.<side>.retrace20.day_before": "'Monday-Thursday' = the week's daily candles DATED Monday, Tuesday, Wednesday, Thursday (trading date = the date of the 17:00 close; the Monday candle opens Sunday 18:00) THAT EXIST. A missing Monday, Tuesday or Wednesday candle (holiday) is simply absent from the range: no other day takes its place. The week is a case only when BOTH its Thursday-dated and its Friday-dated candle exist (no Thursday or no Friday candle = no case). H, L = highest high / lowest low of those Monday-Thursday candles, R = H - L. short (up week, as written): the first of those candles to show L is dated Monday or Tuesday, and close(Thursday) >= H - 0.25 R -> low(Friday) <= H - 0.20 R. long (down week, mirror): the first candle to show H is dated Monday or Tuesday, and close(Thursday) <= L + 0.25 R -> high(Friday) >= L + 0.20 R. Base (base_n, base_k) = the same test one day earlier: 'Monday-Wednesday' = the candles dated Monday, Tuesday, Wednesday that exist, both the Wednesday-dated and the Thursday-dated candle must exist (Friday need not), extreme first shown Monday or Tuesday, Wednesday close in the top (bottom) quarter of that range -> Thursday trades down (up) to 20 % of that range from its high (low). Usable weeks only. at_close / base_at_close = cases in which the condition day's close is already at or beyond the level.",
+  "L3_positions": "not registered, description only: eligible days by their position in a run of continuation closes in the side's direction (0 = not such a close, 4+ = fourth or later), with the two L3 outcomes on the next day."
+ },
+ "counts": {
+  "day": {
+   "candles": 1899,
+   "roll_candles": 31,
+   "last_candle_unfinished_dropped": 1,
+   "dated_saturday_or_sunday": 0,
+   "prices_off_the_tick_grid": 0,
+   "roll_dates": [
+    "2019-06-03",
+    "2019-06-19",
+    "2019-09-16",
+    "2019-12-16",
+    "2020-03-17",
+    "2020-06-17",
+    "2020-09-16",
+    "2020-12-14",
+    "2021-03-17",
+    "2021-06-14",
+    "2021-09-13",
+    "2021-12-13",
+    "2022-03-16",
+    "2022-06-15",
+    "2022-09-14",
+    "2022-12-14",
+    "2023-03-15",
+    "2023-06-14",
+    "2023-09-13",
+    "2023-12-14",
+    "2024-03-13",
+    "2024-06-19",
+    "2024-09-18",
+    "2024-12-19",
+    "2025-03-20",
+    "2025-06-18",
+    "2025-09-18",
+    "2025-12-18",
+    "2026-03-19",
+    "2026-06-17",
+    "2026-09-17"
+   ]
+  },
+  "wk": {
+   "calendar_weeks": 384,
+   "fewer_than_4_candles": 1,
+   "with_roll_candle": 31,
+   "both": 0,
+   "unfinished_at_end_of_data": 1,
+   "usable": 352,
+   "usable_with_4_candles": 18,
+   "weeks_fewer_than_4": [
+    "2026-10-05 (3)"
+   ],
+   "weeks_with_roll": [
+    "2019-06-03",
+    "2019-06-17",
+    "2019-09-16",
+    "2019-12-16",
+    "2020-03-16",
+    "2020-06-15",
+    "2020-09-14",
+    "2020-12-14",
+    "2021-03-15",
+    "2021-06-14",
+    "2021-09-13",
+    "2021-12-13",
+    "2022-03-14",
+    "2022-06-13",
+    "2022-09-12",
+    "2022-12-12",
+    "2023-03-13",
+    "2023-06-12",
+    "2023-09-11",
+    "2023-12-11",
+    "2024-03-11",
+    "2024-06-17",
+    "2024-09-16",
+    "2024-12-16",
+    "2025-03-17",
+    "2025-06-16",
+    "2025-09-15",
+    "2025-12-15",
+    "2026-03-16",
+    "2026-06-15",
+    "2026-09-14"
+   ]
+  },
+  "wk.triples": 291,
+  "wk.usable_but_neighbour_not": {
+   "total": 61,
+   "first_or_last_week_of_data": 0,
+   "weeks": [
+    "2019-06-10",
+    "2019-06-24",
+    "2019-09-09",
+    "2019-09-23",
+    "2019-12-09",
+    "2019-12-23",
+    "2020-03-09",
+    "2020-03-23",
+    "2020-06-08",
+    "2020-06-22",
+    "2020-09-07",
+    "2020-09-21",
+    "2020-12-07",
+    "2020-12-21",
+    "2021-03-08",
+    "2021-03-22",
+    "2021-06-07",
+    "2021-06-21",
+    "2021-09-06",
+    "2021-09-20",
+    "2021-12-06",
+    "2021-12-20",
+    "2022-03-07",
+    "2022-03-21",
+    "2022-06-06",
+    "2022-06-20",
+    "2022-09-05",
+    "2022-09-19",
+    "2022-12-05",
+    "2022-12-19",
+    "2023-03-06",
+    "2023-03-20",
+    "2023-06-05",
+    "2023-06-19",
+    "2023-09-04",
+    "2023-09-18",
+    "2023-12-04",
+    "2023-12-18",
+    "2024-03-04",
+    "2024-03-18",
+    "2024-06-10",
+    "2024-06-24",
+    "2024-09-09",
+    "2024-09-23",
+    "2024-12-09",
+    "2024-12-23",
+    "2025-03-10",
+    "2025-03-24",
+    "2025-06-09",
+    "2025-06-23",
+    "2025-09-08",
+    "2025-09-22",
+    "2025-12-08",
+    "2025-12-22",
+    "2026-03-09",
+    "2026-03-23",
+    "2026-06-08",
+    "2026-06-22",
+    "2026-09-07",
+    "2026-09-21",
+    "2026-09-28"
+   ]
+  },
+  "day.L3_days": 1713,
+  "day.L3_left_out": {
+   "total": 186,
+   "first_4_or_last_candle": 5,
+   "roll_candle_in_window": 181
+  },
+  "wk.L4": {
+   "usable_weeks": 352,
+   "claim_weeks": 342,
+   "claim_no_thursday_or_friday_candle": 10,
+   "claim_weeks_range_of_fewer_than_4_candles": 8,
+   "base_weeks": 346,
+   "base_no_wednesday_or_thursday_candle": 6,
+   "base_weeks_range_of_fewer_than_3_candles": 4,
+   "weeks_not_a_claim_case": [
+    "2020-04-06",
+    "2020-12-21",
+    "2020-12-28",
+    "2021-12-20",
+    "2022-04-11",
+    "2024-03-25",
+    "2025-04-14",
+    "2025-11-24",
+    "2025-12-22",
+    "2025-12-29"
+   ],
+   "weeks_not_a_base_case": [
+    "2019-12-23",
+    "2019-12-30",
+    "2024-12-23",
+    "2024-12-30",
+    "2025-12-22",
+    "2025-12-29"
+   ]
+  }
+ },
+ "rows": {
+  "L1.wk.long.beyond.all": {
+   "n": 115,
+   "k": 95,
+   "rate": 0.8261,
+   "base_n": 291,
+   "base_k": 179,
+   "base_rate": 0.6151,
+   "diff_pp": 21.1,
+   "z": 4.089,
+   "p": 4.33e-05
+  },
+  "L1.wk.short.beyond.all": {
+   "n": 55,
+   "k": 36,
+   "rate": 0.6545,
+   "base_n": 291,
+   "base_k": 117,
+   "base_rate": 0.4021,
+   "diff_pp": 25.25,
+   "z": 3.458,
+   "p": 0.000545
+  },
+  "L1.wk.both.beyond.all": {
+   "n": 170,
+   "k": 131,
+   "rate": 0.7706,
+   "base_n": 582,
+   "base_k": 296,
+   "base_rate": 0.5086,
+   "diff_pp": 26.2,
+   "z": 6.066,
+   "p": 1.31e-09
+  },
+  "L2.wk.long.beyond_w.all": {
+   "n": 39,
+   "k": 30,
+   "rate": 0.7692,
+   "base_n": 291,
+   "base_k": 179,
+   "base_rate": 0.6151,
+   "diff_pp": 15.41,
+   "z": 1.875,
+   "p": 0.0607
+  },
+  "L2.wk.short.beyond_w.all": {
+   "n": 49,
+   "k": 28,
+   "rate": 0.5714,
+   "base_n": 291,
+   "base_k": 117,
+   "base_rate": 0.4021,
+   "diff_pp": 16.94,
+   "z": 2.218,
+   "p": 0.0266
+  },
+  "L2.wk.both.beyond_w.all": {
+   "n": 88,
+   "k": 58,
+   "rate": 0.6591,
+   "base_n": 582,
+   "base_k": 296,
+   "base_rate": 0.5086,
+   "diff_pp": 15.05,
+   "z": 2.636,
+   "p": 0.00839
+  },
+  "L2.wk.long.beyond_prev.all": {
+   "n": 39,
+   "k": 17,
+   "rate": 0.4359,
+   "base_n": 291,
+   "base_k": 193,
+   "base_rate": 0.6632,
+   "diff_pp": -22.73,
+   "z": -2.771,
+   "p": 0.00558
+  },
+  "L2.wk.short.beyond_prev.all": {
+   "n": 49,
+   "k": 16,
+   "rate": 0.3265,
+   "base_n": 291,
+   "base_k": 114,
+   "base_rate": 0.3918,
+   "diff_pp": -6.52,
+   "z": -0.869,
+   "p": 0.385
+  },
+  "L2.wk.both.beyond_prev.all": {
+   "n": 88,
+   "k": 33,
+   "rate": 0.375,
+   "base_n": 582,
+   "base_k": 307,
+   "base_rate": 0.5275,
+   "diff_pp": -15.25,
+   "z": -2.667,
+   "p": 0.00766
+  },
+  "L3.day.long.cont.run12": {
+   "n": 60,
+   "k": 18,
+   "rate": 0.3,
+   "base_n": 453,
+   "base_k": 198,
+   "base_rate": 0.4371,
+   "diff_pp": -13.71,
+   "z": -2.021,
+   "p": 0.0433
+  },
+  "L3.day.short.cont.run12": {
+   "n": 20,
+   "k": 3,
+   "rate": 0.15,
+   "base_n": 337,
+   "base_k": 96,
+   "base_rate": 0.2849,
+   "diff_pp": -13.49,
+   "z": -1.309,
+   "p": 0.191
+  },
+  "L3.day.both.cont.run12": {
+   "n": 80,
+   "k": 21,
+   "rate": 0.2625,
+   "base_n": 790,
+   "base_k": 294,
+   "base_rate": 0.3722,
+   "diff_pp": -10.97,
+   "z": -1.945,
+   "p": 0.0518
+  },
+  "L3.day.long.beyond.run12": {
+   "n": 60,
+   "k": 44,
+   "rate": 0.7333,
+   "base_n": 453,
+   "base_k": 365,
+   "base_rate": 0.8057,
+   "diff_pp": -7.24,
+   "z": -1.311,
+   "p": 0.19
+  },
+  "L3.day.short.beyond.run12": {
+   "n": 20,
+   "k": 11,
+   "rate": 0.55,
+   "base_n": 337,
+   "base_k": 224,
+   "base_rate": 0.6647,
+   "diff_pp": -11.47,
+   "z": -1.051,
+   "p": 0.293
+  },
+  "L3.day.both.beyond.run12": {
+   "n": 80,
+   "k": 55,
+   "rate": 0.6875,
+   "base_n": 790,
+   "base_k": 589,
+   "base_rate": 0.7456,
+   "diff_pp": -5.81,
+   "z": -1.129,
+   "p": 0.259
+  },
+  "L4.wk.long.retrace20.day_before": {
+   "n": 51,
+   "k": 41,
+   "rate": 0.8039,
+   "base_n": 61,
+   "base_k": 52,
+   "base_rate": 0.8525,
+   "diff_pp": -4.85,
+   "z": -0.682,
+   "p": 0.496,
+   "at_close": 11,
+   "base_at_close": 9
+  },
+  "L4.wk.short.retrace20.day_before": {
+   "n": 111,
+   "k": 72,
+   "rate": 0.6486,
+   "base_n": 126,
+   "base_k": 86,
+   "base_rate": 0.6825,
+   "diff_pp": -3.39,
+   "z": -0.552,
+   "p": 0.581,
+   "at_close": 11,
+   "base_at_close": 14
+  },
+  "L4.wk.both.retrace20.day_before": {
+   "n": 162,
+   "k": 113,
+   "rate": 0.6975,
+   "base_n": 187,
+   "base_k": 138,
+   "base_rate": 0.738,
+   "diff_pp": -4.04,
+   "z": -0.838,
+   "p": 0.402,
+   "at_close": 22,
+   "base_at_close": 23
+  }
+ },
+ "L3_positions": {
+  "long": {
+   "0": {
+    "n": 1173,
+    "k_cont": 319,
+    "k_beyond": 538
+   },
+   "1": {
+    "n": 315,
+    "k_cont": 138,
+    "k_beyond": 261
+   },
+   "2": {
+    "n": 138,
+    "k_cont": 60,
+    "k_beyond": 104
+   },
+   "3": {
+    "n": 60,
+    "k_cont": 18,
+    "k_beyond": 44
+   },
+   "4+": {
+    "n": 27,
+    "k_cont": 9,
+    "k_beyond": 22
+   }
+  },
+  "short": {
+   "0": {
+    "n": 1353,
+    "k_cont": 257,
+    "k_beyond": 518
+   },
+   "1": {
+    "n": 259,
+    "k_cont": 76,
+    "k_beyond": 178
+   },
+   "2": {
+    "n": 78,
+    "k_cont": 20,
+    "k_beyond": 46
+   },
+   "3": {
+    "n": 20,
+    "k_cont": 3,
+    "k_beyond": 11
+   },
+   "4+": {
+    "n": 3,
+    "k_cont": 0,
+    "k_beyond": 3
+   }
+  }
+ }
+}

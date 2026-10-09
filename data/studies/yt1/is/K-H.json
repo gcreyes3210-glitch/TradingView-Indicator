@@ -1,0 +1,397 @@
+{
+ "claim": "TTrades weekly and sequence claims (YT6_SPEC.md Part 2), each rate next to its base rate",
+ "span": "2019-06-02 -> 2022-12-30",
+ "key": "<claim>.<series>.<side>.<outcome>.<base>",
+ "bonferroni": 0.00625,
+ "legend": {
+  "side": "the direction of the move the claim predicts. L1 long = close above the previous week's high; L2 short = failed run above the previous week's high; L3 long = closes above the previous day's high; L4 short = UP week whose Friday is claimed to retrace down (the version written in the spec), L4 long = DOWN week whose Friday is claimed to retrace up (the mirror).",
+  "L1.wk.<side>.beyond.all": "long: close(W) > high(W-1) -> W+1 trades above high(W). short: close(W) < low(W-1) -> W+1 trades below low(W). Base: every week W (with W-1, W, W+1 usable).",
+  "L2.wk.<side>.beyond_w.all": "short: W trades above high(W-1), close(W) < high(W-1), W does not trade below low(W-1) -> W+1 trades below low(W). long: W trades below low(W-1), close(W) > low(W-1), W does not trade above high(W-1) -> W+1 trades above high(W). Base: every week W.",
+  "L2.wk.<side>.beyond_prev.all": "same condition -> short: W+1 trades below low(W-1); long: W+1 trades above high(W-1). Base: every week W, the same outcome.",
+  "L3.day.<side>.cont.run12": "long: day D is exactly the third consecutive day that closes above the previous day's high (D-3 did not) -> close(D+1) > high(D). short: mirror with lows. Base: days D that are exactly the first or the second such close in a row. A fourth or later close in a row is in neither group. Cases: D-4 .. D+1 exist, none a roll candle.",
+  "L3.day.<side>.beyond.run12": "same cases -> long: D+1 trades above high(D); short: D+1 trades below low(D).",
+  "L4.wk.<side>.retrace20.day_before": "'Monday-Thursday' = the week's daily candles DATED Monday, Tuesday, Wednesday, Thursday (trading date = the date of the 17:00 close; the Monday candle opens Sunday 18:00) THAT EXIST. A missing Monday, Tuesday or Wednesday candle (holiday) is simply absent from the range: no other day takes its place. The week is a case only when BOTH its Thursday-dated and its Friday-dated candle exist (no Thursday or no Friday candle = no case). H, L = highest high / lowest low of those Monday-Thursday candles, R = H - L. short (up week, as written): the first of those candles to show L is dated Monday or Tuesday, and close(Thursday) >= H - 0.25 R -> low(Friday) <= H - 0.20 R. long (down week, mirror): the first candle to show H is dated Monday or Tuesday, and close(Thursday) <= L + 0.25 R -> high(Friday) >= L + 0.20 R. Base (base_n, base_k) = the same test one day earlier: 'Monday-Wednesday' = the candles dated Monday, Tuesday, Wednesday that exist, both the Wednesday-dated and the Thursday-dated candle must exist (Friday need not), extreme first shown Monday or Tuesday, Wednesday close in the top (bottom) quarter of that range -> Thursday trades down (up) to 20 % of that range from its high (low). Usable weeks only. at_close / base_at_close = cases in which the condition day's close is already at or beyond the level.",
+  "L3_positions": "not registered, description only: eligible days by their position in a run of continuation closes in the side's direction (0 = not such a close, 4+ = fourth or later), with the two L3 outcomes on the next day."
+ },
+ "counts": {
+  "day": {
+   "candles": 926,
+   "roll_candles": 16,
+   "last_candle_unfinished_dropped": 0,
+   "dated_saturday_or_sunday": 0,
+   "prices_off_the_tick_grid": 0,
+   "roll_dates": [
+    "2019-06-03",
+    "2019-06-19",
+    "2019-09-16",
+    "2019-12-16",
+    "2020-03-17",
+    "2020-06-17",
+    "2020-09-16",
+    "2020-12-14",
+    "2021-03-17",
+    "2021-06-14",
+    "2021-09-13",
+    "2021-12-13",
+    "2022-03-16",
+    "2022-06-15",
+    "2022-09-14",
+    "2022-12-14"
+   ]
+  },
+  "wk": {
+   "calendar_weeks": 187,
+   "fewer_than_4_candles": 0,
+   "with_roll_candle": 16,
+   "both": 0,
+   "unfinished_at_end_of_data": 0,
+   "usable": 171,
+   "usable_with_4_candles": 8,
+   "weeks_fewer_than_4": [],
+   "weeks_with_roll": [
+    "2019-06-03",
+    "2019-06-17",
+    "2019-09-16",
+    "2019-12-16",
+    "2020-03-16",
+    "2020-06-15",
+    "2020-09-14",
+    "2020-12-14",
+    "2021-03-15",
+    "2021-06-14",
+    "2021-09-13",
+    "2021-12-13",
+    "2022-03-14",
+    "2022-06-13",
+    "2022-09-12",
+    "2022-12-12"
+   ]
+  },
+  "wk.triples": 140,
+  "wk.usable_but_neighbour_not": {
+   "total": 31,
+   "first_or_last_week_of_data": 1,
+   "weeks": [
+    "2019-06-10",
+    "2019-06-24",
+    "2019-09-09",
+    "2019-09-23",
+    "2019-12-09",
+    "2019-12-23",
+    "2020-03-09",
+    "2020-03-23",
+    "2020-06-08",
+    "2020-06-22",
+    "2020-09-07",
+    "2020-09-21",
+    "2020-12-07",
+    "2020-12-21",
+    "2021-03-08",
+    "2021-03-22",
+    "2021-06-07",
+    "2021-06-21",
+    "2021-09-06",
+    "2021-09-20",
+    "2021-12-06",
+    "2021-12-20",
+    "2022-03-07",
+    "2022-03-21",
+    "2022-06-06",
+    "2022-06-20",
+    "2022-09-05",
+    "2022-09-19",
+    "2022-12-05",
+    "2022-12-19",
+    "2022-12-26"
+   ]
+  },
+  "day.L3_days": 830,
+  "day.L3_left_out": {
+   "total": 96,
+   "first_4_or_last_candle": 5,
+   "roll_candle_in_window": 91
+  },
+  "wk.L4": {
+   "usable_weeks": 171,
+   "claim_weeks": 166,
+   "claim_no_thursday_or_friday_candle": 5,
+   "claim_weeks_range_of_fewer_than_4_candles": 3,
+   "base_weeks": 169,
+   "base_no_wednesday_or_thursday_candle": 2,
+   "base_weeks_range_of_fewer_than_3_candles": 1,
+   "weeks_not_a_claim_case": [
+    "2020-04-06",
+    "2020-12-21",
+    "2020-12-28",
+    "2021-12-20",
+    "2022-04-11"
+   ],
+   "weeks_not_a_base_case": [
+    "2019-12-23",
+    "2019-12-30"
+   ]
+  }
+ },
+ "rows": {
+  "L1.wk.long.beyond.all": {
+   "n": 62,
+   "k": 50,
+   "rate": 0.8065,
+   "base_n": 140,
+   "base_k": 84,
+   "base_rate": 0.6,
+   "diff_pp": 20.65,
+   "z": 2.864,
+   "p": 0.00419
+  },
+  "L1.wk.short.beyond.all": {
+   "n": 26,
+   "k": 20,
+   "rate": 0.7692,
+   "base_n": 140,
+   "base_k": 56,
+   "base_rate": 0.4,
+   "diff_pp": 36.92,
+   "z": 3.47,
+   "p": 0.00052
+  },
+  "L1.wk.both.beyond.all": {
+   "n": 88,
+   "k": 70,
+   "rate": 0.7955,
+   "base_n": 280,
+   "base_k": 140,
+   "base_rate": 0.5,
+   "diff_pp": 29.55,
+   "z": 4.884,
+   "p": 1.04e-06
+  },
+  "L2.wk.long.beyond_w.all": {
+   "n": 15,
+   "k": 12,
+   "rate": 0.8,
+   "base_n": 140,
+   "base_k": 84,
+   "base_rate": 0.6,
+   "diff_pp": 20.0,
+   "z": 1.516,
+   "p": 0.129
+  },
+  "L2.wk.short.beyond_w.all": {
+   "n": 22,
+   "k": 12,
+   "rate": 0.5455,
+   "base_n": 140,
+   "base_k": 56,
+   "base_rate": 0.4,
+   "diff_pp": 14.55,
+   "z": 1.285,
+   "p": 0.199
+  },
+  "L2.wk.both.beyond_w.all": {
+   "n": 37,
+   "k": 24,
+   "rate": 0.6486,
+   "base_n": 280,
+   "base_k": 140,
+   "base_rate": 0.5,
+   "diff_pp": 14.86,
+   "z": 1.701,
+   "p": 0.089
+  },
+  "L2.wk.long.beyond_prev.all": {
+   "n": 15,
+   "k": 8,
+   "rate": 0.5333,
+   "base_n": 140,
+   "base_k": 97,
+   "base_rate": 0.6929,
+   "diff_pp": -15.95,
+   "z": -1.256,
+   "p": 0.209
+  },
+  "L2.wk.short.beyond_prev.all": {
+   "n": 22,
+   "k": 7,
+   "rate": 0.3182,
+   "base_n": 140,
+   "base_k": 53,
+   "base_rate": 0.3786,
+   "diff_pp": -6.04,
+   "z": -0.545,
+   "p": 0.586
+  },
+  "L2.wk.both.beyond_prev.all": {
+   "n": 37,
+   "k": 15,
+   "rate": 0.4054,
+   "base_n": 280,
+   "base_k": 150,
+   "base_rate": 0.5357,
+   "diff_pp": -13.03,
+   "z": -1.491,
+   "p": 0.136
+  },
+  "L3.day.long.cont.run12": {
+   "n": 29,
+   "k": 10,
+   "rate": 0.3448,
+   "base_n": 224,
+   "base_k": 102,
+   "base_rate": 0.4554,
+   "diff_pp": -11.05,
+   "z": -1.128,
+   "p": 0.26
+  },
+  "L3.day.short.cont.run12": {
+   "n": 10,
+   "k": 2,
+   "rate": 0.2,
+   "base_n": 169,
+   "base_k": 54,
+   "base_rate": 0.3195,
+   "diff_pp": -11.95,
+   "z": -0.792,
+   "p": 0.428
+  },
+  "L3.day.both.cont.run12": {
+   "n": 39,
+   "k": 12,
+   "rate": 0.3077,
+   "base_n": 393,
+   "base_k": 156,
+   "base_rate": 0.3969,
+   "diff_pp": -8.93,
+   "z": -1.091,
+   "p": 0.275
+  },
+  "L3.day.long.beyond.run12": {
+   "n": 29,
+   "k": 19,
+   "rate": 0.6552,
+   "base_n": 224,
+   "base_k": 183,
+   "base_rate": 0.817,
+   "diff_pp": -16.18,
+   "z": -2.044,
+   "p": 0.041
+  },
+  "L3.day.short.beyond.run12": {
+   "n": 10,
+   "k": 5,
+   "rate": 0.5,
+   "base_n": 169,
+   "base_k": 118,
+   "base_rate": 0.6982,
+   "diff_pp": -19.82,
+   "z": -1.314,
+   "p": 0.189
+  },
+  "L3.day.both.beyond.run12": {
+   "n": 39,
+   "k": 24,
+   "rate": 0.6154,
+   "base_n": 393,
+   "base_k": 301,
+   "base_rate": 0.7659,
+   "diff_pp": -15.05,
+   "z": -2.077,
+   "p": 0.0378
+  },
+  "L4.wk.long.retrace20.day_before": {
+   "n": 20,
+   "k": 17,
+   "rate": 0.85,
+   "base_n": 33,
+   "base_k": 28,
+   "base_rate": 0.8485,
+   "diff_pp": 0.15,
+   "z": 0.015,
+   "p": 0.988,
+   "at_close": 7,
+   "base_at_close": 5
+  },
+  "L4.wk.short.retrace20.day_before": {
+   "n": 60,
+   "k": 41,
+   "rate": 0.6833,
+   "base_n": 64,
+   "base_k": 46,
+   "base_rate": 0.7188,
+   "diff_pp": -3.54,
+   "z": -0.431,
+   "p": 0.667,
+   "at_close": 6,
+   "base_at_close": 8
+  },
+  "L4.wk.both.retrace20.day_before": {
+   "n": 80,
+   "k": 58,
+   "rate": 0.725,
+   "base_n": 97,
+   "base_k": 74,
+   "base_rate": 0.7629,
+   "diff_pp": -3.79,
+   "z": -0.576,
+   "p": 0.565,
+   "at_close": 13,
+   "base_at_close": 13
+  }
+ },
+ "L3_positions": {
+  "long": {
+   "0": {
+    "n": 561,
+    "k_cont": 155,
+    "k_beyond": 254
+   },
+   "1": {
+    "n": 152,
+    "k_cont": 74,
+    "k_beyond": 132
+   },
+   "2": {
+    "n": 72,
+    "k_cont": 28,
+    "k_beyond": 51
+   },
+   "3": {
+    "n": 29,
+    "k_cont": 10,
+    "k_beyond": 19
+   },
+   "4+": {
+    "n": 16,
+    "k_cont": 5,
+    "k_beyond": 14
+   }
+  },
+  "short": {
+   "0": {
+    "n": 649,
+    "k_cont": 123,
+    "k_beyond": 241
+   },
+   "1": {
+    "n": 124,
+    "k_cont": 44,
+    "k_beyond": 92
+   },
+   "2": {
+    "n": 45,
+    "k_cont": 10,
+    "k_beyond": 26
+   },
+   "3": {
+    "n": 10,
+    "k_cont": 2,
+    "k_beyond": 5
+   },
+   "4+": {
+    "n": 2,
+    "k_cont": 0,
+    "k_beyond": 2
+   }
+  }
+ }
+}

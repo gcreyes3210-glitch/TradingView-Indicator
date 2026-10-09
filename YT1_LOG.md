@@ -387,3 +387,114 @@ than half of what the YT1 candidates E09 (+21,238 $) and C19b (+18,001 $) showed
   writing the grid.
 - Count of things tried, for the next batch: 53 + 29 + 1 + 7 + 5 = 95 rules (plus this 5,184-combination in-sample
   search), 27 claim checks.
+
+---
+# YT6 — the TTrades confluences YT5 left out: 230,850-combination grid and the weekly claims (rules in `YT6_SPEC.md`, registered 2026-10-09)
+
+**Verdict: all six picks fail the registered out-of-sample test; none is a candidate.** Two came close and are the
+strongest TTrades-derived results so far: pick 1 and pick 2 were positive in all four out-of-sample years with both
+neighbours positive, at p 0.088 and p 0.025 against a bar of 0.0083 (0.05 / 6). The grid as a whole still loses and
+its top is no better than luck (reality check p = 0.91 in-sample, 0.66 full span).
+Selection frozen before the later bars were run (`YT6_IS_STAMP.txt`); the in-sample grid rebuilt from the full-span
+signals reproduces the frozen n and net for all 230,850 combinations; YT5's 5,184 combinations are reproduced exactly
+inside this grid; picks reconcile to the cent with the standard runner. Notes: `data/studies/yt1/notes/G9.md`.
+
+**Added to YT5's grid:** the London window (02:00–04:59, flat 08:29); bias invalidation (trade against the daily bias
+after an hourly close through the previous day's EQ); entry under the 00:00 open, or under both the 00:00 and 08:30
+opens; "failure to manipulate" (the CISD's protected low sits above the previous day's high or the overnight high
+that price has broken; mirror for shorts); targets at the previous day's high / low or at the nearest liquidity at
+least 1R away; a retest entry (limit at the price the CISD closed through, 30 minutes); a positional entry (market
+at the open of the next clock hour if the stop has not traded).
+
+## The six picks (ranked on 2019–2022, tested once on 2023–2026)
+
+| Pick | Combination | In-sample: trades, net $, R | Out of sample: trades, net $, R | p (OOS) | + years (OOS) | Neighbours R (OOS) | Verdict |
+|---|---|---|---|---|---|---|---|
+| 1 | 1m CISD 09:30–11:00 holding above the broken overnight high (below the low for shorts); enter at the next hour's open; 2R | 207, +7,966, +0.278 | 255, +7,342, +0.114 | 0.088 | 4 / 4 | +0.026 / +0.096 | fails (p) |
+| 2 | 15m CISD 08:30–11:00 with SMT divergence against ES; limit at the retest; target the previous day's high / low | 157, +4,303, +0.716 | 137, +5,873, +0.491 | 0.025 | 4 / 4 | +0.431 / +0.515 | fails (p) |
+| 3 | 5m CISD 09:30–11:00 holding above the previous day's high, 1H closure; 2R | 193, +5,175, +0.266 | 202, +2,008, +0.055 | 0.28 | 3 / 4 | −0.005 / +0.130 | fails |
+| 4 | 5m CISD 10:00–11:00, bias invalidation, entry beyond EQ; 2R | 192, +4,493, +0.259 | 215, +1,706, +0.002 | 0.49 | 2 / 4 | −0.001 / +0.068 | fails |
+| 5 | 5m CISD 09:30–11:00 holding above the broken overnight high, entry above EQ; next hour's open; 2R | 225, +6,424, +0.204 | 244, +189, +0.022 | 0.39 | 3 / 4 | −0.062 / +0.077 | fails |
+| 6 | Consensus (best level of each confluence, relaxed until 150 trades): 15m CISD 09:30–11:00 after a raid of the previous day's low / high; 2R | 163, −4,968, −0.130 | 215, −4,910, −0.085 | 0.88 | 1 / 4 | −0.098 / −0.098 | fails |
+
+The combination with the most in-sample dollars (1m CISD 08:30–11:00, discount, 1H closure, retest, previous-day
+target: 609 trades, +8,296 $) made −502 $ on 640 trades out of sample.
+
+## The two near misses, full span (description; both were selected in-sample, so full-span p-values are flattering)
+
+| | Pick 1 | Pick 2 |
+|---|---|---|
+| Trades / net $ / R per trade | 462 / +15,308 / +0.188 | 294 / +10,176 / +0.611 |
+| Positive years / max drawdown | 7 of 8 / −1,310 $ | 8 of 8 / −1,551 $ |
+| Win % / average win / average loss | 46 % / +175 $ / −89 $ | 32 % / +257 $ / −70 $ |
+| Median stop distance | 45 points | 32 points |
+| With one more tick of slippage per side | +14,847 $ | +9,882 $ |
+| Trades on ORB v1.4 trade days, same side as ORB | 291 of 462, 92 % | 119 of 294, 56 % |
+| Net on ORB days / off ORB days | +14,511 $ / +798 $ | +6,517 $ / +3,659 $ |
+| Daily P&L correlation with ORB / with E09 | 0.41 / 0.40 | 0.13 / 0.09 |
+| ORB + pick: net, max drawdown, return ÷ drawdown (ORB alone 5.38) | +36,209 $, −4,213 $, 8.6 | +31,076 $, −3,426 $, 9.1 |
+
+- **Pick 1 is the opening-range / momentum effect again.** It trades the same side as ORB on 92 % of shared days (97 %
+  with E09) and earns almost nothing on days ORB does not trade. It is a continuation entry after the overnight range
+  breaks, taken at 10:00 or 11:00. Its 1.5R neighbour is close to zero out of sample.
+- **Pick 2 is the more independent one.** About 40 trades a year; it agrees with ORB's side only 56 % of the time and
+  over a third of its profit is on non-ORB days. Its edge rests on a low win rate with large winners (target at the
+  previous day's extreme), and its out-of-sample p of 0.025 is about what one of six no-edge picks reaches one time
+  in seven.
+- Neither met the bar that was set before the test. Neither has had a second coder's re-code.
+
+## The grid as a whole
+
+- 8,435 of 230,850 combinations had 150+ in-sample trades; 1,366 of those were positive in-sample. Largest in-sample
+  t 2.88 against a luck median of 3.26. Full span: 19,139 combinations of 150+ trades, largest t 3.34 (15m CISD, SMT,
+  discount, previous-day target, retest: 221 trades, +9,258 $) against a luck median of 3.47, p 0.66. The most
+  dollars in hindsight is pick 1.
+- In-sample rank carried a little information (Spearman +0.26; the in-sample top 10 % averaged −0.060 R out of sample
+  against −0.118 for all eligible). The top decile's average is still negative.
+
+| Confluence | Level | 2019–22 | 2023–26 |
+|---|---|---|---|
+| Trigger | 1m / 5m / 15m | −0.177 / −0.119 / −0.046 | −0.154 / −0.072 / −0.072 |
+| Window | London / am / open / sb / pm | −0.172 / −0.132 / −0.125 / −0.076 / −0.200 | −0.128 / −0.135 / −0.087 / −0.137 / −0.105 |
+| Daily bias | none / any / cont / fail / invalidation | −0.113 / −0.190 / −0.200 / −0.240 / −0.102 | −0.101 / −0.148 / −0.155 / −0.175 / −0.048 |
+| EQ | none / discount / premium | −0.142 / −0.100 / −0.182 | −0.111 / −0.108 / −0.142 |
+| Opens | none / 18:00 / 00:00 / 00:00 and 08:30 | −0.151 / −0.121 / −0.135 / −0.166 | −0.112 / −0.115 / −0.132 / −0.126 |
+| Raid / break | none / pd raid / session raid / pd break held / session break held | −0.143 / −0.083 / −0.121 / −0.227 / −0.148 | −0.119 / −0.121 / −0.082 / −0.180 / −0.122 |
+| HTF closure | none / 1H / 4H | −0.147 / −0.141 / −0.130 | −0.108 / −0.130 / −0.140 |
+| SMT with ES | none / smt | −0.143 / −0.138 | −0.123 / −0.086 |
+| Target | 2R / previous day / nearest liquidity | −0.144 / −0.113 / −0.166 | −0.112 / −0.115 / −0.128 |
+| Entry | close / retest / positional | −0.127 / −0.192 / −0.087 | −0.104 / −0.171 / −0.053 |
+
+No level averages above zero in either half. Trading with the daily bias is worse than without it in both halves;
+trading against it after an invalidation is the least bad bias level. The midnight and 08:30 opens do not help. The
+London window is no better than New York. The retest entry is the worst entry on average (it fills on the trades
+that come back); the positional entry is the least bad. The previous-day raid, least negative in YT5, did not hold
+out of sample here.
+
+## Weekly and sequence claims (`yt6_claims_table.csv`; threshold p < 0.05 / 8 = 0.006)
+
+| Claim | 2019–22 | 2023–26 | Base rate | Holds? |
+|---|---|---|---|---|
+| **L1** A week that closes beyond the previous week's high / low → the next week trades beyond that week's extreme | 79.5 % (n 88) | 74.4 % (n 82) | 50.9 % | **Yes**, both halves |
+| **L2** A week that runs the previous week's extreme and closes back inside → the next week takes that week's other side | 64.9 % (n 37) | 66.7 % (n 51) | 50.9 % | Leaning yes (+15 pp, p 0.008 full span, just short of the threshold) |
+| L2 as he words it: "the previous week's low is the draw" (next week trades beyond the *previous* week's other side) | 40.5 % | 35.3 % | 52.8 % | **No**, it happens less often than usual |
+| **L3** After three continuation closes in a row the run tends to end (a fourth continuation close) | 30.8 % (n 39) | 22.0 % (n 41) | 37.2 % | Not established (−11 pp, p 0.052) |
+| **L4** Friday retraces 20 % of the week's range after a Monday / Tuesday low | 72.5 % (n 80) | 67.1 % (n 82) | 73.8 % (same test on Thursday) | **No**: Friday is no different from Thursday |
+
+L1 is the weekly version of claim A in YT4 and has the same limit: it says where the next week trades at some point,
+not what the cash session does.
+
+## Readings and limits
+
+- Positional entries with a 2R target: the target depends on the fill at the next bar's open, so the mirrored-future
+  test is run with the target attached after the fill (the same exception as `s_Z00`); with that, every pick, its
+  neighbours and 13 check combinations covering every level pass. Five deliberately planted look-ahead errors were
+  each caught.
+- Limit orders fill on a touch, one tick worse than the limit (house rule).
+- Readings: London trades flat at 08:29; session levels are 18:00–01:59 for London and 18:00–08:29 otherwise; the
+  00:00 / 08:30 open is the first bar at or after that minute; hour candles under 30 minutes are ignored for the
+  invalidation; in the consensus fallback each confluence changes once.
+- The out-of-sample years had been run on 95 rules before this, and the author had seen YT5's out-of-sample
+  per-confluence table when writing this grid.
+- Count of things tried, for the next batch: 53 + 29 + 1 + 7 + 5 + 6 = 101 rules (plus two in-sample grid searches,
+  5,184 and 230,850 combinations), 31 claim checks.

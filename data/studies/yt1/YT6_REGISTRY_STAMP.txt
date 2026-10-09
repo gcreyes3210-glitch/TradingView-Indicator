@@ -1,0 +1,3 @@
+c0bd9bb91b7ad541828e420900b69946cca8eb8a47b07218d1a0eff7ca32ce57  YT6_SPEC.md
+6de50eaa9a5d0e7c74ee7fdac40fef818e10a3d80ab8d49e88a296bf980b3c04  tools/yt1/tt.py
+YT6 registered 2026-10-09T16:21:22Z, before any YT6 code existed
