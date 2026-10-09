@@ -1814,5 +1814,24 @@ Signals are read on **MNQ 1m** and **ES 1m** (Databento). MNQ prints the same pr
 - **No-stop risk:** fatal for a $2,000 trailing account at his 5 / 10 sizing, with a median life of 2–3 trading days.
 - **What this does not test:** his discretionary trims, refills, skips and EQ-range targets, the indicator's exact zone logic, and the 10:00 releases and speeches that `events.csv` lacks. **Nothing adopted; the family is closed on this reading.**
 
+## RDM — Ryze indicator (ARZ v2.6a) zone reconstruction — before any RDM backtest (2026-10-08)
+**Hypothesis to match:**
+- **Events:** for New York, London and Tokyo, approximate sunrise / sunset (the classic almanac algorithm), taken at a fixed UTC-5 offset (no daylight saving). Day length = sunset − sunrise, or 12 hours. Event times at sunrise + f × day length for f = 0, 0.25, 0.5, 0.75, 1.0.
+- **Zone:** the high / low of the candle on a fixed timeframe whose open is at or before the event and whose next open is after it.
+- **Candidates:** timeframes 1 / 5 / 15 / 30 / 60m, both day-length methods, zenith 90.833° (with refraction) or 90° (without).
+**Algorithm check:** for 2026-10-07 it gives sunrise / sunset New York 06:58 / 18:28, London 07:10 / 18:25, Tokyo 05:40 / 17:17 local, within a few minutes of published tables, as expected for an "approximate" algorithm.
+**Two readings the description leaves open, both rendered:**
+1. **Which local date an event belongs to.** Each city's events are computed for its local dates D−1, D and D+1 as true instants, and every one that falls in trading day D (18:00 the evening before → 17:00) is drawn, labelled with its local date. An indicator that wraps the algorithm's UTC hour modulo 24 would date Tokyo's events about a day later; that lands within a minute of the next local date's true event, which is already on the chart.
+2. **"Converted to UTC-5 with no daylight saving."**
+   - **Instant:** the true moment, drawn where it falls on the New York chart (`rdm_<day>_<tf>m.png`).
+   - **Clock:** the UTC-5 clock reading placed at that clock time on the New York chart. In October (daylight saving) that is one hour earlier (`rdm_<day>_<tf>m_clock.png`).
+
+**Observed zones:** none were provided, so nothing could be matched to the tick.
+- **Rendered for visual comparison** (`python3 tools/rdm_zones.py render`): `data/studies/rdm/render/`, one PNG per day (2026-10-06, 10-07, 10-08) per candle timeframe (1 / 5 / 15 / 30 / 60m) per reading, 30 in all.
+- **Panels:** each PNG has four (day length sunrise-to-sunset or +12 h, crossed with refraction on or off). MNQ 5m bars, zones as bands from the event time, labelled city, fraction, local date and event time.
+- **Partial day:** 2026-10-08 stops at 09:33, where the bars end.
+- **Every candidate zone with its exact high / low** is in `candidate_zones.csv` (1,535 rows), for a direct numeric comparison with the indicator.
+**Status: stopped as instructed.** `data/studies/rdm/zones.csv` (MNQ and ES, 2019-06 → 2026-10) is **not** generated. It waits for either observed zones that one combination matches to the tick, or a visual confirmation of one rendered set (timeframe, day-length method, refraction, reading).
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
