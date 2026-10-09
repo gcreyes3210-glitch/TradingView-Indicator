@@ -762,6 +762,124 @@ def run_v23():
     return res
 
 
+def run_prop(f="v1.csv"):
+    """$50k account, $2,000 trailing drawdown on equity including open P&L (peak from each trade's best point, floor
+    from its worst), trail locks at the starting balance; 10 MNQ on correlated plain (known at entry), 5 otherwise.
+    One account started on every trading day; days counted in trading days with a trade."""
+    T = pd.read_csv(OUT / f)
+    T["et"] = pd.to_datetime(T.et, utc=True).dt.tz_convert(TZ)
+    plain_corr = (T.grade != "swept") & T.corr_known
+    n = np.where(plain_corr, 10, 5)
+    pnl = n * T.pnl.to_numpy()                      # pnl per contract already includes costs
+    worst = -n * T.mae.to_numpy() * PV
+    best = n * T.mfe.to_numpy() * PV
+    day = T.et.dt.date.to_numpy()
+    starts = np.r_[0, np.flatnonzero(day[1:] != day[:-1]) + 1]
+    res = []
+    for s0 in starts:
+        bal_before = 50000 + np.r_[0, np.cumsum(pnl[s0:])[:-1]]
+        peak = np.maximum.accumulate(np.maximum(bal_before, bal_before + best[s0:]))
+        peak_before = np.r_[50000, peak[:-1]]
+        floor_before = np.minimum(np.maximum(peak_before, 50000) - 2000, 50000)
+        dead = bal_before + worst[s0:] < floor_before
+        if dead.any():
+            k = s0 + int(np.argmax(dead))
+            days = len(set(day[s0:k + 1]))
+            res.append(dict(start=day[s0], died=True, days=days, trades=k - s0 + 1))
+        else:
+            res.append(dict(start=day[s0], died=False, days=len(set(day[s0:])), trades=len(pnl) - s0))
+    R = pd.DataFrame(res)
+    # observation, not pre-registered: end-of-day trailing (Topstep-style). The floor moves only with the end-of-day
+    # balance peak; an account dies when intraday equity (balance + a trade's worst point) touches the floor.
+    eod = []
+    for s0 in starts:
+        bal, peak_eod, cur_day, dead_at = 50000.0, 50000.0, day[s0], None
+        for k in range(s0, len(pnl)):
+            if day[k] != cur_day:
+                peak_eod, cur_day = max(peak_eod, bal), day[k]
+            floor = min(peak_eod - 2000, 50000)
+            if bal + worst[k] < floor:
+                dead_at = k; break
+            bal += pnl[k]
+        eod.append(dict(died=dead_at is not None,
+                        days=len(set(day[s0:(dead_at if dead_at is not None else len(pnl) - 1) + 1]))))
+    E = pd.DataFrame(eod)
+    R["eod_died"], R["eod_days"] = E.died, E.days
+    R.to_csv(OUT / "prop.csv", index=False)
+    print(f"prop simulation on {f}: {len(R)} accounts (one per trading day), sizing 10 correlated plain / 5 otherwise "
+          f"({(n == 10).mean():.1%} of trades at 10)")
+    for w in (1, 5, 20, 60, 250):
+        print(f"  dead within {w:>3} trading days: {((R.died) & (R.days <= w)).mean():.1%}")
+    print(f"  ever dead: {R.died.mean():.1%}; median trading days to death (among deaths) {R[R.died].days.median():.0f}; "
+          f"median trades to death {R[R.died].trades.median():.0f}")
+    print("  observation (not pre-registered), end-of-day trailing: " + ", ".join(
+        f"dead within {w} days {((R.eod_died) & (R.eod_days <= w)).mean():.1%}" for w in (1, 5, 20, 60, 250))
+          + f"; ever {R.eod_died.mean():.1%}; median days to death {R[R.eod_died].eod_days.median():.0f}")
+    for y, g in R.groupby(pd.to_datetime(R.start).dt.year):
+        print(f"  starts in {y}: dead within 20 days {((g.died) & (g.days <= 20)).mean():.1%}, ever {g.died.mean():.1%}")
+
+
+def v1_charts(n=10, seed=11):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
+    W = build_all(3)
+    Q = signals(W)
+    T = pd.read_csv(OUT / "v1.csv")
+    rng = np.random.default_rng(seed)
+    pick = T.iloc[np.sort(rng.choice(len(T), n, replace=False))]
+    out = OUT / "v1_charts"; out.mkdir(parents=True, exist_ok=True)
+    ts = S["ts"]
+    key = []
+    for c, r in enumerate(pick.itertuples(), 1):
+        t = int(r.entry_t)
+        w0 = ts.searchsorted(ts[t] - pd.Timedelta(minutes=150))
+        fig, axes = plt.subplots(2, 1, figsize=(16, 11))
+        for ax, nm in zip(axes, ("NQ", "ES")):
+            x = S["mk"][nm].iloc[w0:t + 1]
+            b = x.resample("5min", label="left", closed="left").agg(
+                {"open": "first", "high": "max", "low": "min", "close": "last"}).dropna()
+            for k, (o, h, l, cc) in enumerate(zip(b.open, b.high, b.low, b.close)):
+                col = "#26a69a" if cc >= o else "#ef5350"
+                ax.plot([k, k], [l, h], color=col, lw=0.8)
+                ax.add_patch(Rectangle((k - 0.35, min(o, cc)), 0.7, max(abs(cc - o), 0.05), color=col, lw=0))
+            lo_, hi_ = b.low.min(), b.high.max()
+            xof = lambda i1: np.searchsorted(b.index.asi8, ts[i1].value, side="right") - 1
+            P = W[nm]["P"]
+            live = P[(P.start <= t) & (P.end > w0) & (P.top >= lo_ - 15) & (P.bot <= hi_ + 15)]
+            for z in live.itertuples():
+                xa, xb = max(xof(max(z.start, w0)), 0), len(b) - 1
+                col = "#2e7d32" if z.act > 0 else "#c62828"
+                filled = z.untap_until > t
+                ax.add_patch(Rectangle((xa - 0.5, z.bot), xb - xa + 1, z.top - z.bot, color=col, alpha=0.25 if filled else 0.06,
+                                       lw=0.6, ec=col, ls="-" if z.kind == "FFVG" else "--"))
+                ax.text(xa - 0.4, z.top, f"{z.tf}{'' if z.kind == 'FFVG' else 'i'}", fontsize=6, color=col, va="bottom", clip_on=True)
+            q = Q[(Q.idx == nm) & (Q.t >= w0) & (Q.t <= t)].drop_duplicates(["t", "dir"])
+            for p_ in q.itertuples():
+                xx = xof(p_.t)
+                y = p_.lo if p_.dir > 0 else p_.hi
+                ax.plot(xx, y, "^" if p_.dir > 0 else "v", color="#1b5e20" if p_.dir > 0 else "#b71c1c", ms=9)
+                ax.text(xx, y, f" {p_.tf}m{' S' if p_.swept else ''}", fontsize=7, va="top" if p_.dir > 0 else "bottom")
+            if nm == "NQ":
+                ax.plot(len(b) - 1 + 0.6, r.entry, ">" if r.dir > 0 else "<", color="black", ms=12)
+                ax.text(len(b), r.entry, f" entry {'LONG' if r.dir > 0 else 'SHORT'} {r.entry:,.2f}", fontsize=8, va="center")
+            ax.set_ylim(lo_ - 0.04 * (hi_ - lo_), hi_ + 0.04 * (hi_ - lo_))
+            ax.set_xticks(range(0, len(b), 3), [i.strftime("%H:%M") for i in b.index[::3]], fontsize=7)
+            ax.set_xlim(-1, len(b) + 8)
+            ax.set_title(f"{nm} 5m · zones filled = untapped at entry · triangles = untapped-reaction pointers", fontsize=9, loc="left")
+            ax.grid(alpha=0.15)
+        fig.suptitle(f"mech_v1_{c:02d} · {ts[t]:%Y-%m-%d %a %H:%M} · V1 {'LONG' if r.dir > 0 else 'SHORT'} · grade {r.grade} "
+                     f"({r.idx}) · cut at entry · outcome hidden", fontsize=10)
+        fig.tight_layout()
+        fig.savefig(out / f"mech_v1_{c:02d}.png", dpi=85)
+        plt.close(fig)
+        key.append(dict(id=f"mech_v1_{c:02d}", entry_time=ts[t], dir=r.dir, grade=r.grade, idx=r.idx))
+    pd.DataFrame(key).to_csv(out / "charts_key.csv", index=False)
+    pd.DataFrame(dict(id=[k["id"] for k in key], setup_is_right="", note="")).to_csv(out / "answers.csv", index=False)
+    print(f"{len(key)} charts in {out}")
+
+
 def run_v1(k_stages=4):
     W = build_all(3)
     Q = signals(W)
@@ -792,3 +910,7 @@ if __name__ == "__main__":
         run_v1()
     elif cmd == "v23":
         run_v23()
+    elif cmd == "prop":
+        run_prop()
+    elif cmd == "charts":
+        v1_charts()

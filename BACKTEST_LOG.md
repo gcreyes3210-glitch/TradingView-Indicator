@@ -1782,5 +1782,36 @@ Signals are read on **MNQ 1m** and **ES 1m** (Databento). MNQ prints the same pr
 
 **Verdict:** the skip rules and sizing make the coded model worse per contract (V1 −0.018 → V2 −0.055 R). Correlated plain pointers are the only grade near zero in every stage (V1 −0.011, V1-stop +0.007, V2 +0.011, V3 −0.002), and nowhere near the criterion.
 
+### MECH — prop-firm simulation, check charts, verdict
+**Prop-firm realism** (`python3 tools/mech.py prop`; `data/studies/mech/prop.csv`).
+- **Setup:** run on the best P&L stage by R per trade, **V1 (no stop)**. 10 MNQ on correlated plain signals known at entry (5.3 % of trades), 5 otherwise. A $50,000 account with a $2,000 trailing drawdown on equity including open P&L; the trail locks at $50,000. One account started on each of 1,833 trading days.
+
+| Dead within | 1 day | 5 days | 20 days | 60 days | 250 days | Ever | Median life |
+|---|---|---|---|---|---|---|---|
+| Pre-registered (trail on open-P&L highs) | 29.8 % | 76.1 % | 93.0 % | 98.9 % | 99.4 % | 99.9 % | **2 trading days** (15 trades) |
+| Observation: end-of-day trailing (Topstep-style), not pre-registered | 17.9 % | 65.1 % | 90.9 % | 98.4 % | 99.2 % | 99.9 % | 3 trading days |
+
+- **By start year,** dead within 20 days: 2019 76.6 %, 2020 94.8 %, 2021 96.0 %, 2022 90.8 %, 2023 91.5 %, 2024 94.4 %, 2025 98.0 %, 2026 95.8 %.
+- **Why so fast:** at 5–10 contracts the no-stop MAE does the damage. One trade in eight goes more than 60 points against (≥ $600 open at 5 contracts), about 8 trades a day, on a −0.018 R edge. A $2,000 trailing account does not survive that in any year of the sample.
+
+**Check charts:** `data/studies/mech/v1_charts/mech_v1_01…10.png`, 10 random V1 trades (seed 11). NQ and ES 5m for the 2½ hours before entry, zones (filled = untapped at entry) and pointers, cut at entry with the outcome hidden. Key `charts_key.csv`, answers `answers.csv`.
+**Bonferroni across the stages run:** 4 (V1, V1 + 60-point stop, V2, V3), α = 0.0125. No stage passes: every p ≥ 0.99.
+
+**MECH verdict (for this coded reading; see the caveat at the top of MECH):**
+- **Claims:** both of the author's testable claims fail. The pointer reaches the next untapped zone before trading back through entry 3.0 % of the time (33.9 % on a lenient reading). 69.9 % of 1-ATR reversals have no untapped-reaction pointer before them.
+- **Stages:**
+
+  | Stage | R per trade (per contract) |
+  |---|---|
+  | V1 | −0.018 |
+  | V1 + 60-point stop | −0.019 |
+  | V2 | −0.055 |
+  | V3 | −0.057 |
+
+  All lose in 6–7 of 8 years.
+- **PO3:** does not concentrate the losses (23.6 % of losses on 28.4 % of trades).
+- **No-stop risk:** fatal for a $2,000 trailing account at his 5 / 10 sizing, with a median life of 2–3 trading days.
+- **What this does not test:** his discretionary trims, refills, skips and EQ-range targets, the indicator's exact zone logic, and the 10:00 releases and speeches that `events.csv` lacks. **Nothing adopted; the family is closed on this reading.**
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
