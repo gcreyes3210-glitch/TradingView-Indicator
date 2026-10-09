@@ -134,39 +134,45 @@ def test_rev():
 
 
 # ---------------------------------------------------------------- (2) ORB-add
+def add_one(b, r, th=1.0):
+    """The ORB-add second contract for one v1.4 trade r (fields et, xt, sg, side, px = the close risk is measured from,
+    risk, stop, exit, reason) on 5m bars b. Returns a dict, or None when the add does not fire."""
+    O, H, L, C = (b[k].to_numpy() for k in ("open", "high", "low", "close"))
+    day = r.et.normalize()
+    t1155 = day + pd.Timedelta(hours=11, minutes=55)
+    if not (r.et < t1155 and r.xt > t1155):           # still open at 12:00
+        return None
+    idx = b.index
+    if r.et not in idx or r.xt not in idx or t1155 not in idx:
+        return None
+    i_e, i_x, k = idx.get_loc(r.et), idx.get_loc(r.xt), idx.get_loc(t1155)
+    if r.sg * (C[k] - r.px) < th * r.risk:
+        return None
+    best = (H[i_e + 1:k + 1].max() if r.sg > 0 else L[i_e + 1:k + 1].min()) if k > i_e else r.px
+    pulled, fill_i = False, None
+    for q in range(k + 1, i_x):
+        best = max(best, H[q]) if r.sg > 0 else min(best, L[q])
+        if not pulled:
+            if (L[q] <= best - 0.5 * r.risk) if r.sg > 0 else (H[q] >= best + 0.5 * r.risk):
+                pulled = True
+            continue
+        if (C[q] > O[q]) if r.sg > 0 else (C[q] < O[q]):
+            fill_i = q; break
+    if fill_i is None:
+        return None
+    px = C[fill_i]
+    risk = r.sg * (px - r.stop)
+    if risk <= 0:
+        return None
+    entry = px + r.sg * TICK
+    pnl = r.sg * (r.exit - entry) * MNQ_PV - 2 * COMM            # exits with v1.4, at v1.4's fill
+    return dict(et=idx[fill_i], day=day, side=r.side, entry=entry, stop=r.stop, risk=risk, exit=r.exit,
+                reason=r.reason, pnl=pnl, R=pnl / (risk * MNQ_PV), v_risk=r.risk)
+
+
 def add_trades(th=1.0):
     d = bars(); b, v = d["b5"], d["v"]
-    O, H, L, C = (b[k].to_numpy() for k in ("open", "high", "low", "close"))
-    pos = pd.Series(np.arange(len(b)), index=b.index)
-    out = []
-    for r in v.itertuples():
-        day = r.et.normalize()
-        t1155 = day + pd.Timedelta(hours=11, minutes=55)
-        if not (r.et < t1155 and r.xt > t1155):           # still open at 12:00
-            continue
-        i_e, i_x, k = pos[r.et], pos[r.xt], pos.get(t1155)
-        if k is None or r.sg * (C[k] - r.px) < th * r.risk:
-            continue
-        best = (H[i_e + 1:k + 1].max() if r.sg > 0 else L[i_e + 1:k + 1].min()) if k > i_e else r.px
-        pulled, fill_i = False, None
-        for q in range(k + 1, i_x):
-            best = max(best, H[q]) if r.sg > 0 else min(best, L[q])
-            if not pulled:
-                if (L[q] <= best - 0.5 * r.risk) if r.sg > 0 else (H[q] >= best + 0.5 * r.risk):
-                    pulled = True
-                continue
-            if (C[q] > O[q]) if r.sg > 0 else (C[q] < O[q]):
-                fill_i = q; break
-        if fill_i is None:
-            continue
-        px = C[fill_i]
-        risk = r.sg * (px - r.stop)
-        if risk <= 0:
-            continue
-        entry = px + r.sg * TICK
-        pnl = r.sg * (r.exit - entry) * MNQ_PV - 2 * COMM            # exits with v1.4, at v1.4's fill
-        out.append(dict(et=b.index[fill_i], day=day, side=r.side, entry=entry, stop=r.stop, risk=risk, exit=r.exit,
-                        reason=r.reason, pnl=pnl, R=pnl / (risk * MNQ_PV), v_risk=r.risk))
+    out = [a for a in (add_one(b, r, th) for r in v.itertuples()) if a is not None]
     return pd.DataFrame(out)
 
 
