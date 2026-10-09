@@ -2044,5 +2044,15 @@ Engine `tools/rdm.py`.
   3. the 12-day zone life with the RSMT cancel rule (it removes 394 of 447 events).
 - Of the 8 pre-registered runs, all 8 were run; no other variant was tried.
 
+### RDM — amendment 2: the IFVG-1m inverse-FVG definition (user's, 2026-10-08; logged before the re-run)
+**This amendment comes after the first report (commit `839290d`) had been seen. It is not a blind pre-registration;** read the re-run with that in mind.
+The RDM inverse-FVG step is replaced by the definition in `data/studies/audit/IFVG1m_spec.md`, as `tools/ifvg1m_engine.py` (IFVG-1m, L7) implements it:
+- **Gap:** a 1m FVG against the trade, height ≥ 1.0 point (the spec's minimum), whose third candle lies in the move into the sweep (between NQ's last confirmed 1m swing and the sweep bar, as before).
+- **Inversion:** the first close after the gap formed that is beyond its far edge, or at least 80 % of the way through it on a strong candle in the trade's direction (body ≥ 60 % of range, range ≥ 1 × 1m ATR(20), Wilder). A gap's first inversion uses it up.
+- **Freshness:** the inversion counts only if it is on or after the sweep bar and within 5 bars of the gap's third candle. A gap that takes longer is discarded and the next-freshest is considered. On a bar where several gaps invert, the freshest is taken.
+- **Entry: at the close of the inverting candle** (+1 tick), no longer the next bar's open. Management starts on the next bar.
+- **The setup is still required within 15 minutes of the sweep and 09:30–15:00,** with the validated SMT and the RSMT known by the inverting candle's close. An inversion before they are known uses up that gap.
+- **Everything else is unchanged,** including amendment 1 (early-close and holiday sessions excluded). The 8 runs are re-run; the first report stays in the git history.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
