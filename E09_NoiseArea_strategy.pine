@@ -1,0 +1,249 @@
+//@version=5
+// =====================================================================================================
+//  Noise-Area Intraday Momentum  ·  E09 v1.0  (strategy + chart drawings + alerts in one file)
+//
+//  Source: Zarattini, Aziz, Barbon, "Beat the Market: An Effective Intraday Momentum Strategy" (the noise area).
+//  This script is the rule registered as E09 in YT1_SPEC.md and backtested by tools/yt1/s_E09.py
+//  (MNQ 2019-06 -> 2026-10: 1,627 trades, +21,238 $, win 40.7 %, average win / loss about 1.8 : 1, 7 of 8 years).
+//  STATUS: a candidate, not an adopted rule. It missed the pre-registered pass level. Forward test only.
+//
+//  The rule (all times New York):
+//    1. Noise for a clock time t = the average, over the previous 14 cash days, of |close(t) / 09:30 open - 1|.
+//    2. Upper boundary(t) = max(today's 09:30 open, previous cash-session close) x (1 + noise(t)).
+//       Lower boundary(t) = min(today's 09:30 open, previous cash-session close) x (1 - noise(t)).
+//       Both are known at 09:30 for the whole day, because the noise only uses earlier days.
+//    3. Decisions ONLY at the closes of 10:00, 10:30, 11:00 ... 15:30:
+//         flat  and close above the upper boundary                      -> long
+//         flat  and close below the lower boundary                      -> short
+//         long  and close below max(upper boundary, VWAP from 09:30)    -> out (and short if also below the lower)
+//         short and close above min(lower boundary, VWAP from 09:30)    -> out (and long  if also above the upper)
+//    4. No price stop. Whatever is open is closed at 16:00 (10 minutes before the halt on early-close days).
+//
+//  Use: MNQ, any chart timeframe that divides 30 minutes (1, 2, 3, 5, 6, 10, 15, 30). The 5-minute chart is the
+//  one to use for the forward test: enough history for the 14-day average, and the half-hour closes are exact.
+//  The first 14 cash days of chart history produce no trades (the noise average is still filling).
+//
+//  Known differences from the Python backtest (tools/yt1/s_E09.py):
+//    - The backtest skips contract-roll days of the Databento front contract. TradingView's continuous contract
+//      rolls on its own dates and this script does not skip them; on a roll day the previous close and today's
+//      open come from different contracts, so that day's boundaries are off by the basis.
+//    - VWAP here is summed from 1-minute bars where TradingView supplies them (as in the backtest) and from the
+//      chart's own bars where it does not (older history). The two differ by a fraction of a point.
+//    - Fills: market at the decision bar's close, 1 tick of slippage and $1 commission per side, as the backtest.
+//
+//  Alerts: create ONE alert on this strategy with condition "Any alert() function call".
+// =====================================================================================================
+strategy("Noise-Area Intraday Momentum [E09 v1.0]", "E09 v1.0", overlay = true, pyramiding = 0,
+     default_qty_type = strategy.fixed, default_qty_value = 1, initial_capital = 25000,
+     commission_type = strategy.commission.cash_per_contract, commission_value = 1.0, slippage = 1,
+     calc_on_every_tick = false, process_orders_on_close = true, margin_long = 0, margin_short = 0,
+     max_labels_count = 500)
+
+// ================================ 1 · RULE ================================
+grpR = "1 · Rule (defaults = the backtested rule)"
+tz        = input.string("America/New_York", "Session timezone", options = ["America/New_York"], group = grpR, tooltip = "Every clock time in this script is New York time. Not meant to be changed.")
+nDays     = input.int(14, "Days in the noise average", minval = 2, maxval = 60, group = grpR, tooltip = "14 = the registered rule. 7 and 28 were its two neighbours in the backtest (both positive).")
+exitMode  = input.string("Boundary or VWAP (registered)", "Exit", options = ["Boundary or VWAP (registered)", "Opposite boundary only"], group = grpR, tooltip = "Registered: a long is closed at a half-hour close below max(upper boundary, VWAP). 'Opposite boundary only' is the reported variant: a long is closed only below the LOWER boundary.")
+direction = input.string("Both", "Trade direction", options = ["Both", "Long only", "Short only"], group = grpR, tooltip = "Both = the backtested rule.")
+
+// ================================ 2 · STRATEGY ================================
+grpS = "2 · Strategy"
+s_from   = input.time(timestamp("2019-01-01T00:00:00"), "Test window start", group = grpS)
+s_to     = input.time(timestamp("2099-01-01T00:00:00"), "Test window end", group = grpS)
+s_alerts = input.bool(true, "Fire alert() messages (levels at 09:30, entries, exits, flatten)", group = grpS, tooltip = "Create one alert on this strategy with condition 'Any alert() function call'.")
+
+// ================================ 3 · DRAWINGS ================================
+grpV = "3 · Drawings"
+v_bands = input.bool(true, "Show the boundaries for the next half-hour close", group = grpV)
+v_vwap  = input.bool(true, "Show the 09:30 VWAP", group = grpV)
+v_ref   = input.bool(false, "Show the 09:30 open and the previous close", group = grpV)
+v_table = input.bool(true, "Show the status table", group = grpV)
+
+// ================================ TIMEFRAME CHECK ================================
+if not (timeframe.isminutes and 30 % timeframe.multiplier == 0)
+    runtime.error("E09 needs a minute chart that divides 30 minutes: 1, 2, 3, 5, 6, 10, 15 or 30.")
+
+// ================================ CLOCK ================================
+int oMin   = hour(time, tz) * 60 + minute(time, tz)                // this bar's open, minutes after midnight
+int cMin   = hour(time_close, tz) * 60 + minute(time_close, tz)    // this bar's close (16:00 = 960)
+int yy     = year(time, tz)
+int mm     = month(time, tz)
+int dd     = dayofmonth(time, tz)
+int wd     = dayofweek(time, tz)
+int dayKey = yy * 10000 + mm * 100 + dd
+
+// ---- early-close days (same calendar rule as ORB_strategy.pine v1.4): half days halt at 13:15, US stock-market
+//      holidays with a morning futures session halt at 13:00. Flatten 10 minutes before the halt.
+f_dow(int y, int m, int d) => dayofweek(timestamp(tz, y, m, d, 12, 0), tz)          // 1 = Sunday … 7 = Saturday
+f_nth(int y, int m, int n, int dow) =>                                              // day of the n-th <dow> of month m
+    int d1 = f_dow(y, m, 1)
+    1 + ((dow - d1 + 7) % 7) + 7 * (n - 1)
+f_lastMon(int y, int m, int lastDay) =>
+    int dl = f_dow(y, m, lastDay)
+    lastDay - ((dl - 2 + 7) % 7)
+f_obs(int y, int m, int d) =>
+    int w = f_dow(y, m, d)
+    w == 7 ? d - 1 : w == 1 ? d + 1 : d
+bool thanksgiving  = mm == 11 and dd == f_nth(yy, 11, 4, 5)
+bool xmasObs       = mm == 12 and dd == f_obs(yy, 12, 25)
+bool july4Obs      = mm == 7 and dd == f_obs(yy, 7, 4)
+bool juneteenthObs = yy >= 2022 and mm == 6 and dd == f_obs(yy, 6, 19)
+bool halfDay = (mm == 11 and dd == f_nth(yy, 11, 4, 5) + 1) or (mm == 12 and dd == 24 and wd >= 2 and wd <= 5 and not xmasObs) or (mm == 7 and dd == 3 and wd >= 2 and wd <= 5 and not july4Obs)
+bool holiday = (mm == 1 and dd == f_nth(yy, 1, 3, 2)) or (mm == 2 and dd == f_nth(yy, 2, 3, 2)) or (mm == 5 and dd == f_lastMon(yy, 5, 31)) or juneteenthObs or july4Obs or (mm == 9 and dd == f_nth(yy, 9, 1, 2)) or thanksgiving or xmasObs
+int earlyMin = halfDay ? 795 : holiday ? 780 : -1          // minutes after midnight of the halt (13:15 / 13:00)
+int flatMin  = earlyMin > 0 ? earlyMin - 10 : 960          // the close at which everything is flattened
+
+// ================================ DAY STATE ================================
+var int   curDay       = na      // dayKey of the cash day in progress (set by its 09:30 bar)
+var float o930         = na      // today's 09:30 open
+var float pdc          = na      // close of the last 09:30-16:00 bar of the previous cash day
+var float lastRthClose = na
+var int   state        = 0       // 0 flat, 1 long, -1 short (the rule's own state)
+var bool  flatDone     = false
+var float sPV          = 0.0     // VWAP sums since 09:30
+var float sV           = 0.0
+
+bool isOpenBar = oMin == 570
+if isOpenBar
+    pdc       := lastRthClose
+    o930      := open
+    curDay    := dayKey
+    state     := 0
+    flatDone  := false
+    sPV       := 0.0
+    sV        := 0.0
+
+bool inCash = not na(curDay) and curDay == dayKey and oMin >= 570 and oMin < 960
+if oMin >= 570 and oMin < 960
+    lastRthClose := close
+
+// ---- VWAP from 09:30: hlc3 x volume, summed from 1-minute bars where TradingView has them
+float[] pvArr = request.security_lower_tf(syminfo.tickerid, "1", hlc3 * volume)
+float[] vArr  = request.security_lower_tf(syminfo.tickerid, "1", volume)
+bool  has1m = array.size(vArr) > 0
+float barPV = has1m ? array.sum(pvArr) : hlc3 * volume
+float barV  = has1m ? array.sum(vArr) : volume
+if inCash
+    sPV += nz(barPV)
+    sV  += nz(barV)
+float vwap930 = inCash and sV > 0 ? sPV / sV : na
+
+// ================================ NOISE AVERAGE ================================
+// 12 decision closes a day: slot 0 = 10:00, slot 1 = 10:30 … slot 11 = 15:30. One ring of nDays values per slot.
+var float[] hist = array.new_float(12 * 60, na)
+var int[]   cnt  = array.new_int(12, 0)
+
+f_noise(int s) =>
+    float r = na
+    if s >= 0 and s < 12
+        if array.get(cnt, s) >= nDays
+            float sm = 0.0
+            for k = 0 to nDays - 1
+                sm += array.get(hist, s * 60 + k)
+            r := sm / nDays
+    r
+
+float hiRef = math.max(o930, pdc)
+float loRef = math.min(o930, pdc)
+
+bool isSlot = inCash and cMin >= 600 and cMin <= 930 and cMin % 30 == 0
+int  slot   = isSlot ? int((cMin - 600) / 30) : -1
+
+// boundaries for the NEXT half-hour close (what price has to close beyond); known from 09:30
+int   nextSlot = inCash and cMin <= 930 ? math.max(0, math.ceil((cMin - 600) / 30.0)) : -1
+float nNext    = f_noise(nextSlot)
+float upNext   = inCash and not na(pdc) ? hiRef * (1 + nNext) : na
+float loNext   = inCash and not na(pdc) ? loRef * (1 - nNext) : na
+
+// ================================ DECISIONS ================================
+bool inWindow   = time >= s_from and time <= s_to
+bool allowLong  = direction != "Short only"
+bool allowShort = direction != "Long only"
+bool oppMode    = exitMode == "Opposite boundary only"
+
+float nz0 = f_noise(slot)                                   // uses the previous nDays cash days only
+float up  = isSlot and not na(pdc) ? hiRef * (1 + nz0) : na
+float lw  = isSlot and not na(pdc) ? loRef * (1 - nz0) : na
+bool decide = isSlot and cMin < flatMin and not flatDone and not na(up) and not na(lw)
+
+string fmt = format.mintick
+if decide
+    float cl = close
+    bool xLong  = oppMode ? cl < lw : cl < math.max(up, vwap930)
+    bool xShort = oppMode ? cl > up : cl > math.min(lw, vwap930)
+    int newState = state
+    if state == 1
+        newState := xLong ? (cl < lw ? -1 : 0) : 1
+    else if state == -1
+        newState := xShort ? (cl > up ? 1 : 0) : -1
+    else
+        newState := cl > up ? 1 : cl < lw ? -1 : 0
+    if newState == 1 and not (allowLong and inWindow)
+        newState := 0
+    if newState == -1 and not (allowShort and inWindow)
+        newState := 0
+    if newState != state
+        string lv = "upper " + str.tostring(up, fmt) + " · lower " + str.tostring(lw, fmt) + " · VWAP " + str.tostring(vwap930, fmt)
+        if newState == 1
+            strategy.entry("L", strategy.long, qty = 1, comment = "L|E09|up:" + str.tostring(up, fmt) + "|vw:" + str.tostring(vwap930, fmt) + "|t:" + str.tostring(cMin))
+            if s_alerts
+                alert("E09 " + syminfo.ticker + (state == -1 ? " REVERSE to LONG" : " LONG") + " at the " + str.tostring(math.floor(cMin / 60)) + ":" + (cMin % 60 == 0 ? "00" : "30") + " close " + str.tostring(cl, fmt) + " · " + lv + " · no stop: exit at a half-hour close below max(upper, VWAP), or 16:00", alert.freq_once_per_bar_close)
+        else if newState == -1
+            strategy.entry("S", strategy.short, qty = 1, comment = "S|E09|lo:" + str.tostring(lw, fmt) + "|vw:" + str.tostring(vwap930, fmt) + "|t:" + str.tostring(cMin))
+            if s_alerts
+                alert("E09 " + syminfo.ticker + (state == 1 ? " REVERSE to SHORT" : " SHORT") + " at the " + str.tostring(math.floor(cMin / 60)) + ":" + (cMin % 60 == 0 ? "00" : "30") + " close " + str.tostring(cl, fmt) + " · " + lv + " · no stop: exit at a half-hour close above min(lower, VWAP), or 16:00", alert.freq_once_per_bar_close)
+        else
+            strategy.close_all(comment = "sig")
+            if s_alerts
+                alert("E09 " + syminfo.ticker + " EXIT " + (state == 1 ? "long" : "short") + " at the " + str.tostring(math.floor(cMin / 60)) + ":" + (cMin % 60 == 0 ? "00" : "30") + " close " + str.tostring(cl, fmt) + " · " + lv, alert.freq_once_per_bar_close)
+    state := newState
+
+// ---- record today's move at this slot AFTER the decision, so today is never in its own average
+if isSlot and o930 > 0
+    int c0 = array.get(cnt, slot)
+    array.set(hist, slot * 60 + (c0 % nDays), math.abs(close / o930 - 1))
+    array.set(cnt, slot, c0 + 1)
+
+// ---- flatten at 16:00, or 10 minutes before the halt on early-close days
+bool flatNow = inCash and not flatDone and cMin >= flatMin
+if flatNow
+    if state != 0 or strategy.position_size != 0
+        strategy.close_all(comment = earlyMin > 0 ? "early" : "time")
+        if s_alerts
+            alert("E09 " + syminfo.ticker + (earlyMin > 0 ? " EARLY CLOSE today: flatten now" : " FLATTEN at the close") + " · " + str.tostring(close, fmt), alert.freq_once_per_bar_close)
+    state    := 0
+    flatDone := true
+
+// safety: nothing may be carried outside the cash session
+if strategy.position_size != 0 and not inCash
+    strategy.close_all(comment = "time")
+    state := 0
+
+// ---- 09:30 message: today's reference prices (the boundaries follow from them)
+if isOpenBar and s_alerts and not na(pdc)
+    float n0 = f_noise(0)
+    alert("E09 " + syminfo.ticker + " 09:30 open " + str.tostring(o930, fmt) + " · previous close " + str.tostring(pdc, fmt) + (na(n0) ? " · noise average not ready (needs " + str.tostring(nDays) + " cash days of history)" : " · boundaries for the 10:00 close: upper " + str.tostring(hiRef * (1 + n0), fmt) + " / lower " + str.tostring(loRef * (1 - n0), fmt)), alert.freq_once_per_bar_close)
+
+// ================================ DRAWINGS ================================
+plot(v_bands ? upNext : na, "Upper boundary (next half-hour close)", color = color.new(color.teal, 0), linewidth = 2, style = plot.style_linebr)
+plot(v_bands ? loNext : na, "Lower boundary (next half-hour close)", color = color.new(color.red, 0), linewidth = 2, style = plot.style_linebr)
+plot(v_vwap ? vwap930 : na, "VWAP from 09:30", color = color.new(color.orange, 0), linewidth = 1, style = plot.style_linebr)
+plot(v_ref and inCash ? o930 : na, "09:30 open", color = color.new(color.gray, 30), style = plot.style_linebr)
+plot(v_ref and inCash ? pdc : na, "Previous cash close", color = color.new(color.gray, 60), style = plot.style_linebr)
+bgcolor(decide ? color.new(color.blue, 92) : na, title = "Decision bars")
+
+var table dbg = table.new(position.top_right, 2, 6, bgcolor = color.new(color.black, 70), border_width = 1)
+if v_table and barstate.islast
+    int ready = array.get(cnt, 0)
+    table.cell(dbg, 0, 0, "E09 v1.0", text_color = color.white, text_size = size.small)
+    table.cell(dbg, 1, 0, state == 1 ? "LONG" : state == -1 ? "SHORT" : "flat", text_color = state == 1 ? color.teal : state == -1 ? color.red : color.white, text_size = size.small)
+    table.cell(dbg, 0, 1, "next upper", text_color = color.white, text_size = size.small)
+    table.cell(dbg, 1, 1, na(upNext) ? "-" : str.tostring(upNext, fmt), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 2, "next lower", text_color = color.white, text_size = size.small)
+    table.cell(dbg, 1, 2, na(loNext) ? "-" : str.tostring(loNext, fmt), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 3, "VWAP 09:30", text_color = color.white, text_size = size.small)
+    table.cell(dbg, 1, 3, na(vwap930) ? "-" : str.tostring(vwap930, fmt), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 4, "noise days", text_color = color.white, text_size = size.small)
+    table.cell(dbg, 1, 4, str.tostring(math.min(ready, nDays)) + " / " + str.tostring(nDays) + (has1m ? " · 1m VWAP" : " · chart VWAP"), text_color = ready >= nDays ? color.white : color.orange, text_size = size.small)
+    table.cell(dbg, 0, 5, "closed trades", text_color = color.white, text_size = size.small)
+    table.cell(dbg, 1, 5, str.tostring(strategy.closedtrades) + " · net " + str.tostring(strategy.netprofit, "#"), text_color = color.white, text_size = size.small)
