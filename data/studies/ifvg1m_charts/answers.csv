@@ -1,0 +1,11 @@
+id,gap_is_mine,entry_is_mine,note
+ifvg1m_01,yes,yes,not the best; depends on the day's bias (valid if bias is long)
+ifvg1m_02,yes,yes,decent; would hesitate because of the doji candle before the entry
+ifvg1m_03,yes,yes,yes; would prefer it deeper in the 4H FVG
+ifvg1m_04,yes,yes,YES
+ifvg1m_05,no,no,no
+ifvg1m_06,yes,yes,decent; would hesitate because the 1m gap is a little far
+ifvg1m_07,yes,yes,YES; good low-resistance liquidity as targets; good sweep; inside an HTF FVG
+ifvg1m_08,no,no,not enough structure leading up to the inverse
+ifvg1m_09,yes,yes,yes; with a quick break-even because it looks about to tap a 5m FVG
+ifvg1m_10,yes,no,stop loss too big; my stop would be the 9:48 wick or the 9:49 open at the top

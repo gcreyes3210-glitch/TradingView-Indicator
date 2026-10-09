@@ -1,0 +1,7 @@
+run,n,net,R,win,pf,dd,pos_years,years,R_h1,R_h2,p,c_years,c_R,c_halves,c_neighbours,c_bonferroni,passes
+base,109,-960,-0.152,18.3,0.71,-1305,3,8,-0.235,-0.033,0.7758,False,False,False,True,False,False
+S5,91,-508,-0.072,18.7,0.81,-1475,2,8,-0.389,0.412,0.6259,False,False,False,False,False,False
+ET,91,-1648,-0.508,12.1,0.45,-2055,3,8,-0.546,-0.455,0.9976,False,False,False,True,False,False
+R3,172,-1773,-0.232,22.1,0.72,-2430,2,8,-0.292,-0.164,0.9723,False,False,False,True,False,False
+F,65,-383,-0.193,18.5,0.79,-936,3,8,-0.367,0.086,0.7792,False,False,False,True,False,False
+F+ET,56,-1677,-0.921,5.4,0.06,-1729,1,8,-0.817,-1.095,1.0,False,False,False,True,False,False

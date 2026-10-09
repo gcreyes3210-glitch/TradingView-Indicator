@@ -1,0 +1,4 @@
+filter,n_keep,R_keep,net_keep,n_skip,net_skip_is,net_skip_oos,p_random,skip_is_neg,skip_oos_neg,kept_R_higher,p_bonf,passes
+keep ES-confirm,707,0.073,9834,172,4822,6244,0.998,False,False,False,False,False
+keep ES-diverge,172,0.348,11066,707,661,9174,0.003,False,False,True,True,False
+keep top correlation tercile,292,0.005,160,587,8818,11922,0.979,False,False,False,False,False

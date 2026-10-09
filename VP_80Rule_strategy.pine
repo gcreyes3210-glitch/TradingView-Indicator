@@ -1,0 +1,339 @@
+//@version=5
+// =====================================================================================================
+//  VP 80 % Rule  ·  v2  (strategy + chart drawings in one file)
+//
+//  Idea (Market Profile / volume profile playbook):
+//    1. Build a volume profile over the PROFILE SESSION (default: CME open 18:00 ET -> RTH open 09:30 ET,
+//       i.e. Asia + London = "the previous two sessions").
+//    2. From it take the POC (price with the most volume), VAH and VAL (edges of the value area,
+//       default 70 % of the session volume around the POC).
+//    3. The 80 % rule (Dalton): when the RTH session OPENS outside the value area and price then comes
+//       back inside and is ACCEPTED there (N consecutive closes inside value), the odds favour a rotation
+//       through the whole value area to the far edge.
+//         open above VAH -> accepted back inside -> SHORT, target VAL
+//         open below VAL -> accepted back inside -> LONG,  target VAH
+//       Stop = the edge price came in through, plus a fraction of the value-area width.
+//       All thresholds are relative to the value-area width so the rule means the same at NQ 16k and 31k.
+//    4. Everything is flattened at the end of the trade window.
+//
+//  v1 (VP_ValueArea_strategy.pine) entered on the FIRST close back inside value toward the POC and lost
+//  consistently on NQ and ES. v2 waits for acceptance and targets the far edge, as the rule is written.
+//
+//  Backtest hygiene: every trade's entry comment carries a compact tag with the numbers that decide the
+//  trade (open location, excursion size, risk, reward:risk, value-area width) so the CSV export can be
+//  sliced without re-running anything.
+// =====================================================================================================
+strategy("VP 80% Rule [v2]", "VP-80 v2", overlay = true, pyramiding = 0,
+     default_qty_type = strategy.fixed, default_qty_value = 1, initial_capital = 25000,
+     commission_type = strategy.commission.cash_per_contract, commission_value = 1.0, slippage = 0,
+     calc_on_every_tick = false, process_orders_on_close = true, margin_long = 0, margin_short = 0,
+     max_lines_count = 500, max_boxes_count = 500, max_labels_count = 500)
+
+// ================================ 1 · PROFILE ================================
+grpP = "1 · Profile"
+tz        = input.string("America/New_York", "Session timezone", options = ["America/New_York", "America/Chicago", "America/Los_Angeles", "UTC", "Europe/London"], group = grpP, tooltip = "The two session inputs below are written in this timezone. Default New York: the CME day opens 18:00, the cash session opens 09:30.")
+profSess  = input.session("1800-0930", "Profile session (builds the value area)", group = grpP, tooltip = "Volume inside this session builds the profile. Default 1800-0930 = CME open to RTH open = Asia + London (the overnight profile). Set 0930-1600 to use the PREVIOUS RTH day's profile instead (Dalton's original 80 % rule). Whatever the session, the finished levels become active at the start of the next Trade window.")
+tradeSess = input.session("0930-1200", "Trade window (hold until)", group = grpP, tooltip = "Every position is closed when this window ends. Entries are allowed inside it only up to the end of the Entry window below.")
+entrySess = input.session("0930-1200", "Entry window", group = grpP, tooltip = "New trades are only opened inside this window. Set it shorter than the Trade window to enter in the morning but let the trade run into the afternoon.")
+rowTicks  = input.int(4, "Profile row size (ticks)", minval = 1, group = grpP, tooltip = "Height of one profile row in ticks. NQ tick = 0.25, so 4 ticks = 1 point per row.")
+vaPct     = input.float(70, "Value area (% of session volume)", minval = 50, maxval = 95, step = 5, group = grpP, tooltip = "The value area is the price band around the POC that holds this share of the session's volume. 70 % is the Market Profile standard.")
+showProf  = input.bool(true, "Draw the profile histogram", group = grpP, tooltip = "Draws the rows of the finished profile at the RTH open. Off = only the three lines.")
+showLines = input.bool(true, "Draw VAH / POC / VAL lines", group = grpP)
+useIntra  = input.bool(true, "Build the profile from 1-minute intrabars", group = grpP, tooltip = "On: each chart bar's volume is placed using its 1-minute sub-bars (much closer to a tick profile). Bars where TradingView supplies no intrabar data fall back to spreading the bar's volume over its own range. The debug table shows the coverage.")
+
+// ================================ 2 · SETUP ================================
+grpS = "2 · Setup (80 % rule)"
+acceptBars   = input.int(6, "Acceptance: consecutive closes inside value", minval = 1, group = grpS, tooltip = "Entry fires on the bar that completes this many consecutive closes inside the value area after price was outside it. 6 bars on a 5-minute chart = 30 minutes (Dalton uses two 30-minute periods = 12 bars).")
+openOnly     = input.bool(true, "Only when the RTH open is outside value", group = grpS, tooltip = "On: the rule as written - the 09:30 open must be above VAH or below VAL. Off: any excursion outside value during the trade window followed by acceptance also qualifies.")
+minOutVa     = input.float(0.0, "Min open distance outside value (x VA width, 0 = off)", minval = 0.0, step = 0.05, group = grpS, tooltip = "Open must be at least this many value-area widths beyond the edge. 0 = any open outside counts.")
+stopVaFrac   = input.float(0.25, "Stop beyond the edge (x VA width)", minval = 0.0, step = 0.05, group = grpS, tooltip = "Short stop = VAH + this fraction of the value-area width. Long stop = VAL - the same. 0.25 on an 80-point value area = 20 points beyond the edge.")
+tpMode       = input.string("Opposite edge", "Target", options = ["Opposite edge", "POC", "Fixed R"], group = grpS, tooltip = "Opposite edge = full value-area rotation (the 80 % rule's target). POC = half way. Fixed R = a multiple of the stop distance.")
+fixedRR      = input.float(1.0, "  Fixed R multiple", minval = 0.25, step = 0.25, group = grpS)
+minRR        = input.float(0.8, "Min reward:risk at entry", minval = 0.0, step = 0.1, group = grpS, tooltip = "Skip the trade if (entry -> target) / (entry -> stop) is below this at the acceptance close.")
+maxRiskVa    = input.float(1.0, "Max stop distance (x VA width, 0 = off)", minval = 0.0, step = 0.1, group = grpS, tooltip = "Skip the trade if the stop would be further than this many value-area widths from the entry.")
+onePerDay    = input.bool(true, "One trade per day", group = grpS)
+direction    = input.string("Both", "Trade direction", options = ["Both", "Long only", "Short only"], group = grpS)
+minVaTicks   = input.int(0, "Min value-area width (ticks, 0 = off)", minval = 0, group = grpS, tooltip = "Skip days whose value area is narrower than this.")
+
+// ================================ 3 · STRATEGY ================================
+grpX = "3 · Strategy (backtest only)"
+s_from   = input.time(timestamp("2020-01-01T00:00:00"), "Test window start", group = grpX)
+s_to     = input.time(timestamp("2030-01-01T00:00:00"), "Test window end", group = grpX)
+s_flat   = input.bool(true, "Flatten at the end of the trade window", group = grpX, tooltip = "Closes any open position on the first bar after the trade window (comment 'time').")
+showDbg  = input.bool(true, "Show debug table", group = grpX)
+s_alerts = input.bool(true, "Fire alert() messages (levels, open outside value, entries, exits)", group = grpX, tooltip = "Create one alert on this strategy with condition 'Any alert() function call'. You then get: the day's VAH/POC/VAL at 09:30, a heads-up when the open is outside value, the entry with stop and target, and the flatten.")
+
+// ================================ SESSION STATE ================================
+bool inProf  = not na(time(timeframe.period, profSess, tz))
+bool inTrade = not na(time(timeframe.period, tradeSess, tz))
+bool inEntry = inTrade and not na(time(timeframe.period, entrySess, tz))
+bool profStart = inProf and not inProf[1]
+bool profEnd   = (not inProf) and inProf[1]
+bool tradeEnd  = (not inTrade) and inTrade[1]
+float rowSize  = rowTicks * syminfo.mintick
+float tick     = syminfo.mintick
+
+// ================================ PROFILE ACCUMULATION ================================
+var array<float> rows = array.new_float()   // volume per row, row 0 = price rowLo
+var float rowLo = na                        // bottom price of row 0
+var float profVol = 0.0
+var int   barsProf = 0                      // chart bars that went into profiles
+var int   barsIntra = 0                     // ... of which had 1-minute intrabar data
+var int   dayBars = 0                       // bars in the CURRENT profile
+var int   dayIntra = 0                      // ... with intrabar data
+var int   lastDayCov = 0                    // coverage % of the last finished profile
+
+f_rowIdx(float px) => int(math.floor((px - rowLo) / rowSize + 1e-9))
+
+// 1-minute sub-bars of the current chart bar (empty arrays when unavailable)
+[ltfH, ltfL, ltfV] = request.security_lower_tf(syminfo.tickerid, "1", [high, low, volume])
+
+// add one (sub)bar's volume to the rows it touched, growing the row array as needed.
+// Returns the (possibly lowered) bottom price of row 0; the caller stores it (functions cannot assign globals).
+f_addBar(float lo0, float h, float l, float v) =>
+    float lo = lo0
+    int iLo = int(math.floor((l - lo) / rowSize + 1e-9))
+    if iLo < 0
+        for k = 1 to -iLo
+            array.unshift(rows, 0.0)
+        lo := lo + iLo * rowSize
+        iLo := 0
+    int iHi = int(math.floor((h - lo) / rowSize + 1e-9))
+    while array.size(rows) <= iHi
+        array.push(rows, 0.0)
+    int nb = iHi - iLo + 1
+    float share = nz(v) / nb
+    for k = iLo to iHi
+        array.set(rows, k, array.get(rows, k) + share)
+    lo
+
+if profStart
+    array.clear(rows)
+    rowLo := math.floor(low / rowSize) * rowSize
+    profVol := 0.0
+    dayBars := 0
+    dayIntra := 0
+
+if inProf and not na(rowLo)
+    barsProf += 1
+    dayBars += 1
+    if useIntra and array.size(ltfV) > 0
+        barsIntra += 1
+        dayIntra += 1
+        for k = 0 to array.size(ltfV) - 1
+            rowLo := f_addBar(rowLo, array.get(ltfH, k), array.get(ltfL, k), array.get(ltfV, k))
+            profVol += nz(array.get(ltfV, k))
+    else
+        rowLo := f_addBar(rowLo, high, low, volume)
+        profVol += nz(volume)
+
+// ================================ FINISHED PROFILE (today's levels) ================================
+var float vah = na
+var float val = na
+var float poc = na
+var int   pocIdx = na
+var int   vahIdx = na
+var int   valIdx = na
+var int   profEndBar = na
+var float pVah = na                         // levels of the last FINISHED profile, waiting for the next trade window
+var float pPoc = na
+var float pVal = na
+var int   activeBar = na                    // bar on which today's levels became active
+bool tradeStart = inTrade and not inTrade[1]
+var int   dayCount = 0
+var line  lnVah = na
+var line  lnPoc = na
+var line  lnVal = na
+var array<box> profBoxes = array.new<box>()
+
+if profEnd and array.size(rows) > 2 and profVol > 0
+    // POC = row with the most volume (lowest such row on ties)
+    int n = array.size(rows)
+    int ip = 0
+    float best = -1.0
+    for k = 0 to n - 1
+        float v = array.get(rows, k)
+        if v > best
+            best := v
+            ip := k
+    // value area: expand from the POC, adding the larger of the two rows above / two rows below
+    float target = profVol * vaPct / 100.0
+    float acc = best
+    int up = ip
+    int dn = ip
+    int guard = 0
+    while acc < target and (up < n - 1 or dn > 0) and guard < 5000
+        guard += 1
+        float aUp = up + 1 <= n - 1 ? array.get(rows, up + 1) + (up + 2 <= n - 1 ? array.get(rows, up + 2) : 0.0) : -1.0
+        float aDn = dn - 1 >= 0 ? array.get(rows, dn - 1) + (dn - 2 >= 0 ? array.get(rows, dn - 2) : 0.0) : -1.0
+        if aUp >= aDn and up < n - 1
+            int steps = math.min(2, n - 1 - up)
+            for k = 1 to steps
+                acc += array.get(rows, up + k)
+            up += steps
+        else if dn > 0
+            int steps = math.min(2, dn)
+            for k = 1 to steps
+                acc += array.get(rows, dn - k)
+            dn -= steps
+        else
+            break
+    pocIdx := ip
+    vahIdx := up
+    valIdx := dn
+    pPoc := rowLo + (ip + 0.5) * rowSize
+    pVah := rowLo + (up + 1) * rowSize
+    pVal := rowLo + dn * rowSize
+    profEndBar := bar_index
+    lastDayCov := dayBars > 0 ? int(math.round(100.0 * dayIntra / dayBars)) : 0
+    if showProf and n <= 480
+        for b in profBoxes
+            box.delete(b)
+        array.clear(profBoxes)
+        int maxW = 40
+        for k = 0 to n - 1
+            float v = array.get(rows, k)
+            if v > 0
+                int w = math.max(1, int(math.round(v / best * maxW)))
+                bool inVa = k >= dn and k <= up
+                color c = k == ip ? color.new(color.yellow, 55) : inVa ? color.new(color.blue, 75) : color.new(color.gray, 85)
+                array.push(profBoxes, box.new(bar_index - w, rowLo + (k + 1) * rowSize, bar_index, rowLo + k * rowSize, border_color = na, bgcolor = c))
+
+// ---- the finished profile's levels become TODAY'S levels when the trade window opens
+if tradeStart and not na(pVah)
+    vah := pVah
+    poc := pPoc
+    val := pVal
+    activeBar := bar_index
+    dayCount += 1
+    if s_alerts
+        alert("VP80 " + syminfo.ticker + " levels: VAH " + str.tostring(vah, format.mintick) + " · POC " + str.tostring(poc, format.mintick) + " · VAL " + str.tostring(val, format.mintick) + " · open " + str.tostring(open, format.mintick) + (open > vah ? " ABOVE value → watch for a short after 6 closes inside" : open < val ? " BELOW value → watch for a long after 6 closes inside" : " inside value → no 80% setup today"), alert.freq_once_per_bar)
+    if showLines
+        lnVah := line.new(bar_index, vah, bar_index + 1, vah, color = color.new(color.orange, 0), width = 1)
+        lnPoc := line.new(bar_index, poc, bar_index + 1, poc, color = color.new(color.yellow, 0), width = 2)
+        lnVal := line.new(bar_index, val, bar_index + 1, val, color = color.new(color.orange, 0), width = 1)
+        label.new(bar_index, vah, "VAH " + str.tostring(vah, format.mintick), style = label.style_label_left, color = color.new(color.orange, 80), textcolor = color.white, size = size.tiny)
+        label.new(bar_index, poc, "POC " + str.tostring(poc, format.mintick), style = label.style_label_left, color = color.new(color.yellow, 80), textcolor = color.black, size = size.tiny)
+        label.new(bar_index, val, "VAL " + str.tostring(val, format.mintick), style = label.style_label_left, color = color.new(color.orange, 80), textcolor = color.white, size = size.tiny)
+
+// extend today's lines through the trade window
+if showLines and not na(lnVah) and inTrade
+    line.set_x2(lnVah, bar_index)
+    line.set_x2(lnPoc, bar_index)
+    line.set_x2(lnVal, bar_index)
+
+bool vaReady = not na(vah) and not na(val) and not na(poc) and not na(activeBar) and bar_index >= activeBar and inTrade
+
+// ================================ SETUP STATE (per day) ================================
+var string openLoc = "-"      // above / inside / below at the 09:30 open
+var int    outSide = 0        // +1 = price was outside ABOVE value (short candidate), -1 = below, 0 = none
+var int    accCount = 0       // consecutive closes inside value since the last time price was outside
+var int    tradesToday = 0
+var int    totSignals = 0
+var int    totSkipped = 0
+var string lastNote = "-"
+
+if tradeStart
+    openLoc := na(vah) ? "-" : open > vah ? "above" : open < val ? "below" : "inside"
+    outSide := 0
+    accCount := 0
+    tradesToday := 0
+    if vaReady
+        float w = vah - val
+        bool farEnough = minOutVa == 0 or (open > vah ? open - vah >= minOutVa * w : open < val ? val - open >= minOutVa * w : false)
+        outSide := openLoc == "above" and farEnough ? 1 : openLoc == "below" and farEnough ? -1 : 0
+
+bool insideVa = vaReady and close <= vah and close >= val
+if vaReady and inTrade
+    // (re)arm on any excursion outside value when the generalized mode is on
+    if not openOnly
+        if high > vah and outSide != 1
+            outSide := 1
+            accCount := 0
+        if low < val and outSide != -1
+            outSide := -1
+            accCount := 0
+    // acceptance count: consecutive closes inside value
+    if outSide != 0
+        accCount := insideVa ? accCount + 1 : 0
+
+// ================================ ENTRIES ================================
+bool inWindow = time >= s_from and time <= s_to
+bool flat = strategy.position_size == 0
+float vaW = vaReady ? vah - val : na
+
+f_tag(string side, float risk, float rr) =>
+    side + "|80|open:" + openLoc + "|acc:" + str.tostring(acceptBars) + "|risk:" + str.tostring(risk, "#.##") + "|rr:" + str.tostring(rr, "#.#") + "|va:" + str.tostring(vaW, "#") + "|h:" + str.tostring(hour(time, tz)) + "|m:" + str.tostring(minute(time, tz)) + "|cov:" + str.tostring(lastDayCov)
+
+bool okDirS = direction != "Long only"
+bool okDirL = direction != "Short only"
+bool okVa   = vaReady and (minVaTicks == 0 or vaW >= minVaTicks * tick)
+bool accepted = vaReady and inEntry and inWindow and flat and okVa and outSide != 0 and accCount == acceptBars and (not onePerDay or tradesToday == 0)
+
+if accepted and outSide == 1 and okDirS
+    float stopPx = vah + stopVaFrac * vaW
+    float risk = stopPx - close
+    float tpPx = tpMode == "Opposite edge" ? val : tpMode == "POC" ? poc : close - risk * fixedRR
+    float rr = (close - tpPx) / risk
+    bool okRisk = risk > 0 and (maxRiskVa == 0 or risk <= maxRiskVa * vaW)
+    if okRisk and rr >= minRR and tpPx < close
+        string tg = f_tag("S", risk, rr)
+        strategy.entry("S", strategy.short, qty = 1, comment = tg)
+        strategy.exit("xS", "S", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
+        if s_alerts
+            alert("VP80 " + syminfo.ticker + " SHORT accepted back inside value · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + str.tostring(tpPx, format.mintick) + " · risk " + str.tostring(risk, "#.##") + " pts · RR " + str.tostring(rr, "#.#"), alert.freq_once_per_bar)
+        totSignals += 1
+        lastNote := "SHORT " + tg
+    else
+        totSkipped += 1
+        lastNote := "short skipped: risk " + str.tostring(risk, "#.##") + " rr " + str.tostring(rr, "#.#")
+    tradesToday += 1
+    outSide := 0
+    accCount := 0
+
+if accepted and outSide == -1 and okDirL
+    float stopPx = val - stopVaFrac * vaW
+    float risk = close - stopPx
+    float tpPx = tpMode == "Opposite edge" ? vah : tpMode == "POC" ? poc : close + risk * fixedRR
+    float rr = (tpPx - close) / risk
+    bool okRisk = risk > 0 and (maxRiskVa == 0 or risk <= maxRiskVa * vaW)
+    if okRisk and rr >= minRR and tpPx > close
+        string tg = f_tag("L", risk, rr)
+        strategy.entry("L", strategy.long, qty = 1, comment = tg)
+        strategy.exit("xL", "L", stop = stopPx, limit = tpPx, comment_loss = "SL", comment_profit = "TP")
+        if s_alerts
+            alert("VP80 " + syminfo.ticker + " LONG accepted back inside value · entry " + str.tostring(close, format.mintick) + " · stop " + str.tostring(stopPx, format.mintick) + " · target " + str.tostring(tpPx, format.mintick) + " · risk " + str.tostring(risk, "#.##") + " pts · RR " + str.tostring(rr, "#.#"), alert.freq_once_per_bar)
+        totSignals += 1
+        lastNote := "LONG " + tg
+    else
+        totSkipped += 1
+        lastNote := "long skipped: risk " + str.tostring(risk, "#.##") + " rr " + str.tostring(rr, "#.#")
+    tradesToday += 1
+    outSide := 0
+    accCount := 0
+
+// flatten at the end of the window
+if s_flat and tradeEnd and strategy.position_size != 0
+    strategy.close_all(comment = "time")
+    if s_alerts
+        alert("VP80 " + syminfo.ticker + " end of trade window: flatten at market", alert.freq_once_per_bar)
+
+// ================================ VISUALS ================================
+plotshape(inTrade and not inTrade[1], "trade window start", shape.flag, location.top, color = color.new(color.aqua, 40), size = size.tiny)
+bgcolor(inTrade ? color.new(color.aqua, 96) : na)
+
+// ================================ DEBUG ================================
+var table dbg = table.new(position.bottom_left, 2, 6, bgcolor = color.new(color.black, 20), border_width = 1)
+if showDbg and barstate.islast
+    table.cell(dbg, 0, 0, "Profile session", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 0, profSess + " " + tz + " · rows " + str.tostring(array.size(rows)) + " · days " + str.tostring(dayCount) + " · 1m coverage " + str.tostring(barsProf > 0 ? 100.0 * barsIntra / barsProf : 0, "#") + "%", text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 1, "Today's levels", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 1, vaReady ? "VAH " + str.tostring(vah, format.mintick) + " · POC " + str.tostring(poc, format.mintick) + " · VAL " + str.tostring(val, format.mintick) + " · width " + str.tostring(vaW, "#.#") : "profile still building", text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 2, "Setup state", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 2, "open " + openLoc + " · outside " + (outSide == 1 ? "above" : outSide == -1 ? "below" : "none") + " · accepted closes " + str.tostring(accCount) + "/" + str.tostring(acceptBars) + " · trades today " + str.tostring(tradesToday), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 3, "Last", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 3, lastNote, text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 4, "Totals", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 4, "signals " + str.tostring(totSignals) + " · skipped (rr / risk) " + str.tostring(totSkipped) + " · closed " + str.tostring(strategy.closedtrades) + " · open " + str.tostring(strategy.opentrades) + " · equity " + str.tostring(strategy.equity, "#.##"), text_color = color.white, text_size = size.small)
+    table.cell(dbg, 0, 5, "Window", text_color = color.gray, text_size = size.small)
+    table.cell(dbg, 1, 5, (inTrade ? "TRADE WINDOW OPEN" : inProf ? "building profile" : "outside both sessions"), text_color = inTrade ? color.aqua : color.white, text_size = size.small)

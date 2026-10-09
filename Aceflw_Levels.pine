@@ -1,0 +1,279 @@
+//@version=5
+// =====================================================================================================
+//  Session Levels  ·  v1   (indicator, overlay)
+//
+//  The Aceflw-style level set, drawn on a TradingView chart so it can sit next to the ORB strategy:
+//    1. Overnight volume profile (18:00 -> 09:30 NY): VAH / POC / VAL, built from 1-minute intrabars.
+//    2. Overnight high / low.
+//    3. Session VWAP with +/-1 and +/-2 sigma bands (volume-weighted standard deviation from the anchor).
+//    4. Expected-move bands, Aceflw style: "block-locked, static per CME block". Centred on the price at the start
+//       of each block (default two-hour blocks from 18:00) and frozen. Aceflw draws an IV band (implied vol) and an
+//       HV band (realised vol). Pine has no options feed, so both are realised here (or typed in manually); the
+//       orange HV band is the one that can be reproduced faithfully.
+//    5. Cumulative session delta (up-volume minus down-volume, classified from 1-minute bars) in the corner table.
+//  Not possible in Pine: bid/ask footprint cells, options levels (Vol Trigger, Call Wall, gamma).
+// =====================================================================================================
+indicator("Session Levels (ONVP · VWAP σ · expected move)", "Levels", overlay = true, max_lines_count = 500, max_labels_count = 200, max_boxes_count = 500)
+
+// ================================ INPUTS ================================
+g1 = "1 · Sessions"
+tz       = input.string("America/New_York", "Timezone", options = ["America/New_York", "America/Chicago", "America/Los_Angeles", "UTC", "Europe/London"], group = g1)
+onSess   = input.session("1800-0930", "Overnight session (profile + high/low)", group = g1)
+rthSess  = input.session("0930-1600", "Cash session (VWAP / expected-move anchor option)", group = g1)
+fullSess = input.session("1800-1700", "Full session (VWAP anchor / expected-move anchor)", group = g1, tooltip = "The CME day. VWAP resets and the expected-move centre is set at the start of this session (18:00 NY).")
+
+g2 = "2 · Overnight volume profile"
+showProf = input.bool(true, "Draw ONVP VAH / POC / VAL", group = g2)
+showHist = input.bool(false, "Draw the profile histogram", group = g2)
+rowTicks = input.int(4, "Row size (ticks)", minval = 1, group = g2)
+vaPct    = input.float(70, "Value area %", minval = 50, maxval = 95, step = 5, group = g2)
+useIntra = input.bool(true, "Build from 1-minute intrabars", group = g2)
+showOnHL = input.bool(true, "Draw overnight high / low", group = g2)
+
+g3 = "3 · VWAP bands"
+showVwap = input.bool(true, "Draw VWAP with sigma bands", group = g3)
+vwapAnch = input.string("Full session (18:00)", "VWAP anchor", options = ["Full session (18:00)", "Cash open (09:30)"], group = g3)
+vwSig1   = input.float(1.0, "Band 1 (sigma)", step = 0.5, group = g3)
+vwSig2   = input.float(2.0, "Band 2 (sigma)", step = 0.5, group = g3)
+
+g4 = "4 · Expected-move bands (realised vol)"
+showEm   = input.bool(true, "Draw expected-move bands", group = g4)
+emAnchors = input.string("1800,2000,2200,0000,0200,0400,0600,0800,1000,1200,1400", "Block start times (HHMM in the timezone, comma-separated)", group = g4, tooltip = "Aceflw's sigma bands are 'block-locked expected-move bands, static per CME block': centred on the price at the start of each block and frozen. Default = two-hour blocks from the 18:00 CME open. If Aceflw's blocks start at other times, list them here.")
+emSrc    = input.string("Realised volatility", "Sigma source", options = ["Realised volatility", "Manual (points)"], group = g4, tooltip = "Manual: type the 1-sigma values Aceflw shows for the day (short and long) and the bands are drawn from the same centre with those widths.")
+emMan1   = input.float(27.0, "  Manual 1σ short (points)", minval = 0.1, step = 0.1, group = g4)
+emMan2   = input.float(38.0, "  Manual 1σ long (points)", minval = 0.1, step = 0.1, group = g4)
+emLook   = input.int(10, "Volatility lookback (days)", minval = 2, maxval = 60, group = g4, tooltip = "Standard deviation of bar-to-bar log returns over this many days of bars, scaled to the horizon.")
+emH1     = input.int(120, "Short horizon (minutes) = block length", minval = 5, group = g4, tooltip = "Cyan band. Aceflw's cyan band is IMPLIED vol for the block, which Pine cannot get; this realised-vol version is a stand-in. Use the manual sigma source to type Aceflw's value.")
+emH2     = input.int(120, "Long horizon (minutes) = block length", minval = 5, group = g4, tooltip = "Orange band = Aceflw's HV (historical / realised vol) band for the block. Same block length; the two bands differ only by the volatility source.")
+emShow2  = input.bool(true, "Also draw the 2-sigma lines", group = g4)
+
+g5 = "5 · Table"
+showTbl  = input.bool(true, "Show the levels table", group = g5)
+
+// ================================ SESSION STATE ================================
+bool inON   = not na(time(timeframe.period, onSess, tz))
+bool inRth  = not na(time(timeframe.period, rthSess, tz))
+bool onStart  = inON and not inON[1]
+bool onEnd    = (not inON) and inON[1]
+bool rthStart = inRth and not inRth[1]
+// the full CME day has no gap in the bars (the 17:00-18:00 break has no bars), so time(session) never
+// switches off and "session start" has to come from the clock: first bar at or after the opening time.
+int openMin = int(str.tonumber(str.substring(fullSess, 0, 2))) * 60 + int(str.tonumber(str.substring(fullSess, 2, 4)))
+int mod = hour(time, tz) * 60 + minute(time, tz)
+bool fullStart = mod >= openMin and (na(mod[1]) or mod[1] < openMin or mod[1] > mod)
+float rowSize = rowTicks * syminfo.mintick
+int barMin = timeframe.isseconds ? 1 : timeframe.isminutes ? timeframe.multiplier : timeframe.isdaily ? 1440 : 1440
+
+// ================================ 1 · OVERNIGHT PROFILE ================================
+var array<float> rows = array.new_float()
+var float rowLo = na
+var float profVol = 0.0
+[ltfH, ltfL, ltfV] = request.security_lower_tf(syminfo.tickerid, "1", [high, low, volume])
+
+f_addBar(float lo0, float h, float l, float v) =>
+    float lo = lo0
+    int iLo = int(math.floor((l - lo) / rowSize + 1e-9))
+    if iLo < 0
+        for k = 1 to -iLo
+            array.unshift(rows, 0.0)
+        lo := lo + iLo * rowSize
+        iLo := 0
+    int iHi = int(math.floor((h - lo) / rowSize + 1e-9))
+    while array.size(rows) <= iHi
+        array.push(rows, 0.0)
+    float share = nz(v) / (iHi - iLo + 1)
+    for k = iLo to iHi
+        array.set(rows, k, array.get(rows, k) + share)
+    lo
+
+if onStart
+    array.clear(rows)
+    rowLo := math.floor(low / rowSize) * rowSize
+    profVol := 0.0
+if inON and not na(rowLo)
+    if useIntra and array.size(ltfV) > 0
+        for k = 0 to array.size(ltfV) - 1
+            rowLo := f_addBar(rowLo, array.get(ltfH, k), array.get(ltfL, k), array.get(ltfV, k))
+            profVol += nz(array.get(ltfV, k))
+    else
+        rowLo := f_addBar(rowLo, high, low, volume)
+        profVol += nz(volume)
+
+var float vah = na
+var float poc = na
+var float val = na
+var float onH = na
+var float onL = na
+var float bH = na
+var float bL = na
+var array<box> profBoxes = array.new<box>()
+if inON
+    bH := inON[1] ? math.max(bH, high) : high
+    bL := inON[1] ? math.min(bL, low) : low
+
+if onEnd and array.size(rows) > 2 and profVol > 0
+    int n = array.size(rows)
+    int ip = 0
+    float best = -1.0
+    for k = 0 to n - 1
+        if array.get(rows, k) > best
+            best := array.get(rows, k)
+            ip := k
+    float target = profVol * vaPct / 100.0
+    float acc = best
+    int up = ip
+    int dn = ip
+    int guard = 0
+    while acc < target and (up < n - 1 or dn > 0) and guard < 5000
+        guard += 1
+        float aUp = up + 1 <= n - 1 ? array.get(rows, up + 1) + (up + 2 <= n - 1 ? array.get(rows, up + 2) : 0.0) : -1.0
+        float aDn = dn - 1 >= 0 ? array.get(rows, dn - 1) + (dn - 2 >= 0 ? array.get(rows, dn - 2) : 0.0) : -1.0
+        if aUp >= aDn and up < n - 1
+            int steps = math.min(2, n - 1 - up)
+            for k = 1 to steps
+                acc += array.get(rows, up + k)
+            up += steps
+        else if dn > 0
+            int steps = math.min(2, dn)
+            for k = 1 to steps
+                acc += array.get(rows, dn - k)
+            dn -= steps
+        else
+            break
+    poc := rowLo + (ip + 0.5) * rowSize
+    vah := rowLo + (up + 1) * rowSize
+    val := rowLo + dn * rowSize
+    onH := bH
+    onL := bL
+    if showHist and n <= 480
+        for b in profBoxes
+            box.delete(b)
+        array.clear(profBoxes)
+        for k = 0 to n - 1
+            float v = array.get(rows, k)
+            if v > 0
+                int w = math.max(1, int(math.round(v / best * 40)))
+                color c = k == ip ? color.new(color.yellow, 55) : (k >= dn and k <= up) ? color.new(color.blue, 75) : color.new(color.gray, 85)
+                array.push(profBoxes, box.new(bar_index - w, rowLo + (k + 1) * rowSize, bar_index, rowLo + k * rowSize, border_color = na, bgcolor = c))
+
+// Levels are plotted as series that hold their value from the bar the profile finishes (09:30) until the next
+// profile replaces them. On the replacement bar the plot outputs na so the change is a break, not a vertical line.
+// Plots also show their current value on the price scale, like Aceflw's axis labels.
+bool lvlBreak = onEnd
+plot(showProf and not lvlBreak ? vah : na, "ONVP VAH", color.new(color.blue, 0), 1, plot.style_linebr)
+plot(showProf and not lvlBreak ? poc : na, "POC", color.new(color.yellow, 0), 2, plot.style_linebr)
+plot(showProf and not lvlBreak ? val : na, "ONVP VAL", color.new(color.blue, 0), 1, plot.style_linebr)
+plot(showOnHL and not lvlBreak ? onH : na, "OVN HIGH", color.new(color.white, 30), 1, plot.style_linebr)
+plot(showOnHL and not lvlBreak ? onL : na, "OVN LOW", color.new(color.white, 30), 1, plot.style_linebr)
+
+// one label per level, moved to the last bar
+var label bVah = label.new(na, na, "", style = label.style_label_left, color = color.new(color.blue, 75), textcolor = color.white, size = size.tiny)
+var label bPoc = label.new(na, na, "", style = label.style_label_left, color = color.new(color.orange, 75), textcolor = color.white, size = size.tiny)
+var label bVal = label.new(na, na, "", style = label.style_label_left, color = color.new(color.blue, 75), textcolor = color.white, size = size.tiny)
+var label bOnH = label.new(na, na, "", style = label.style_label_left, color = color.new(color.gray, 75), textcolor = color.white, size = size.tiny)
+var label bOnL = label.new(na, na, "", style = label.style_label_left, color = color.new(color.gray, 75), textcolor = color.white, size = size.tiny)
+f_lbl(label lb, bool on, string txt, float y) =>
+    if barstate.islast
+        label.set_xy(lb, bar_index, on ? y : na)
+        label.set_text(lb, txt + " " + str.tostring(y, format.mintick))
+f_lbl(bVah, showProf, "ONVP VAH", vah)
+f_lbl(bPoc, showProf, "POC", poc)
+f_lbl(bVal, showProf, "ONVP VAL", val)
+f_lbl(bOnH, showOnHL, "OVN HIGH", onH)
+f_lbl(bOnL, showOnHL, "OVN LOW", onL)
+
+// ================================ 3 · VWAP WITH SIGMA BANDS ================================
+bool vwReset = vwapAnch == "Full session (18:00)" ? fullStart : rthStart
+var float sPV = 0.0
+var float sV = 0.0
+var float sPPV = 0.0
+if vwReset
+    sPV := 0.0
+    sV := 0.0
+    sPPV := 0.0
+sPV += hlc3 * volume
+sV += volume
+sPPV += hlc3 * hlc3 * volume
+float vwap = sV > 0 ? sPV / sV : na
+float vwVar = sV > 0 ? math.max(sPPV / sV - vwap * vwap, 0.0) : na
+float vwSd = math.sqrt(vwVar)
+bool vwOn = showVwap and not vwReset          // na on the reset bar: no vertical join between sessions
+plot(vwOn ? vwap : na, "VWAP", color.new(color.purple, 0), 2, plot.style_linebr)
+plot(vwOn ? vwap + vwSig1 * vwSd : na, "VWAP +1σ", color.new(color.purple, 40), 1, plot.style_linebr)
+plot(vwOn ? vwap - vwSig1 * vwSd : na, "VWAP -1σ", color.new(color.purple, 40), 1, plot.style_linebr)
+plot(vwOn ? vwap + vwSig2 * vwSd : na, "VWAP +2σ", color.new(color.purple, 60), 1, plot.style_circles)
+plot(vwOn ? vwap - vwSig2 * vwSd : na, "VWAP -2σ", color.new(color.purple, 60), 1, plot.style_circles)
+
+// ================================ 4 · EXPECTED-MOVE BANDS ================================
+// re-anchor on the first bar at or after any listed time (the clock, since sessions may have no bar gap)
+var array<int> anchMins = array.new_int()
+if barstate.isfirst
+    string[] parts = str.split(emAnchors, ",")
+    for prt in parts
+        string q = str.trim(prt)
+        if str.length(q) == 4
+            array.push(anchMins, int(str.tonumber(str.substring(q, 0, 2))) * 60 + int(str.tonumber(str.substring(q, 2, 4))))
+f_crossed(int m0, int m1, int a) =>
+    // did the clock pass anchor a between the previous bar (m0) and this bar (m1)? handles the midnight wrap
+    m1 >= a and (na(m0) or m0 < a or m0 > m1) or (m0 > m1 and a <= m1)
+bool emReset = false
+for a in anchMins
+    if f_crossed(mod[1], mod, a)
+        emReset := true
+int lookBars = math.max(20, int(emLook * 1380 / barMin))   // ~1380 traded minutes per CME day
+float r = math.log(close / close[1])
+float sdBar = ta.stdev(r, math.min(lookBars, 5000))         // per-bar return sigma
+var float emC = na
+var float emS1 = na
+var float emS2 = na
+if emReset
+    emC := open
+    emS1 := emSrc == "Manual (points)" ? emMan1 : emC * sdBar * math.sqrt(emH1 / barMin)
+    emS2 := emSrc == "Manual (points)" ? emMan2 : emC * sdBar * math.sqrt(emH2 / barMin)
+bool emOn = showEm and not na(emC) and not emReset   // na on the reset bar: no vertical join
+plot(emOn ? emC + emS1 : na, "EM short +1σ", color.new(color.aqua, 30), 1, plot.style_linebr)
+plot(emOn ? emC - emS1 : na, "EM short -1σ", color.new(color.aqua, 30), 1, plot.style_linebr)
+plot(emOn and emShow2 ? emC + 2 * emS1 : na, "EM short +2σ", color.new(color.aqua, 60), 1, plot.style_linebr)
+plot(emOn and emShow2 ? emC - 2 * emS1 : na, "EM short -2σ", color.new(color.aqua, 60), 1, plot.style_linebr)
+plot(emOn ? emC + emS2 : na, "EM long +1σ", color.new(color.orange, 30), 1, plot.style_linebr)
+plot(emOn ? emC - emS2 : na, "EM long -1σ", color.new(color.orange, 30), 1, plot.style_linebr)
+plot(emOn and emShow2 ? emC + 2 * emS2 : na, "EM long +2σ", color.new(color.orange, 60), 1, plot.style_linebr)
+plot(emOn and emShow2 ? emC - 2 * emS2 : na, "EM long -2σ", color.new(color.orange, 60), 1, plot.style_linebr)
+
+// ================================ 5 · SESSION DELTA ================================
+// up/down volume from 1-minute bars: a 1-minute bar's volume counts as buying when it closes above its open,
+// selling when below; a doji is split by where the close sits in the bar's range.
+[ltfO, ltfC] = request.security_lower_tf(syminfo.tickerid, "1", [open, close])
+float dV = 0.0
+if array.size(ltfV) > 0
+    for k = 0 to array.size(ltfV) - 1
+        float o = array.get(ltfO, k)
+        float c = array.get(ltfC, k)
+        float h = array.get(ltfH, k)
+        float l = array.get(ltfL, k)
+        float v = nz(array.get(ltfV, k))
+        dV += c > o ? v : c < o ? -v : (h > l ? v * (2 * (c - l) / (h - l) - 1) : 0.0)
+else
+    dV := close > open ? nz(volume) : close < open ? -nz(volume) : 0.0
+var float cumDelta = 0.0
+if fullStart
+    cumDelta := 0.0
+cumDelta += dV
+
+// ================================ TABLE ================================
+var table t = table.new(position.top_right, 2, 9, bgcolor = color.new(color.black, 30), border_width = 1)
+f_row(int i, string k, float v, color c) =>
+    table.cell(t, 0, i, k, text_color = color.gray, text_size = size.small, text_halign = text.align_left)
+    table.cell(t, 1, i, na(v) ? "-" : str.tostring(v, format.mintick), text_color = c, text_size = size.small, text_halign = text.align_right)
+if showTbl and barstate.islast
+    f_row(0, "OVN HIGH", onH, color.white)
+    f_row(1, "ONVP VAH", vah, color.new(color.blue, 0))
+    f_row(2, "POC", poc, color.yellow)
+    f_row(3, "ONVP VAL", val, color.new(color.blue, 0))
+    f_row(4, "OVN LOW", onL, color.white)
+    f_row(5, "VWAP", vwap, color.purple)
+    f_row(6, "VWAP σ", vwSd, color.purple)
+    f_row(7, "EM 1σ short / long", na, color.white)
+    table.cell(t, 1, 7, str.tostring(emS1, "#.#") + " / " + str.tostring(emS2, "#.#"), text_color = color.orange, text_size = size.small, text_halign = text.align_right)
+    table.cell(t, 0, 8, "Session delta", text_color = color.gray, text_size = size.small, text_halign = text.align_left)
+    table.cell(t, 1, 8, str.tostring(cumDelta, "#"), text_color = cumDelta >= 0 ? color.lime : color.red, text_size = size.small, text_halign = text.align_right)
