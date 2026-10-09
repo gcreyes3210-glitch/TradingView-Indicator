@@ -1,0 +1,7 @@
+3e973570f44d72541539d3bbb0a9386e155f333b868fd44cf3fb5a1ccdaafe17  tools/yt1/g8_signals.py
+bc0b7fd2ce86f88ec5da61503fffc63915fb94ca8a6c6fd613c03da6dc8e9490  tools/yt1/g8_grid.py
+d6173230f6eb2029e182b1bbaf2de80f5d6474d0d37cd3ade2e8a0b9007b5611  tools/yt1/s_G8.py
+6de50eaa9a5d0e7c74ee7fdac40fef818e10a3d80ab8d49e88a296bf980b3c04  tools/yt1/tt.py
+fdf25c6bb7f0666ca20e6dbcfc4c6497e242733ddb3bc8a7b798ab4085d254e1  data/studies/yt1/G8_selected.json
+aebeb4368d04fd7fb5ef51078c2e9319d7bcf04deda479d6197f9dcb04b17ca2  data/studies/yt1/is/G8_grid.csv
+YT5 in-sample grid, picks and reality check frozen 2026-10-09T15:37:03Z (bars cut at 2022-12-31 23:59 only); later bars not yet run

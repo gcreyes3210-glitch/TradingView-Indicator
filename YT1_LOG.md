@@ -307,3 +307,83 @@ trade built on it does not pay.
   entries are before 08:30.
 - G7: 192 of 630 in-sample confirmed raids have no fair value gap and are no trade.
 - Count of things tried, for the next batch: 53 (YT1) + 29 (YT2) + 1 (YT3) + 7 (YT4) = 90 rules, 14 + 13 claim checks.
+
+---
+# YT5 — combinations of TTrades confluences: 5,184-combination grid, searched on 2019–2022, picks tested on 2023–2026 (rules in `YT5_SPEC.md`, registered 2026-10-09)
+
+**Verdict: all five picks fail out of sample; no combination is a candidate.** The grid as a whole loses: of the
+624 combinations with at least 150 in-sample trades, 89 had a positive mean R in-sample, and the best of them is
+weaker than the best that many no-edge rules produce by luck (reality check p = 0.9995 in-sample, 0.9985 full span).
+Selection frozen before the later bars were run (`YT5_IS_STAMP.txt`); the in-sample grid rebuilt from the full-span
+signals reproduces the frozen n and net for all 5,184 combinations; the five picks reconcile to the cent with the
+standard runner; every pick and eight check combinations covering every confluence level passed the look-ahead test.
+Notes: `data/studies/yt1/notes/G8.md`.
+
+**Frame.** A CISD on 1-, 5- or 15-minute bars is the entry, in its own direction; stop beyond the protected low /
+high, target 2R, flat at the flat bar, the first qualifying signal of the day. Confluences switched on and off:
+window (08:30–11:00, 09:30–11:00, 10:00–11:00, 13:30–15:00), daily bias (any / continuation / failed run), entry in
+discount or premium of the previous day's range, entry under the daily open, a raid of the previous day's or the
+overnight low, a 1-hour or 4-hour candle 2 / 3 closure in the direction, SMT divergence with ES.
+
+## The five picks (ranked on 2019–2022, tested once on 2023–2026)
+
+| Pick | Combination | In-sample: trades, net $, R | Out of sample: trades, net $, R | p (OOS) | + years (OOS) | Neighbours R (OOS) | Verdict |
+|---|---|---|---|---|---|---|---|
+| 1 | 15m CISD, 13:30–15:00, entry above EQ, 4H closure | 314, +5,066, +0.113 | 297, −7,494, −0.105 | 0.95 | 0 / 4 | −0.096 / −0.038 | fails |
+| 2 | 15m CISD, 13:30–15:00, entry above EQ, 1H closure | 248, +3,626, +0.113 | 270, −2,124, −0.069 | 0.86 | 2 / 4 | −0.051 / −0.012 | fails |
+| 3 | 5m CISD, 09:30–11:00, entry in discount and under the daily open, 4H closure | 214, +3,824, +0.137 | 234, +2,415, +0.070 | 0.23 | 3 / 4 | +0.066 / +0.073 | fails (p) |
+| 4 | 15m CISD, 08:30–11:00, entry in discount and under the daily open, 4H closure | 152, +924, +0.143 | 159, +1,624, +0.058 | 0.28 | 3 / 4 | −0.018 / −0.048 | fails (p, neighbours) |
+| 5 | 15m CISD, 10:00–11:00, raid of the overnight low / high | 173, +2,941, +0.107 | 224, −2,656, −0.064 | 0.83 | 1 / 4 | −0.076 / −0.072 | fails |
+
+The combination with the most in-sample dollars (15m CISD, 13:30–15:00, 4H closure: 447 trades, +6,408 $) made
+−7,018 $ on 445 trades out of sample.
+
+Pick 3 is the only one that kept its sign with both neighbours: full span 448 trades, +6,239 $, +0.102 R, 6 of 8
+years, max drawdown −2,130 $, p 0.061. That is short of the candidate bar on the full span as well (p < 0.05), and it
+was the third-best of a searched grid, so it is logged as the nearest miss and nothing more.
+
+## The literal answer, in hindsight (top of 5,184 over the full span; this is selection, not evidence)
+
+| | Combination | Trades | Net $ | R / trade | t |
+|---|---|---|---|---|---|
+| Most dollars | 1m CISD, 08:30–11:00, raid of the previous day's low / high and close back inside | 741 | +8,085 | +0.066 | 1.26 |
+| 2nd | 5m CISD, 09:30–11:00, 4H closure | 1,456 | +7,274 | +0.054 | 1.49 |
+| 3rd | 5m CISD, 09:30–11:00, under the daily open, 4H closure | 625 | +6,793 | +0.072 | 1.31 |
+| Highest t | 15m CISD, 13:30–15:00, failed-run bias, entry above EQ | 213 | +1,426 | +0.159 | 1.96 |
+
+With 1,165 combinations of 150+ trades, the largest t expected from rules with no edge is about 2.9 (95 % of the
+time below 3.65). The observed 1.95 is well under that. +8,085 $ over 7.3 years on one micro contract is also less
+than half of what the YT1 candidates E09 (+21,238 $) and C19b (+18,001 $) showed, with a weaker t.
+
+## What the grid says about each confluence (average mean R over the combinations using it; description)
+
+| Confluence | Level | 2019–22 | 2023–26 |
+|---|---|---|---|
+| Trigger | 1m / 5m / 15m | −0.156 / −0.102 / −0.029 | −0.120 / −0.055 / −0.039 |
+| Window | am / open / sb / pm | −0.128 / −0.094 / −0.080 / −0.158 | −0.102 / −0.065 / −0.083 / −0.080 |
+| Daily bias | none / any / cont / fail | −0.095 / −0.138 / −0.132 / −0.154 | −0.067 / −0.097 / −0.126 / −0.068 |
+| EQ | none / discount / premium | −0.112 / −0.108 / −0.126 | −0.078 / −0.071 / −0.105 |
+| Daily open | none / under it | −0.112 / −0.120 | −0.076 / −0.099 |
+| Raid | none / previous day / overnight | −0.120 / −0.036 / −0.110 | −0.091 / −0.047 / −0.049 |
+| HTF closure | none / 1H / 4H | −0.126 / −0.108 / −0.096 | −0.071 / −0.104 / −0.098 |
+| SMT with ES | none / smt | −0.103 / −0.179 | −0.086 / −0.075 |
+
+- No level averages above zero in either half. Requiring the **daily bias** made the average worse in both halves.
+- The **previous-day raid** and the **15-minute trigger** were the least negative in both halves. The 1-minute trigger
+  is the worst: its stops are a few points, so one tick of slippage and the commission are a large share of R.
+- In-sample rank carried some information (Spearman +0.32 between in-sample and out-of-sample mean R; the in-sample
+  top 10 % averaged −0.014 R out of sample against −0.084 for all eligible), but it ranks "less negative", and the
+  top decile's average is still below zero.
+
+## Readings and limits
+
+- Exits were fixed (2R, protected-low stop, flat bar); targets at liquidity, partials and break-even moves were not
+  searched, to keep the grid from becoming an exit optimiser. Hand-marked zones (order blocks, weekly / daily fair
+  value gaps) are not in the grid.
+- Readings: SMT reference window 120 minutes; overnight low frozen at 08:29 for every window; higher-timeframe
+  candles are clock blocks, counted once complete; E and the previous-day raid are false on the third day after a roll
+  (16 traded days; the roll day and the day after are not traded at all).
+- The out-of-sample years had been run 90 times before on other rules, and the author had seen YT4's results when
+  writing the grid.
+- Count of things tried, for the next batch: 53 + 29 + 1 + 7 + 5 = 95 rules (plus this 5,184-combination in-sample
+  search), 27 claim checks.

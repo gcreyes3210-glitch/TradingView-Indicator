@@ -1,0 +1,24 @@
+{
+ "n_eligible": 1165,
+ "n_days": 1825,
+ "n_boot": 2000,
+ "seed": 1,
+ "statistic": "largest day-level t over the eligible combinations: sqrt(D) * mean / sd of the daily 2R R series (0 on days without a trade)",
+ "t_obs_max": 1.9470358015772091,
+ "t_obs_max_name": "T15.Wpm.Bfail.Eprem.Onone.Rnone.Hnone.Snone",
+ "t_trade_max": 1.9584559038206801,
+ "t_trade_max_name": "T15.Wpm.Bfail.Eprem.Onone.Rnone.Hnone.Snone",
+ "boot_max_t": {
+  "mean": 2.95343628545423,
+  "min": 1.7690714400532705,
+  "max": 4.916702225980663,
+  "q5": 2.330684466167223,
+  "q25": 2.672407107673553,
+  "q50": 2.9182597193221578,
+  "q75": 3.2065588395855182,
+  "q90": 3.488772921271812,
+  "q95": 3.6521657446719193,
+  "q99": 4.084926066658076
+ },
+ "p": 0.9985
+}

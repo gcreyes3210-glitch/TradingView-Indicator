@@ -116,3 +116,41 @@ def closure3(o, h, l, c):
     bull[2:] = (l[1:-1] < l[:-2]) & (l[2:] >= l[1:-1]) & (c[2:] > top[1:-1])
     bear[2:] = (h[1:-1] > h[:-2]) & (h[2:] <= h[1:-1]) & (c[2:] < bot[1:-1])
     return bull, bear
+
+
+def cisd_ex(o, h, l, c):
+    """cisd() plus where the run began (added for YT5; cisd() itself is unchanged).
+    Returns (bull, bear, prot_low, prot_high, start_bull, start_bear): start_bull[k] = index of the first candle of the
+    down-close run that the bullish CISD at bar k closes through (-1 where there is no signal); start_bear mirrors."""
+    n = len(o)
+    bull, bear = np.zeros(n, bool), np.zeros(n, bool)
+    plo, phi = np.full(n, np.nan), np.full(n, np.nan)
+    sb, ss = np.full(n, -1), np.full(n, -1)
+    d_open = d_low = u_open = u_high = np.nan
+    d_start = u_start = -1
+    in_d = in_u = d_pend = u_pend = False
+    for k in range(n):
+        down, up = c[k] < o[k], c[k] > o[k]
+        if down:
+            if not in_d:
+                d_open, d_low, in_d, d_pend, d_start = o[k], l[k], True, True, k
+            else:
+                d_low = min(d_low, l[k])
+        else:
+            in_d = False
+            if d_pend:
+                d_low = min(d_low, l[k])
+                if c[k] > d_open:
+                    bull[k], plo[k], sb[k], d_pend = True, d_low, d_start, False
+        if up:
+            if not in_u:
+                u_open, u_high, in_u, u_pend, u_start = o[k], h[k], True, True, k
+            else:
+                u_high = max(u_high, h[k])
+        else:
+            in_u = False
+            if u_pend:
+                u_high = max(u_high, h[k])
+                if c[k] < u_open:
+                    bear[k], phi[k], ss[k], u_pend = True, u_high, u_start, False
+    return bull, bear, plo, phi, sb, ss
