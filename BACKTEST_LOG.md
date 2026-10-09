@@ -1967,5 +1967,31 @@ Engine `tools/rdm.py`.
 - **The 2026-10-08 session is partial** (bars end 09:33).
 **Stopped here for the user's confirmation,** as the spec asks; no detection code has run.
 
+### RDM stage 2 — detection, unit tests, 10 trade charts (`python3 tools/rdm.py stage2`, 18 s)
+**Unit tests:** `python3 tests/test_rdm.py`, 9 hand-built checks, all pass.
+- pivots: strictness, a full right side;
+- SMT: bearish, bullish, none when both markets sweep, no look-ahead before pivot confirmation;
+- FVG in both directions;
+- zone touch, including zones not yet active;
+- a regression test for the bug below.
+
+**Coding error caught at the chart check, before anything was logged or reported:**
+- **Bug:** the SMT direction was mapped to the trade side the wrong way round (`side = -dd`). A bearish SMT, a sweep of a swing high, produced a long. The first chart showed it: the "swing low" drawn at 12:53 was a swing high, swept at 13:11.
+- **Fix:** `side = dd`, with the regression test added.
+- **Effect:** the corrected run finds fewer setups (175 → 56), because the inverse FVG now has to be in the move into the sweep in the right direction.
+
+**Baseline detection funnel (corrected), 2019-06 → 2026-10-07, roll days excluded:**
+- **Setups:** 56 complete setups (validated 1m + 5m SMT, RSMT, inverse-FVG trigger), 29 of them Grade A.
+- **Skips:** no untaken session level beyond TP1 6; final target < 2 R 6; no TP1 1.
+- **Trades:** **16 baseline trades on 16 days** (7 long, 9 short); 1 has a 15m SMT as well. The P&L is not computed for this stage.
+- **This is a very small sample:** about 2 trades a year. Whatever the report shows, 16 trades cannot separate a +0.3 R edge from chance.
+
+**Check charts:** `data/studies/rdm/charts/rdm_01 … rdm_10.png` (random, seed 11), key `charts_key.csv`, answers `answers.csv`.
+- **What each chart shows:** 1m NQ and ES cut at entry. The sweeping market's swing and the other market's corresponding high / low (dashed), the sweep bar, the zones active at the sweep (solid = touched by that market in the RSMT window), the 1m FVG that was inverted, the trigger close, the entry, the stop, TP1 and the final target.
+- **Spot-checked:** rdm_01 (2019-06-12 long: NQ sweeps 7,475.00, ES holds 2,879.50 and touches two sunrise zones NQ does not) and rdm_07 (2024-04-03 short: NQ takes 18,431.50, ES fails at 5,279.00) read as intended.
+- **One for the user to judge:** rdm_10 is 2025-07-04, Independence Day. That is a thin CME holiday session halting at 13:00, which the rules as registered do not exclude.
+
+**Stopped here for the user's check of the charts,** as the spec asks; no report has been written.
+
 ## Forward bias log
 From 2026-09-24: `data/forward/bias_log.csv` (date, bias long / short / none, confidence 1–3, note), one row per morning, committed before 09:30 New York. `python3 tools/bias_log.py` scores it, and it also prints at the end of the weekly `calibrate_orb.py` check. Each call is scored against the MNQ cash close-to-close direction (last 1m close before 16:00 against the previous day's). The report gives the hit rate against 50 % (one-sided binomial p), results by confidence, and the share of up days over the same dates (what "always long" would score). A row counts only if the git commit that last changed it is timestamped before 09:30 on its date: rows committed later, or never committed, are listed as late. Days whose two closes come from different contracts (roll) are not scored.
