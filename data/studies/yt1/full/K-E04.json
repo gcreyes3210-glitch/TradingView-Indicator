@@ -1,0 +1,217 @@
+{
+ "claim": "08:00-16:00 high and low on opposite sides of noon 72.81 %; PM makes the high after Q2 broke Q1's high only 82.12 %, the low mirror 72.42 % (both published conditional on the outcome)",
+ "span": "2019-06-03 -> 2026-10-07",
+ "counts": {
+  "days": 1897,
+  "missing_bars": 0,
+  "contract_change": 0,
+  "sessions": 1897,
+  "early_close_days": 64
+ },
+ "full_sessions": {
+  "sessions": 1833,
+  "split": {
+   "opposite_sides": 0.7234,
+   "both_in_am": 0.2259,
+   "both_in_pm": 0.0507,
+   "claimed": {
+    "opposite_sides": 0.7281,
+    "both_in_am": 0.2182,
+    "both_in_pm": 0.0537
+   }
+  },
+  "n_opposite": 1326,
+  "at_noon_unconditional": {
+   "high only": {
+    "n": 762,
+    "pm_makes_high": 0.6772,
+    "pm_makes_low": 0.1759,
+    "pm_makes_high_only": 0.6312,
+    "pm_makes_low_only": 0.1299,
+    "claimed_conditional_pm_high": 0.8212,
+    "claimed_conditional_pm_low": null
+   },
+   "low only": {
+    "n": 689,
+    "pm_makes_high": 0.2206,
+    "pm_makes_low": 0.5515,
+    "pm_makes_high_only": 0.18,
+    "pm_makes_low_only": 0.5109,
+    "claimed_conditional_pm_high": null,
+    "claimed_conditional_pm_low": 0.7242
+   },
+   "both": {
+    "n": 242,
+    "pm_makes_high": 0.5124,
+    "pm_makes_low": 0.3926,
+    "pm_makes_high_only": 0.4298,
+    "pm_makes_low_only": 0.3099,
+    "claimed_conditional_pm_high": 0.5415,
+    "claimed_conditional_pm_low": 0.4585
+   },
+   "neither": {
+    "n": 140,
+    "pm_makes_high": 0.35,
+    "pm_makes_low": 0.4429,
+    "pm_makes_high_only": 0.2786,
+    "pm_makes_low_only": 0.3714,
+    "claimed_conditional_pm_high": 0.4803,
+    "claimed_conditional_pm_low": 0.5197
+   }
+  },
+  "among_opposite_side_sessions": {
+   "high only": {
+    "n": 580,
+    "pm_sets_high": 0.8293,
+    "pm_sets_low": 0.1707,
+    "claimed_n": 794,
+    "claimed_pm_sets_high": 0.8212,
+    "claimed_pm_sets_low": null
+   },
+   "low only": {
+    "n": 476,
+    "pm_sets_high": 0.2605,
+    "pm_sets_low": 0.7395,
+    "claimed_n": 631,
+    "claimed_pm_sets_high": null,
+    "claimed_pm_sets_low": 0.7242
+   },
+   "both": {
+    "n": 179,
+    "pm_sets_high": 0.581,
+    "pm_sets_low": 0.419,
+    "claimed_n": 253,
+    "claimed_pm_sets_high": 0.5415,
+    "claimed_pm_sets_low": 0.4585
+   },
+   "neither": {
+    "n": 91,
+    "pm_sets_high": 0.4286,
+    "pm_sets_low": 0.5714,
+    "claimed_n": 127,
+    "claimed_pm_sets_high": 0.4803,
+    "claimed_pm_sets_low": 0.5197
+   }
+  },
+  "by_year_opposite_sides": {
+   "2019": {
+    "n": 145,
+    "share": 0.6414
+   },
+   "2020": {
+    "n": 251,
+    "share": 0.749
+   },
+   "2021": {
+    "n": 251,
+    "share": 0.7649
+   },
+   "2022": {
+    "n": 250,
+    "share": 0.724
+   },
+   "2023": {
+    "n": 248,
+    "share": 0.7339
+   },
+   "2024": {
+    "n": 249,
+    "share": 0.7309
+   },
+   "2025": {
+    "n": 247,
+    "share": 0.7126
+   },
+   "2026": {
+    "n": 192,
+    "share": 0.6875
+   }
+  }
+ },
+ "all_days": {
+  "sessions": 1897,
+  "split": {
+   "opposite_sides": 0.7132,
+   "both_in_am": 0.2377,
+   "both_in_pm": 0.049,
+   "claimed": {
+    "opposite_sides": 0.7281,
+    "both_in_am": 0.2182,
+    "both_in_pm": 0.0537
+   }
+  },
+  "n_opposite": 1353,
+  "at_noon_unconditional": {
+   "high only": {
+    "n": 789,
+    "pm_makes_high": 0.6717,
+    "pm_makes_low": 0.1698,
+    "pm_makes_high_only": 0.6274,
+    "pm_makes_low_only": 0.1255,
+    "claimed_conditional_pm_high": 0.8212,
+    "claimed_conditional_pm_low": null
+   },
+   "low only": {
+    "n": 708,
+    "pm_makes_high": 0.2147,
+    "pm_makes_low": 0.5452,
+    "pm_makes_high_only": 0.1751,
+    "pm_makes_low_only": 0.5056,
+    "claimed_conditional_pm_high": null,
+    "claimed_conditional_pm_low": 0.7242
+   },
+   "both": {
+    "n": 247,
+    "pm_makes_high": 0.5061,
+    "pm_makes_low": 0.3887,
+    "pm_makes_high_only": 0.4251,
+    "pm_makes_low_only": 0.3077,
+    "claimed_conditional_pm_high": 0.5415,
+    "claimed_conditional_pm_low": 0.4585
+   },
+   "neither": {
+    "n": 153,
+    "pm_makes_high": 0.3333,
+    "pm_makes_low": 0.4248,
+    "pm_makes_high_only": 0.268,
+    "pm_makes_low_only": 0.3595,
+    "claimed_conditional_pm_high": 0.4803,
+    "claimed_conditional_pm_low": 0.5197
+   }
+  },
+  "among_opposite_side_sessions": {
+   "high only": {
+    "n": 594,
+    "pm_sets_high": 0.8333,
+    "pm_sets_low": 0.1667,
+    "claimed_n": 794,
+    "claimed_pm_sets_high": 0.8212,
+    "claimed_pm_sets_low": null
+   },
+   "low only": {
+    "n": 482,
+    "pm_sets_high": 0.2573,
+    "pm_sets_low": 0.7427,
+    "claimed_n": 631,
+    "claimed_pm_sets_high": null,
+    "claimed_pm_sets_low": 0.7242
+   },
+   "both": {
+    "n": 181,
+    "pm_sets_high": 0.5801,
+    "pm_sets_low": 0.4199,
+    "claimed_n": 253,
+    "claimed_pm_sets_high": 0.5415,
+    "claimed_pm_sets_low": 0.4585
+   },
+   "neither": {
+    "n": 96,
+    "pm_sets_high": 0.4271,
+    "pm_sets_low": 0.5729,
+    "claimed_n": 127,
+    "claimed_pm_sets_high": 0.4803,
+    "claimed_pm_sets_low": 0.5197
+   }
+  }
+ }
+}

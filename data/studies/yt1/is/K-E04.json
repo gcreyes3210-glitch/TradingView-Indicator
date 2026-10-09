@@ -1,0 +1,201 @@
+{
+ "claim": "08:00-16:00 high and low on opposite sides of noon 72.81 %; PM makes the high after Q2 broke Q1's high only 82.12 %, the low mirror 72.42 % (both published conditional on the outcome)",
+ "span": "2019-06-03 -> 2022-12-30",
+ "counts": {
+  "days": 926,
+  "missing_bars": 0,
+  "contract_change": 0,
+  "sessions": 926,
+  "early_close_days": 29
+ },
+ "full_sessions": {
+  "sessions": 897,
+  "split": {
+   "opposite_sides": 0.7291,
+   "both_in_am": 0.2196,
+   "both_in_pm": 0.0513,
+   "claimed": {
+    "opposite_sides": 0.7281,
+    "both_in_am": 0.2182,
+    "both_in_pm": 0.0537
+   }
+  },
+  "n_opposite": 654,
+  "at_noon_unconditional": {
+   "high only": {
+    "n": 365,
+    "pm_makes_high": 0.6849,
+    "pm_makes_low": 0.1808,
+    "pm_makes_high_only": 0.6329,
+    "pm_makes_low_only": 0.1288,
+    "claimed_conditional_pm_high": 0.8212,
+    "claimed_conditional_pm_low": null
+   },
+   "low only": {
+    "n": 340,
+    "pm_makes_high": 0.2441,
+    "pm_makes_low": 0.5382,
+    "pm_makes_high_only": 0.2118,
+    "pm_makes_low_only": 0.5059,
+    "claimed_conditional_pm_high": null,
+    "claimed_conditional_pm_low": 0.7242
+   },
+   "both": {
+    "n": 119,
+    "pm_makes_high": 0.4874,
+    "pm_makes_low": 0.4034,
+    "pm_makes_high_only": 0.395,
+    "pm_makes_low_only": 0.3109,
+    "claimed_conditional_pm_high": 0.5415,
+    "claimed_conditional_pm_low": 0.4585
+   },
+   "neither": {
+    "n": 73,
+    "pm_makes_high": 0.3562,
+    "pm_makes_low": 0.4384,
+    "pm_makes_high_only": 0.2877,
+    "pm_makes_low_only": 0.3699,
+    "claimed_conditional_pm_high": 0.4803,
+    "claimed_conditional_pm_low": 0.5197
+   }
+  },
+  "among_opposite_side_sessions": {
+   "high only": {
+    "n": 278,
+    "pm_sets_high": 0.8309,
+    "pm_sets_low": 0.1691,
+    "claimed_n": 794,
+    "claimed_pm_sets_high": 0.8212,
+    "claimed_pm_sets_low": null
+   },
+   "low only": {
+    "n": 244,
+    "pm_sets_high": 0.2951,
+    "pm_sets_low": 0.7049,
+    "claimed_n": 631,
+    "claimed_pm_sets_high": null,
+    "claimed_pm_sets_low": 0.7242
+   },
+   "both": {
+    "n": 84,
+    "pm_sets_high": 0.5595,
+    "pm_sets_low": 0.4405,
+    "claimed_n": 253,
+    "claimed_pm_sets_high": 0.5415,
+    "claimed_pm_sets_low": 0.4585
+   },
+   "neither": {
+    "n": 48,
+    "pm_sets_high": 0.4375,
+    "pm_sets_low": 0.5625,
+    "claimed_n": 127,
+    "claimed_pm_sets_high": 0.4803,
+    "claimed_pm_sets_low": 0.5197
+   }
+  },
+  "by_year_opposite_sides": {
+   "2019": {
+    "n": 145,
+    "share": 0.6414
+   },
+   "2020": {
+    "n": 251,
+    "share": 0.749
+   },
+   "2021": {
+    "n": 251,
+    "share": 0.7649
+   },
+   "2022": {
+    "n": 250,
+    "share": 0.724
+   }
+  }
+ },
+ "all_days": {
+  "sessions": 926,
+  "split": {
+   "opposite_sides": 0.7235,
+   "both_in_am": 0.2268,
+   "both_in_pm": 0.0497,
+   "claimed": {
+    "opposite_sides": 0.7281,
+    "both_in_am": 0.2182,
+    "both_in_pm": 0.0537
+   }
+  },
+  "n_opposite": 670,
+  "at_noon_unconditional": {
+   "high only": {
+    "n": 379,
+    "pm_makes_high": 0.6781,
+    "pm_makes_low": 0.1741,
+    "pm_makes_high_only": 0.628,
+    "pm_makes_low_only": 0.124,
+    "claimed_conditional_pm_high": 0.8212,
+    "claimed_conditional_pm_low": null
+   },
+   "low only": {
+    "n": 348,
+    "pm_makes_high": 0.2385,
+    "pm_makes_low": 0.5374,
+    "pm_makes_high_only": 0.2069,
+    "pm_makes_low_only": 0.5057,
+    "claimed_conditional_pm_high": null,
+    "claimed_conditional_pm_low": 0.7242
+   },
+   "both": {
+    "n": 121,
+    "pm_makes_high": 0.4876,
+    "pm_makes_low": 0.405,
+    "pm_makes_high_only": 0.3967,
+    "pm_makes_low_only": 0.314,
+    "claimed_conditional_pm_high": 0.5415,
+    "claimed_conditional_pm_low": 0.4585
+   },
+   "neither": {
+    "n": 78,
+    "pm_makes_high": 0.3462,
+    "pm_makes_low": 0.4359,
+    "pm_makes_high_only": 0.2821,
+    "pm_makes_low_only": 0.3718,
+    "claimed_conditional_pm_high": 0.4803,
+    "claimed_conditional_pm_low": 0.5197
+   }
+  },
+  "among_opposite_side_sessions": {
+   "high only": {
+    "n": 285,
+    "pm_sets_high": 0.8351,
+    "pm_sets_low": 0.1649,
+    "claimed_n": 794,
+    "claimed_pm_sets_high": 0.8212,
+    "claimed_pm_sets_low": null
+   },
+   "low only": {
+    "n": 248,
+    "pm_sets_high": 0.2903,
+    "pm_sets_low": 0.7097,
+    "claimed_n": 631,
+    "claimed_pm_sets_high": null,
+    "claimed_pm_sets_low": 0.7242
+   },
+   "both": {
+    "n": 86,
+    "pm_sets_high": 0.5581,
+    "pm_sets_low": 0.4419,
+    "claimed_n": 253,
+    "claimed_pm_sets_high": 0.5415,
+    "claimed_pm_sets_low": 0.4585
+   },
+   "neither": {
+    "n": 51,
+    "pm_sets_high": 0.4314,
+    "pm_sets_low": 0.5686,
+    "claimed_n": 127,
+    "claimed_pm_sets_high": 0.4803,
+    "claimed_pm_sets_low": 0.5197
+   }
+  }
+ }
+}

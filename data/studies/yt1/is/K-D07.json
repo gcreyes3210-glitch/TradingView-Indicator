@@ -1,0 +1,184 @@
+{
+ "claim": "a new session high (low) with both buy and sell volume at the extreme price is traded through by 11:35 more often than one with volume on one side only",
+ "claimed": "no figure published; direction claimed: unfinished extremes are traded through more often than finished",
+ "span": "2019-06-03 -> 2022-12-30",
+ "footprint_days": 419,
+ "rate_is": "share of events whose extreme a later footprint bar of the day trades through (>= 1 tick)",
+ "highs": {
+  "events": 1837,
+  "unfinished": {
+   "n": 257,
+   "hits": 229,
+   "rate": 0.8911
+  },
+  "finished": {
+   "n": 1579,
+   "hits": 1341,
+   "rate": 0.8493
+  },
+  "other_one_sided": {
+   "n": 1,
+   "hits": 1,
+   "rate": 1.0
+  },
+  "all": {
+   "n": 1837,
+   "hits": 1571,
+   "rate": 0.8552
+  },
+  "difference_unfinished_minus_finished": 0.0418,
+  "claimed": "no figure published; direction claimed: unfinished extremes are traded through more often than finished"
+ },
+ "lows": {
+  "events": 1619,
+  "unfinished": {
+   "n": 206,
+   "hits": 173,
+   "rate": 0.8398
+  },
+  "finished": {
+   "n": 1411,
+   "hits": 1167,
+   "rate": 0.8271
+  },
+  "other_one_sided": {
+   "n": 2,
+   "hits": 2,
+   "rate": 1.0
+  },
+  "all": {
+   "n": 1619,
+   "hits": 1342,
+   "rate": 0.8289
+  },
+  "difference_unfinished_minus_finished": 0.0127,
+  "claimed": "no figure published; direction claimed: unfinished extremes are traded through more often than finished"
+ },
+ "pooled": {
+  "events": 3456,
+  "unfinished": {
+   "n": 463,
+   "hits": 402,
+   "rate": 0.8683
+  },
+  "finished": {
+   "n": 2990,
+   "hits": 2508,
+   "rate": 0.8388
+  },
+  "other_one_sided": {
+   "n": 3,
+   "hits": 3,
+   "rate": 1.0
+  },
+  "all": {
+   "n": 3456,
+   "hits": 2913,
+   "rate": 0.8429
+  },
+  "difference_unfinished_minus_finished": 0.0295,
+  "claimed": "no figure published; direction claimed: unfinished extremes are traded through more often than finished"
+ },
+ "by_year_pooled": {
+  "2019": {
+   "events": 387,
+   "unfinished": {
+    "n": 80,
+    "hits": 63,
+    "rate": 0.7875
+   },
+   "finished": {
+    "n": 307,
+    "hits": 260,
+    "rate": 0.8469
+   },
+   "other_one_sided": {
+    "n": 0,
+    "hits": 0,
+    "rate": null
+   },
+   "all": {
+    "n": 387,
+    "hits": 323,
+    "rate": 0.8346
+   },
+   "difference_unfinished_minus_finished": -0.0594,
+   "claimed": "no figure published; direction claimed: unfinished extremes are traded through more often than finished"
+  },
+  "2020": {
+   "events": 810,
+   "unfinished": {
+    "n": 110,
+    "hits": 95,
+    "rate": 0.8636
+   },
+   "finished": {
+    "n": 700,
+    "hits": 590,
+    "rate": 0.8429
+   },
+   "other_one_sided": {
+    "n": 0,
+    "hits": 0,
+    "rate": null
+   },
+   "all": {
+    "n": 810,
+    "hits": 685,
+    "rate": 0.8457
+   },
+   "difference_unfinished_minus_finished": 0.0207,
+   "claimed": "no figure published; direction claimed: unfinished extremes are traded through more often than finished"
+  },
+  "2021": {
+   "events": 1094,
+   "unfinished": {
+    "n": 152,
+    "hits": 136,
+    "rate": 0.8947
+   },
+   "finished": {
+    "n": 942,
+    "hits": 789,
+    "rate": 0.8376
+   },
+   "other_one_sided": {
+    "n": 0,
+    "hits": 0,
+    "rate": null
+   },
+   "all": {
+    "n": 1094,
+    "hits": 925,
+    "rate": 0.8455
+   },
+   "difference_unfinished_minus_finished": 0.0571,
+   "claimed": "no figure published; direction claimed: unfinished extremes are traded through more often than finished"
+  },
+  "2022": {
+   "events": 1165,
+   "unfinished": {
+    "n": 121,
+    "hits": 108,
+    "rate": 0.8926
+   },
+   "finished": {
+    "n": 1041,
+    "hits": 869,
+    "rate": 0.8348
+   },
+   "other_one_sided": {
+    "n": 3,
+    "hits": 3,
+    "rate": 1.0
+   },
+   "all": {
+    "n": 1165,
+    "hits": 980,
+    "rate": 0.8412
+   },
+   "difference_unfinished_minus_finished": 0.0578,
+   "claimed": "no figure published; direction claimed: unfinished extremes are traded through more often than finished"
+  }
+ }
+}

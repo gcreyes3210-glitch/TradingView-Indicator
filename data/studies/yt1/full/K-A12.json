@@ -1,0 +1,299 @@
+{
+ "claim": "the opening-range gap's midpoint trades: about 70 % (window not stated; both are measured)",
+ "span": "2019-06-03 -> 2026-10-07",
+ "cash_days": 1897,
+ "days_measured": 1802,
+ "days_left_out": {
+  "no_1614_bar_on_previous_cash_day": 64,
+  "contract_changed_between": 30
+ },
+ "short_days_measured": 52,
+ "median_abs_gap_pts": 61.12,
+ "median_abs_gap_pct": 0.4135,
+ "buckets_in_points": {
+  "under 20": {
+   "n": 336,
+   "share_0930_1000": 0.8869,
+   "share_by_1600": 0.9464,
+   "claimed": 0.7,
+   "premium": {
+    "n": 182,
+    "share_0930_1000": 0.8901,
+    "share_by_1600": 0.9451,
+    "claimed": 0.7
+   },
+   "discount": {
+    "n": 153,
+    "share_0930_1000": 0.8824,
+    "share_by_1600": 0.9477,
+    "claimed": 0.7
+   },
+   "median_gap_pts": 9.5
+  },
+  "20 to 75": {
+   "n": 691,
+   "share_0930_1000": 0.6845,
+   "share_by_1600": 0.8365,
+   "claimed": 0.7,
+   "premium": {
+    "n": 403,
+    "share_0930_1000": 0.6402,
+    "share_by_1600": 0.8015,
+    "claimed": 0.7
+   },
+   "discount": {
+    "n": 288,
+    "share_0930_1000": 0.7465,
+    "share_by_1600": 0.8854,
+    "claimed": 0.7
+   },
+   "median_gap_pts": 42.0
+  },
+  "75 to 120": {
+   "n": 302,
+   "share_0930_1000": 0.447,
+   "share_by_1600": 0.7351,
+   "claimed": 0.7,
+   "premium": {
+    "n": 175,
+    "share_0930_1000": 0.3943,
+    "share_by_1600": 0.6914,
+    "claimed": 0.7
+   },
+   "discount": {
+    "n": 127,
+    "share_0930_1000": 0.5197,
+    "share_by_1600": 0.7953,
+    "claimed": 0.7
+   },
+   "median_gap_pts": 95.12
+  },
+  "over 120": {
+   "n": 473,
+   "share_0930_1000": 0.2452,
+   "share_by_1600": 0.5624,
+   "claimed": 0.7,
+   "premium": {
+    "n": 250,
+    "share_0930_1000": 0.252,
+    "share_by_1600": 0.54,
+    "claimed": 0.7
+   },
+   "discount": {
+    "n": 223,
+    "share_0930_1000": 0.2377,
+    "share_by_1600": 0.5874,
+    "claimed": 0.7
+   },
+   "median_gap_pts": 187.75
+  },
+  "all from the lowest threshold up": {
+   "n": 1466,
+   "share_0930_1000": 0.4939,
+   "share_by_1600": 0.7271,
+   "claimed": 0.7
+  },
+  "all gaps": {
+   "n": 1802,
+   "share_0930_1000": 0.5671,
+   "share_by_1600": 0.768,
+   "claimed": 0.7
+  }
+ },
+ "buckets_as_pct_of_price": {
+  "thresholds_pct": [
+   0.0952,
+   0.3571,
+   0.5714
+  ],
+  "reference_level": 21000.0,
+  "under 20 pts at 21,000 = under 0.0952 %": {
+   "n": 239,
+   "share_0930_1000": 0.9205,
+   "share_by_1600": 0.9582,
+   "claimed": 0.7,
+   "premium": {
+    "n": 131,
+    "share_0930_1000": 0.9237,
+    "share_by_1600": 0.9542,
+    "claimed": 0.7
+   },
+   "discount": {
+    "n": 107,
+    "share_0930_1000": 0.9159,
+    "share_by_1600": 0.9626,
+    "claimed": 0.7
+   },
+   "median_gap_pts": 7.0
+  },
+  "20 to 75 pts at 21,000 = 0.0952 to 0.3571 %": {
+   "n": 573,
+   "share_0930_1000": 0.7661,
+   "share_by_1600": 0.8935,
+   "claimed": 0.7,
+   "premium": {
+    "n": 326,
+    "share_0930_1000": 0.7301,
+    "share_by_1600": 0.8773,
+    "claimed": 0.7
+   },
+   "discount": {
+    "n": 247,
+    "share_0930_1000": 0.8138,
+    "share_by_1600": 0.915,
+    "claimed": 0.7
+   },
+   "median_gap_pts": 32.25
+  },
+  "75 to 120 pts at 21,000 = 0.3571 to 0.5714 %": {
+   "n": 313,
+   "share_0930_1000": 0.5367,
+   "share_by_1600": 0.7796,
+   "claimed": 0.7,
+   "premium": {
+    "n": 179,
+    "share_0930_1000": 0.5028,
+    "share_by_1600": 0.7374,
+    "claimed": 0.7
+   },
+   "discount": {
+    "n": 134,
+    "share_0930_1000": 0.5821,
+    "share_by_1600": 0.8358,
+    "claimed": 0.7
+   },
+   "median_gap_pts": 69.0
+  },
+  "over 120 pts at 21,000 = over 0.5714 %": {
+   "n": 677,
+   "share_0930_1000": 0.288,
+   "share_by_1600": 0.5894,
+   "claimed": 0.7,
+   "premium": {
+    "n": 374,
+    "share_0930_1000": 0.2754,
+    "share_by_1600": 0.5561,
+    "claimed": 0.7
+   },
+   "discount": {
+    "n": 303,
+    "share_0930_1000": 0.3036,
+    "share_by_1600": 0.6304,
+    "claimed": 0.7
+   },
+   "median_gap_pts": 151.25
+  },
+  "all from the lowest threshold up": {
+   "n": 1563,
+   "share_0930_1000": 0.5131,
+   "share_by_1600": 0.739,
+   "claimed": 0.7
+  },
+  "all gaps": {
+   "n": 1802,
+   "share_0930_1000": 0.5671,
+   "share_by_1600": 0.768,
+   "claimed": 0.7
+  }
+ },
+ "by_year_20_to_75_points": {
+  "2019": {
+   "n": 71,
+   "share_0930_1000": 0.4085,
+   "share_by_1600": 0.6761,
+   "claimed": 0.7
+  },
+  "2020": {
+   "n": 101,
+   "share_0930_1000": 0.604,
+   "share_by_1600": 0.802,
+   "claimed": 0.7
+  },
+  "2021": {
+   "n": 106,
+   "share_0930_1000": 0.7642,
+   "share_by_1600": 0.8491,
+   "claimed": 0.7
+  },
+  "2022": {
+   "n": 83,
+   "share_0930_1000": 0.8313,
+   "share_by_1600": 0.9036,
+   "claimed": 0.7
+  },
+  "2023": {
+   "n": 109,
+   "share_0930_1000": 0.6147,
+   "share_by_1600": 0.8257,
+   "claimed": 0.7
+  },
+  "2024": {
+   "n": 92,
+   "share_0930_1000": 0.6848,
+   "share_by_1600": 0.8587,
+   "claimed": 0.7
+  },
+  "2025": {
+   "n": 82,
+   "share_0930_1000": 0.7927,
+   "share_by_1600": 0.9024,
+   "claimed": 0.7
+  },
+  "2026": {
+   "n": 47,
+   "share_0930_1000": 0.8085,
+   "share_by_1600": 0.8723,
+   "claimed": 0.7
+  }
+ },
+ "by_year_20_to_75_as_pct": {
+  "2019": {
+   "n": 56,
+   "share_0930_1000": 0.7143,
+   "share_by_1600": 0.9286,
+   "claimed": 0.7
+  },
+  "2020": {
+   "n": 60,
+   "share_0930_1000": 0.85,
+   "share_by_1600": 0.9,
+   "claimed": 0.7
+  },
+  "2021": {
+   "n": 88,
+   "share_0930_1000": 0.7955,
+   "share_by_1600": 0.8636,
+   "claimed": 0.7
+  },
+  "2022": {
+   "n": 56,
+   "share_0930_1000": 0.8571,
+   "share_by_1600": 0.9107,
+   "claimed": 0.7
+  },
+  "2023": {
+   "n": 83,
+   "share_0930_1000": 0.7108,
+   "share_by_1600": 0.8795,
+   "claimed": 0.7
+  },
+  "2024": {
+   "n": 92,
+   "share_0930_1000": 0.7065,
+   "share_by_1600": 0.8804,
+   "claimed": 0.7
+  },
+  "2025": {
+   "n": 88,
+   "share_0930_1000": 0.7614,
+   "share_by_1600": 0.9205,
+   "claimed": 0.7
+  },
+  "2026": {
+   "n": 50,
+   "share_0930_1000": 0.78,
+   "share_by_1600": 0.88,
+   "claimed": 0.7
+  }
+ }
+}

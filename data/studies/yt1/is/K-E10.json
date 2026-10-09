@@ -1,0 +1,264 @@
+{
+ "claim": "green first hour -> day closes above its open 76-79 %; red -> below 72-72.5 %; above the open at 15:00 -> closes above the open about 90 % (YM), 91 % with the range middle (ES)",
+ "span": "2019-06-03 -> 2022-12-30",
+ "days": 926,
+ "early_close_days": 29,
+ "first_hour": {
+  "days": 926,
+  "green": {
+   "n": 482,
+   "closes_same_side_of_open": 355,
+   "rate_closes_same_side_of_open": 0.7365,
+   "claimed": "76-79 %",
+   "closes_beyond_signal_price": 290,
+   "rate_closes_beyond_signal_price": 0.6017,
+   "closes_equal_to_signal_price": 0
+  },
+  "red": {
+   "n": 443,
+   "closes_same_side_of_open": 299,
+   "rate_closes_same_side_of_open": 0.6749,
+   "claimed": "72-72.5 % (82 % in a 3-month sample)",
+   "closes_beyond_signal_price": 227,
+   "rate_closes_beyond_signal_price": 0.5124,
+   "closes_equal_to_signal_price": 0
+  },
+  "flat": 1,
+  "all_days": {
+   "n": 926,
+   "rate_close_above_open": 0.5389,
+   "rate_close_above_signal_price": 0.5475
+  },
+  "without_early_close_days": {
+   "days": 897,
+   "green": {
+    "n": 466,
+    "closes_same_side_of_open": 342,
+    "rate_closes_same_side_of_open": 0.7339,
+    "claimed": "76-79 %",
+    "closes_beyond_signal_price": 281,
+    "rate_closes_beyond_signal_price": 0.603,
+    "closes_equal_to_signal_price": 0
+   },
+   "red": {
+    "n": 430,
+    "closes_same_side_of_open": 290,
+    "rate_closes_same_side_of_open": 0.6744,
+    "claimed": "72-72.5 % (82 % in a 3-month sample)",
+    "closes_beyond_signal_price": 219,
+    "rate_closes_beyond_signal_price": 0.5093,
+    "closes_equal_to_signal_price": 0
+   },
+   "flat": 1,
+   "all_days": {
+    "n": 897,
+    "rate_close_above_open": 0.5385,
+    "rate_close_above_signal_price": 0.5496
+   }
+  },
+  "by_year": {
+   "2019": {
+    "green": {
+     "n": 75,
+     "rate_closes_same_side_of_open": 0.76,
+     "rate_closes_beyond_signal_price": 0.56
+    },
+    "red": {
+     "n": 76,
+     "rate_closes_same_side_of_open": 0.6974,
+     "rate_closes_beyond_signal_price": 0.4737
+    }
+   },
+   "2020": {
+    "green": {
+     "n": 144,
+     "rate_closes_same_side_of_open": 0.7222,
+     "rate_closes_beyond_signal_price": 0.5972
+    },
+    "red": {
+     "n": 114,
+     "rate_closes_same_side_of_open": 0.6053,
+     "rate_closes_beyond_signal_price": 0.4649
+    }
+   },
+   "2021": {
+    "green": {
+     "n": 137,
+     "rate_closes_same_side_of_open": 0.7664,
+     "rate_closes_beyond_signal_price": 0.6423
+    },
+    "red": {
+     "n": 121,
+     "rate_closes_same_side_of_open": 0.6612,
+     "rate_closes_beyond_signal_price": 0.5289
+    }
+   },
+   "2022": {
+    "green": {
+     "n": 126,
+     "rate_closes_same_side_of_open": 0.7063,
+     "rate_closes_beyond_signal_price": 0.5873
+    },
+    "red": {
+     "n": 132,
+     "rate_closes_same_side_of_open": 0.7348,
+     "rate_closes_beyond_signal_price": 0.5606
+    }
+   }
+  }
+ },
+ "at_1500": {
+  "days": 896,
+  "green": {
+   "n": 492,
+   "closes_same_side_of_open": 437,
+   "rate_closes_same_side_of_open": 0.8882,
+   "claimed": "about 90 % (YM)",
+   "closes_beyond_signal_price": 261,
+   "rate_closes_beyond_signal_price": 0.5305,
+   "closes_equal_to_signal_price": 2
+  },
+  "red": {
+   "n": 404,
+   "closes_same_side_of_open": 359,
+   "rate_closes_same_side_of_open": 0.8886,
+   "claimed": null,
+   "closes_beyond_signal_price": 219,
+   "rate_closes_beyond_signal_price": 0.5421,
+   "closes_equal_to_signal_price": 3
+  },
+  "flat": 0,
+  "all_days": {
+   "n": 896,
+   "rate_close_above_open": 0.5379,
+   "rate_close_above_signal_price": 0.4944
+  },
+  "by_year": {
+   "2019": {
+    "green": {
+     "n": 77,
+     "rate_closes_same_side_of_open": 0.8701,
+     "rate_closes_beyond_signal_price": 0.5195
+    },
+    "red": {
+     "n": 67,
+     "rate_closes_same_side_of_open": 0.8806,
+     "rate_closes_beyond_signal_price": 0.4925
+    }
+   },
+   "2020": {
+    "green": {
+     "n": 149,
+     "rate_closes_same_side_of_open": 0.8725,
+     "rate_closes_beyond_signal_price": 0.5168
+    },
+    "red": {
+     "n": 102,
+     "rate_closes_same_side_of_open": 0.8627,
+     "rate_closes_beyond_signal_price": 0.5196
+    }
+   },
+   "2021": {
+    "green": {
+     "n": 146,
+     "rate_closes_same_side_of_open": 0.9041,
+     "rate_closes_beyond_signal_price": 0.4726
+    },
+    "red": {
+     "n": 105,
+     "rate_closes_same_side_of_open": 0.9048,
+     "rate_closes_beyond_signal_price": 0.5619
+    }
+   },
+   "2022": {
+    "green": {
+     "n": 120,
+     "rate_closes_same_side_of_open": 0.9,
+     "rate_closes_beyond_signal_price": 0.625
+    },
+    "red": {
+     "n": 130,
+     "rate_closes_same_side_of_open": 0.9,
+     "rate_closes_beyond_signal_price": 0.5692
+    }
+   }
+  }
+ },
+ "at_1500_and_range_middle": {
+  "days": 896,
+  "green": {
+   "n": 460,
+   "closes_same_side_of_open": 419,
+   "rate_closes_same_side_of_open": 0.9109,
+   "claimed": "91 % (ES)",
+   "closes_beyond_signal_price": 249,
+   "rate_closes_beyond_signal_price": 0.5413,
+   "closes_equal_to_signal_price": 2
+  },
+  "red": {
+   "n": 326,
+   "closes_same_side_of_open": 302,
+   "rate_closes_same_side_of_open": 0.9264,
+   "claimed": null,
+   "closes_beyond_signal_price": 184,
+   "rate_closes_beyond_signal_price": 0.5644,
+   "closes_equal_to_signal_price": 3
+  },
+  "neither": 110,
+  "all_days": {
+   "n": 896,
+   "rate_close_above_open": 0.5379,
+   "rate_close_above_signal_price": 0.4944
+  },
+  "by_year": {
+   "2019": {
+    "green": {
+     "n": 73,
+     "rate_closes_same_side_of_open": 0.8904,
+     "rate_closes_beyond_signal_price": 0.5342
+    },
+    "red": {
+     "n": 49,
+     "rate_closes_same_side_of_open": 0.9184,
+     "rate_closes_beyond_signal_price": 0.5102
+    }
+   },
+   "2020": {
+    "green": {
+     "n": 137,
+     "rate_closes_same_side_of_open": 0.9051,
+     "rate_closes_beyond_signal_price": 0.5182
+    },
+    "red": {
+     "n": 78,
+     "rate_closes_same_side_of_open": 0.9231,
+     "rate_closes_beyond_signal_price": 0.5513
+    }
+   },
+   "2021": {
+    "green": {
+     "n": 138,
+     "rate_closes_same_side_of_open": 0.9203,
+     "rate_closes_beyond_signal_price": 0.4855
+    },
+    "red": {
+     "n": 84,
+     "rate_closes_same_side_of_open": 0.9405,
+     "rate_closes_beyond_signal_price": 0.5952
+    }
+   },
+   "2022": {
+    "green": {
+     "n": 112,
+     "rate_closes_same_side_of_open": 0.9196,
+     "rate_closes_beyond_signal_price": 0.6429
+    },
+    "red": {
+     "n": 115,
+     "rate_closes_same_side_of_open": 0.9217,
+     "rate_closes_beyond_signal_price": 0.5739
+    }
+   }
+  }
+ }
+}

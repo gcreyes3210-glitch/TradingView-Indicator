@@ -1,0 +1,155 @@
+{
+ "claim": "a new-session-high up bar with negative delta is followed by a weaker move over the next six 5-minute bars than a new-session-high up bar with positive delta (low mirror)",
+ "claimed": "no figure published; direction claimed: lower after a high (higher after a low) than the rest",
+ "span": "2019-06-03 -> 2026-09-22",
+ "footprint_days": 876,
+ "move_is": "(MNQ close six bars later, or of the day's last footprint bar, minus the event bar's close) / mean high - low of the day's 5-minute bars up to the event bar; highs and lows: raw sign; pooled: signed toward the reversal (positive = price went back)",
+ "share_down_is": "share of events with a negative value of that same number",
+ "highs": {
+  "events": 4024,
+  "divergence": {
+   "n": 434,
+   "mean": 0.219,
+   "sd": 1.1301,
+   "share_down": 0.3825
+  },
+  "rest": {
+   "n": 2608,
+   "mean": 0.0963,
+   "sd": 1.0961,
+   "share_down": 0.4321
+  },
+  "difference_divergence_minus_rest": 0.1227,
+  "rest_all_new_extremes": {
+   "n": 3590,
+   "mean": 0.0939,
+   "sd": 1.1147,
+   "share_down": 0.4312
+  },
+  "difference_vs_all_new_extremes": 0.1251,
+  "claimed": "no figure published; direction claimed: lower after a high (higher after a low) than the rest"
+ },
+ "lows": {
+  "events": 3387,
+  "divergence": {
+   "n": 350,
+   "mean": -0.022,
+   "sd": 1.2426,
+   "share_down": 0.5171
+  },
+  "rest": {
+   "n": 2170,
+   "mean": -0.1295,
+   "sd": 1.3877,
+   "share_down": 0.5244
+  },
+  "difference_divergence_minus_rest": 0.1075,
+  "rest_all_new_extremes": {
+   "n": 3037,
+   "mean": -0.1173,
+   "sd": 1.3535,
+   "share_down": 0.5193
+  },
+  "difference_vs_all_new_extremes": 0.0953,
+  "claimed": "no figure published; direction claimed: lower after a high (higher after a low) than the rest"
+ },
+ "pooled": {
+  "events": 7411,
+  "divergence": {
+   "n": 784,
+   "mean": -0.131,
+   "sd": 1.185,
+   "share_down": 0.5727
+  },
+  "rest": {
+   "n": 4778,
+   "mean": -0.1114,
+   "sd": 1.2371,
+   "share_down": 0.5467
+  },
+  "difference_divergence_minus_rest": -0.0196,
+  "rest_all_new_extremes": {
+   "n": 6627,
+   "mean": -0.1046,
+   "sd": 1.2299,
+   "share_down": 0.5446
+  },
+  "difference_vs_all_new_extremes": -0.0264,
+  "claimed": "no figure published; direction claimed: lower after a high (higher after a low) than the rest"
+ },
+ "full_window_only": {
+  "note": "events with all six later bars (opening by 11:00)",
+  "highs": {
+   "events": 3489,
+   "divergence": {
+    "n": 389,
+    "mean": 0.2408,
+    "sd": 1.1653,
+    "share_down": 0.3702
+   },
+   "rest": {
+    "n": 2242,
+    "mean": 0.1115,
+    "sd": 1.1418,
+    "share_down": 0.4175
+   },
+   "difference_divergence_minus_rest": 0.1293,
+   "rest_all_new_extremes": {
+    "n": 3100,
+    "mean": 0.1057,
+    "sd": 1.1615,
+    "share_down": 0.421
+   },
+   "difference_vs_all_new_extremes": 0.1351,
+   "claimed": "no figure published; direction claimed: lower after a high (higher after a low) than the rest"
+  },
+  "lows": {
+   "events": 3004,
+   "divergence": {
+    "n": 318,
+    "mean": -0.028,
+    "sd": 1.2632,
+    "share_down": 0.5189
+   },
+   "rest": {
+    "n": 1928,
+    "mean": -0.1424,
+    "sd": 1.404,
+    "share_down": 0.5301
+   },
+   "difference_divergence_minus_rest": 0.1144,
+   "rest_all_new_extremes": {
+    "n": 2686,
+    "mean": -0.131,
+    "sd": 1.3794,
+    "share_down": 0.5242
+   },
+   "difference_vs_all_new_extremes": 0.103,
+   "claimed": "no figure published; direction claimed: lower after a high (higher after a low) than the rest"
+  },
+  "pooled": {
+   "events": 6493,
+   "divergence": {
+    "n": 707,
+    "mean": -0.1451,
+    "sd": 1.214,
+    "share_down": 0.5799
+   },
+   "rest": {
+    "n": 4170,
+    "mean": -0.1258,
+    "sd": 1.2697,
+    "share_down": 0.5566
+   },
+   "difference_divergence_minus_rest": -0.0193,
+   "rest_all_new_extremes": {
+    "n": 5786,
+    "mean": -0.1174,
+    "sd": 1.2673,
+    "share_down": 0.5518
+   },
+   "difference_vs_all_new_extremes": -0.0277,
+   "claimed": "no figure published; direction claimed: lower after a high (higher after a low) than the rest"
+  }
+ }
+}

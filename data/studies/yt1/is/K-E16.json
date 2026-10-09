@@ -1,0 +1,162 @@
+{
+ "claim": "after one side of the 08:30 news candle is traded through, the other side is taken the same day: about 85 %",
+ "span": "2019-06-03 -> 2022-12-30",
+ "release_days_in_calendar": 226,
+ "release_days_with_a_cash_session": 224,
+ "release_days_without_a_cash_session": [
+  "2020-04-10",
+  "2021-04-02"
+ ],
+ "release_days_without_0830_bars": [],
+ "releases_listed_at_another_time": [],
+ "event_days": {
+  "days": 224,
+  "days_one_side_traded_through": 223,
+  "days_neither_side": 1,
+  "other_side_traded_through_by_1600": 165,
+  "share_other_side_traded_through_by_1600": 0.7399,
+  "claimed": 0.85,
+  "first_sweep_was_the_high": {
+   "n": 117,
+   "share_low_then_taken": 0.7863
+  },
+  "first_sweep_was_the_low": {
+   "n": 106,
+   "share_high_then_taken": 0.6887
+  },
+  "both_in_the_same_minute": 0,
+  "share_of_all_days_with_both_sides_traded_through": 0.7366,
+  "other_side_taken_by": {
+   "by_0930": 0.2242,
+   "by_1200": 0.6816,
+   "by_1600": 0.7399
+  },
+  "first_sweep_before_0930": {
+   "n": 207,
+   "share_other_side_taken": 0.7488
+  },
+  "first_sweep_at_or_after_0930": {
+   "n": 16,
+   "share_other_side_taken": 0.625
+  },
+  "median_news_candle_range_pts": 32.38,
+  "without_short_days": {
+   "days": 224,
+   "days_one_side_traded_through": 223,
+   "days_neither_side": 1,
+   "other_side_traded_through_by_1600": 165,
+   "share_other_side_traded_through_by_1600": 0.7399,
+   "claimed": 0.85,
+   "first_sweep_was_the_high": {
+    "n": 117,
+    "share_low_then_taken": 0.7863
+   },
+   "first_sweep_was_the_low": {
+    "n": 106,
+    "share_high_then_taken": 0.6887
+   },
+   "both_in_the_same_minute": 0,
+   "share_of_all_days_with_both_sides_traded_through": 0.7366,
+   "other_side_taken_by": {
+    "by_0930": 0.2242,
+    "by_1200": 0.6816,
+    "by_1600": 0.7399
+   },
+   "first_sweep_before_0930": {
+    "n": 207,
+    "share_other_side_taken": 0.7488
+   },
+   "first_sweep_at_or_after_0930": {
+    "n": 16,
+    "share_other_side_taken": 0.625
+   },
+   "median_news_candle_range_pts": 32.38
+  },
+  "by_type": {
+   "CPI": {
+    "days": 42,
+    "one_side": 42,
+    "share": 0.6905
+   },
+   "NFP": {
+    "days": 42,
+    "one_side": 42,
+    "share": 0.5714
+   },
+   "PPI": {
+    "days": 43,
+    "one_side": 42,
+    "share": 0.8333
+   },
+   "retail_sales": {
+    "days": 43,
+    "one_side": 43,
+    "share": 0.7442
+   },
+   "GDP_advance": {
+    "days": 14,
+    "one_side": 14,
+    "share": 0.7857
+   },
+   "PCE": {
+    "days": 43,
+    "one_side": 43,
+    "share": 0.814
+   }
+  },
+  "by_year": {
+   "2019": {
+    "days": 37,
+    "one_side": 37,
+    "share": 0.7297
+   },
+   "2020": {
+    "days": 63,
+    "one_side": 63,
+    "share": 0.8413
+   },
+   "2021": {
+    "days": 60,
+    "one_side": 60,
+    "share": 0.7167
+   },
+   "2022": {
+    "days": 64,
+    "one_side": 63,
+    "share": 0.6667
+   }
+  }
+ },
+ "control_days_without_a_release": {
+  "days": 700,
+  "days_one_side_traded_through": 700,
+  "days_neither_side": 0,
+  "other_side_traded_through_by_1600": 621,
+  "share_other_side_traded_through_by_1600": 0.8871,
+  "claimed": 0.85,
+  "first_sweep_was_the_high": {
+   "n": 343,
+   "share_low_then_taken": 0.8659
+  },
+  "first_sweep_was_the_low": {
+   "n": 354,
+   "share_high_then_taken": 0.9068
+  },
+  "both_in_the_same_minute": 3,
+  "share_of_all_days_with_both_sides_traded_through": 0.8871,
+  "other_side_taken_by": {
+   "by_0930": 0.5329,
+   "by_1200": 0.8614,
+   "by_1600": 0.8871
+  },
+  "first_sweep_before_0930": {
+   "n": 692,
+   "share_other_side_taken": 0.8873
+  },
+  "first_sweep_at_or_after_0930": {
+   "n": 8,
+   "share_other_side_taken": 0.875
+  },
+  "median_news_candle_range_pts": 12.0
+ }
+}

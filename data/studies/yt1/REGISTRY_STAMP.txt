@@ -1,0 +1,5 @@
+17eb2cefd740ba5fdf19f9d71dbfb57bbe560412cb0daa6a826255e9b5940fa0  /home/claude/repos/TradingView-Indicator/YT1_SPEC.md
+a52801ff32b65dda0db1a7e010694319d913042856a00000efe289fd3d8c5423  /home/claude/repos/TradingView-Indicator/tools/yt1/core.py
+a6a3719d99cfbaf4080fa39abe4b0e87e6b699c13b5f212ead59b1fdf43c25e8  /home/claude/repos/TradingView-Indicator/tools/yt1/ind.py
+369061953ec9bfa4f9e006f560bfc502070c48e4190e66c4842e373a9d77f4f6  /home/claude/repos/TradingView-Indicator/tools/yt1/run.py
+registered 2026-10-09T05:41:21Z, before any YT1 strategy module existed

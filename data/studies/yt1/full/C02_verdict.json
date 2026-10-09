@@ -1,0 +1,11 @@
+{
+ "verdict": "candidate",
+ "checks": {
+  "years": true,
+  "r": true,
+  "halves": true,
+  "neighbours": true,
+  "p": false
+ },
+ "bonf": 0.0009433962264150943
+}

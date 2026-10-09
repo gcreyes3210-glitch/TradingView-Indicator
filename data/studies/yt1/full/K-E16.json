@@ -1,0 +1,187 @@
+{
+ "claim": "after one side of the 08:30 news candle is traded through, the other side is taken the same day: about 85 %",
+ "span": "2019-06-03 -> 2026-10-07",
+ "release_days_in_calendar": 445,
+ "release_days_with_a_cash_session": 440,
+ "release_days_without_a_cash_session": [
+  "2020-04-10",
+  "2021-04-02",
+  "2023-04-07",
+  "2024-03-29",
+  "2026-04-03"
+ ],
+ "release_days_without_0830_bars": [],
+ "releases_listed_at_another_time": [
+  "2026-01-22 PCE"
+ ],
+ "event_days": {
+  "days": 440,
+  "days_one_side_traded_through": 439,
+  "days_neither_side": 1,
+  "other_side_traded_through_by_1600": 296,
+  "share_other_side_traded_through_by_1600": 0.6743,
+  "claimed": 0.85,
+  "first_sweep_was_the_high": {
+   "n": 230,
+   "share_low_then_taken": 0.6783
+  },
+  "first_sweep_was_the_low": {
+   "n": 209,
+   "share_high_then_taken": 0.6699
+  },
+  "both_in_the_same_minute": 0,
+  "share_of_all_days_with_both_sides_traded_through": 0.6727,
+  "other_side_taken_by": {
+   "by_0930": 0.1663,
+   "by_1200": 0.615,
+   "by_1600": 0.6743
+  },
+  "first_sweep_before_0930": {
+   "n": 391,
+   "share_other_side_taken": 0.7136
+  },
+  "first_sweep_at_or_after_0930": {
+   "n": 48,
+   "share_other_side_taken": 0.3542
+  },
+  "median_news_candle_range_pts": 54.88,
+  "without_short_days": {
+   "days": 439,
+   "days_one_side_traded_through": 438,
+   "days_neither_side": 1,
+   "other_side_traded_through_by_1600": 296,
+   "share_other_side_traded_through_by_1600": 0.6758,
+   "claimed": 0.85,
+   "first_sweep_was_the_high": {
+    "n": 229,
+    "share_low_then_taken": 0.6812
+   },
+   "first_sweep_was_the_low": {
+    "n": 209,
+    "share_high_then_taken": 0.6699
+   },
+   "both_in_the_same_minute": 0,
+   "share_of_all_days_with_both_sides_traded_through": 0.6743,
+   "other_side_taken_by": {
+    "by_0930": 0.1667,
+    "by_1200": 0.6164,
+    "by_1600": 0.6758
+   },
+   "first_sweep_before_0930": {
+    "n": 390,
+    "share_other_side_taken": 0.7154
+   },
+   "first_sweep_at_or_after_0930": {
+    "n": 48,
+    "share_other_side_taken": 0.3542
+   },
+   "median_news_candle_range_pts": 54.75
+  },
+  "by_type": {
+   "CPI": {
+    "days": 86,
+    "one_side": 86,
+    "share": 0.5349
+   },
+   "NFP": {
+    "days": 85,
+    "one_side": 85,
+    "share": 0.5765
+   },
+   "PPI": {
+    "days": 87,
+    "one_side": 86,
+    "share": 0.6744
+   },
+   "retail_sales": {
+    "days": 88,
+    "one_side": 88,
+    "share": 0.7614
+   },
+   "GDP_advance": {
+    "days": 28,
+    "one_side": 28,
+    "share": 0.8571
+   },
+   "PCE": {
+    "days": 84,
+    "one_side": 84,
+    "share": 0.7381
+   }
+  },
+  "by_year": {
+   "2019": {
+    "days": 37,
+    "one_side": 37,
+    "share": 0.7297
+   },
+   "2020": {
+    "days": 63,
+    "one_side": 63,
+    "share": 0.8413
+   },
+   "2021": {
+    "days": 60,
+    "one_side": 60,
+    "share": 0.7167
+   },
+   "2022": {
+    "days": 64,
+    "one_side": 63,
+    "share": 0.6667
+   },
+   "2023": {
+    "days": 59,
+    "one_side": 59,
+    "share": 0.6271
+   },
+   "2024": {
+    "days": 61,
+    "one_side": 61,
+    "share": 0.5246
+   },
+   "2025": {
+    "days": 52,
+    "one_side": 52,
+    "share": 0.5962
+   },
+   "2026": {
+    "days": 44,
+    "one_side": 44,
+    "share": 0.7045
+   }
+  }
+ },
+ "control_days_without_a_release": {
+  "days": 1454,
+  "days_one_side_traded_through": 1454,
+  "days_neither_side": 0,
+  "other_side_traded_through_by_1600": 1285,
+  "share_other_side_traded_through_by_1600": 0.8838,
+  "claimed": 0.85,
+  "first_sweep_was_the_high": {
+   "n": 696,
+   "share_low_then_taken": 0.8621
+  },
+  "first_sweep_was_the_low": {
+   "n": 754,
+   "share_high_then_taken": 0.9032
+  },
+  "both_in_the_same_minute": 4,
+  "share_of_all_days_with_both_sides_traded_through": 0.8838,
+  "other_side_taken_by": {
+   "by_0930": 0.4986,
+   "by_1200": 0.859,
+   "by_1600": 0.8838
+  },
+  "first_sweep_before_0930": {
+   "n": 1440,
+   "share_other_side_taken": 0.884
+  },
+  "first_sweep_at_or_after_0930": {
+   "n": 14,
+   "share_other_side_taken": 0.8571
+  },
+  "median_news_candle_range_pts": 15.75
+ }
+}

@@ -1,0 +1,266 @@
+{
+ "claim": "NY (08:00-16:00) breaks London's high / low: P3 80.8 % / 65.5 %, P4 68.6 % / 75.0 %, P1 71.5 % / 70.4 %",
+ "span": "2019-06-03 -> 2022-12-30",
+ "counts": {
+  "days": 926,
+  "missing_session": 0,
+  "contract_change": 0,
+  "sessions": 926,
+  "early_close_days": 29,
+  "london_entirely_outside_asia": 0
+ },
+ "all_sessions": {
+  "P1": {
+   "n": 182,
+   "freq": 0.1965,
+   "ny_breaks_high": 0.6868,
+   "ny_breaks_low": 0.6813,
+   "both": 0.3736,
+   "neither": 0.0055,
+   "high_first": 0.478,
+   "low_first": 0.511,
+   "same_bar": 0.0055,
+   "claimed": {
+    "freq": 0.22,
+    "ny_breaks_high": 0.715,
+    "ny_breaks_low": 0.704,
+    "both": 0.425,
+    "high_first": 0.507,
+    "low_first": 0.487,
+    "neither": null
+   }
+  },
+  "P2": {
+   "n": 68,
+   "freq": 0.0734,
+   "ny_breaks_high": 0.8088,
+   "ny_breaks_low": 0.7353,
+   "both": 0.5441,
+   "neither": 0.0,
+   "high_first": 0.5441,
+   "low_first": 0.4412,
+   "same_bar": 0.0147,
+   "claimed": {
+    "freq": 0.069,
+    "ny_breaks_high": 0.811,
+    "ny_breaks_low": 0.749,
+    "both": 0.56,
+    "high_first": 0.531,
+    "low_first": 0.469,
+    "neither": 0.0
+   }
+  },
+  "P3": {
+   "n": 399,
+   "freq": 0.4309,
+   "ny_breaks_high": 0.7694,
+   "ny_breaks_low": 0.6466,
+   "both": 0.4361,
+   "neither": 0.0201,
+   "high_first": 0.5915,
+   "low_first": 0.3835,
+   "same_bar": 0.005,
+   "claimed": {
+    "freq": 0.41,
+    "ny_breaks_high": 0.808,
+    "ny_breaks_low": 0.655,
+    "both": 0.476,
+    "high_first": 0.62,
+    "low_first": 0.368,
+    "neither": 0.012
+   }
+  },
+  "P4": {
+   "n": 277,
+   "freq": 0.2991,
+   "ny_breaks_high": 0.6751,
+   "ny_breaks_low": 0.7329,
+   "both": 0.4152,
+   "neither": 0.0072,
+   "high_first": 0.444,
+   "low_first": 0.5487,
+   "same_bar": 0.0,
+   "claimed": {
+    "freq": 0.302,
+    "ny_breaks_high": 0.686,
+    "ny_breaks_low": 0.75,
+    "both": 0.446,
+    "high_first": 0.446,
+    "low_first": 0.544,
+    "neither": 0.01
+   }
+  }
+ },
+ "without_early_close_days": {
+  "P1": {
+   "n": 178,
+   "freq": 0.1984,
+   "ny_breaks_high": 0.6966,
+   "ny_breaks_low": 0.6854,
+   "both": 0.382,
+   "neither": 0.0,
+   "high_first": 0.4831,
+   "low_first": 0.5112,
+   "same_bar": 0.0056,
+   "claimed": {
+    "freq": 0.22,
+    "ny_breaks_high": 0.715,
+    "ny_breaks_low": 0.704,
+    "both": 0.425,
+    "high_first": 0.507,
+    "low_first": 0.487,
+    "neither": null
+   }
+  },
+  "P2": {
+   "n": 64,
+   "freq": 0.0713,
+   "ny_breaks_high": 0.8125,
+   "ny_breaks_low": 0.75,
+   "both": 0.5625,
+   "neither": 0.0,
+   "high_first": 0.5312,
+   "low_first": 0.4531,
+   "same_bar": 0.0156,
+   "claimed": {
+    "freq": 0.069,
+    "ny_breaks_high": 0.811,
+    "ny_breaks_low": 0.749,
+    "both": 0.56,
+    "high_first": 0.531,
+    "low_first": 0.469,
+    "neither": 0.0
+   }
+  },
+  "P3": {
+   "n": 385,
+   "freq": 0.4292,
+   "ny_breaks_high": 0.7844,
+   "ny_breaks_low": 0.6571,
+   "both": 0.4519,
+   "neither": 0.0104,
+   "high_first": 0.6,
+   "low_first": 0.3844,
+   "same_bar": 0.0052,
+   "claimed": {
+    "freq": 0.41,
+    "ny_breaks_high": 0.808,
+    "ny_breaks_low": 0.655,
+    "both": 0.476,
+    "high_first": 0.62,
+    "low_first": 0.368,
+    "neither": 0.012
+   }
+  },
+  "P4": {
+   "n": 270,
+   "freq": 0.301,
+   "ny_breaks_high": 0.6778,
+   "ny_breaks_low": 0.737,
+   "both": 0.4185,
+   "neither": 0.0037,
+   "high_first": 0.4444,
+   "low_first": 0.5519,
+   "same_bar": 0.0,
+   "claimed": {
+    "freq": 0.302,
+    "ny_breaks_high": 0.686,
+    "ny_breaks_low": 0.75,
+    "both": 0.446,
+    "high_first": 0.446,
+    "low_first": 0.544,
+    "neither": 0.01
+   }
+  }
+ },
+ "by_year": {
+  "2019": {
+   "P1": {
+    "n": 27,
+    "ny_breaks_high": 0.6667,
+    "ny_breaks_low": 0.6296
+   },
+   "P2": {
+    "n": 13,
+    "ny_breaks_high": 0.7692,
+    "ny_breaks_low": 0.7692
+   },
+   "P3": {
+    "n": 70,
+    "ny_breaks_high": 0.7,
+    "ny_breaks_low": 0.5286
+   },
+   "P4": {
+    "n": 41,
+    "ny_breaks_high": 0.7317,
+    "ny_breaks_low": 0.6585
+   }
+  },
+  "2020": {
+   "P1": {
+    "n": 41,
+    "ny_breaks_high": 0.6585,
+    "ny_breaks_low": 0.7073
+   },
+   "P2": {
+    "n": 31,
+    "ny_breaks_high": 0.8065,
+    "ny_breaks_low": 0.7419
+   },
+   "P3": {
+    "n": 118,
+    "ny_breaks_high": 0.7966,
+    "ny_breaks_low": 0.6525
+   },
+   "P4": {
+    "n": 69,
+    "ny_breaks_high": 0.6812,
+    "ny_breaks_low": 0.6522
+   }
+  },
+  "2021": {
+   "P1": {
+    "n": 60,
+    "ny_breaks_high": 0.7,
+    "ny_breaks_low": 0.6167
+   },
+   "P2": {
+    "n": 16,
+    "ny_breaks_high": 0.875,
+    "ny_breaks_low": 0.75
+   },
+   "P3": {
+    "n": 104,
+    "ny_breaks_high": 0.8077,
+    "ny_breaks_low": 0.6923
+   },
+   "P4": {
+    "n": 78,
+    "ny_breaks_high": 0.6923,
+    "ny_breaks_low": 0.7564
+   }
+  },
+  "2022": {
+   "P1": {
+    "n": 54,
+    "ny_breaks_high": 0.7037,
+    "ny_breaks_low": 0.7593
+   },
+   "P2": {
+    "n": 8,
+    "ny_breaks_high": 0.75,
+    "ny_breaks_low": 0.625
+   },
+   "P3": {
+    "n": 107,
+    "ny_breaks_high": 0.7477,
+    "ny_breaks_low": 0.6729
+   },
+   "P4": {
+    "n": 89,
+    "ny_breaks_high": 0.6292,
+    "ny_breaks_low": 0.809
+   }
+  }
+ }
+}

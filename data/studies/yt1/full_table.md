@@ -1,0 +1,55 @@
+| ID | Rule | n | Net $ | R / trade | Win % | PF | Max DD $ | p | Years + | R 2019-22 / 2023-26 | R nb1 / nb2 | Verdict | Fails on |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A01 | JadeCap Silver Bullet | 567 | -494 | +0.009 | 37.2 | 0.98 | -3,406 | 0.4293 | 4/8 | -0.018 / +0.037 | -0.019 / +0.021 | fails | years, r, halves, neighbours, p |
+| A02 | Casper 5-minute candle + 1-minute FVG break | 1844 | -5,821 | -0.122 | 32.3 | 0.92 | -7,700 | 0.9999 | 3/8 | -0.144 / -0.101 | -0.135 / -0.130 | fails | years, r, halves, p |
+| A03 | Casper 30-minute range, sweep and FVG back inside | 552 | +1,914 | -0.025 | 38.0 | 1.05 | -4,702 | 0.6780 | 3/8 | +0.050 / -0.093 | -0.009 / -0.027 | fails | years, r, halves, p |
+| A05 | Candle Range Theory on the 05:00-09:00 candle | 1355 | -5,492 | -0.094 | 38.7 | 0.90 | -6,348 | 0.9964 | 2/8 | -0.069 / -0.117 | -0.078 / -0.109 | fails | years, r, halves, p |
+| A09 | ICT Silver Bullet, first FVG with the midnight-open side rule | 1029 | -4,252 | -0.037 | 34.6 | 0.91 | -6,496 | 0.8052 | 3/8 | -0.024 / -0.051 | -0.059 / -0.035 | fails | years, r, halves, p |
+| A10 | First presented FVG after 09:30 | 1850 | +8,848 | +0.059 | 23.5 | 1.07 | -6,116 | 0.1395 | 6/8 | +0.113 / +0.009 | +0.023 / +0.081 | fails | p |
+| A14 | Candle Range Theory, hourly | 496 | +2,015 | -0.054 | 39.1 | 1.11 | -1,897 | 0.8735 | 3/8 | -0.194 / +0.073 | -0.046 / -0.060 | fails | years, r, halves, p |
+| B01 | Quick Flip Scalper (15m box >= x ATR, reversal candle outside the box) | 310 | +132 | +0.006 | 18.7 | 1.01 | -2,730 | 0.4959 | 3/8 | -0.240 / +0.225 | -0.015 / +0.160 | fails | years, r, halves, neighbours, p |
+| B03 | Casper 5-minute range, break and wick retest, midpoint stop | 776 | -5,680 | -0.078 | 33.2 | 0.88 | -5,911 | 0.9457 | 2/8 | -0.084 / -0.073 | -0.066 / -0.020 | fails | years, r, halves, p |
+| B04 | Jooviers Gems London box (04:00-08:59), first 5m close outside from 09:30 | 998 | -12,066 | -0.058 | 34.0 | 0.81 | -13,460 | 0.9119 | 2/8 | -0.016 / -0.100 | -0.046 / -0.042 | fails | years, r, halves, p |
+| B05 | Scarface first-candle break and retest | 1720 | -4,400 | -0.070 | 34.2 | 0.94 | -6,748 | 0.9819 | 2/8 | -0.111 / -0.032 | -0.081 / -0.071 | fails | years, r, halves, p |
+| B06 | Pre-market high / low break and retest | 1533 | -14,711 | -0.152 | 32.0 | 0.78 | -15,336 | 1.0000 | 0/8 | -0.126 / -0.176 | -0.164 / -0.167 | fails | years, r, halves, p |
+| B07 | DR / IDR 09:30-10:29, first 5m close beyond, stop the opposite DR extreme, flat bar | 1672 | +9,776 | +0.019 | 52.4 | 1.07 | -6,908 | 0.1580 | 5/8 | +0.019 / +0.019 | +0.029 / +0.015 | fails | years, r, p |
+| B08 | edgeful IB retracement: limit 1/4 W back from the IB extreme, stop beyond the midpoint | 635 | -790 | +0.017 | 39.4 | 0.97 | -3,044 | 0.3680 | 4/8 | +0.020 / +0.015 | -0.021 / +0.084 | fails | years, r, neighbours, p |
+| B09 | IB75 (Dan Cooke): limit 1/4 W from the first-set IB extreme, target that extreme, VWAP filter | 58 | -678 | -0.175 | 44.8 | 0.67 | -1,134 | 0.9224 | 3/8 | +0.113 / -0.484 | -0.288 / -0.135 | not enough data |  |
+| B14 | IB breakout (samjNQ): 5m close beyond the IB on the VWAP side, stop the other IB level, target k x W | 1793 | +11,296 | +0.029 | 53.5 | 1.08 | -6,074 | 0.0450 | 5/8 | +0.036 / +0.022 | +0.019 / +0.027 | fails | years, r, p |
+| C01 | MACD + 200 EMA | 1257 | +10,188 | +0.051 | 46.4 | 1.13 | -5,496 | 0.0483 | 6/8 | +0.129 / -0.023 | +0.019 / +0.025 | fails | halves, p |
+| C02 | 8-55 EMA pullback, long only, 0.75 % trailing stop | 1179 | +8,996 | +0.158 | 47.8 | 1.12 | -3,886 | 0.0248 | 6/8 | +0.205 / +0.111 | +0.162 / +0.184 | candidate | p |
+| C03 | Triple Supertrend + Stochastic RSI + 200 EMA | 2021 | -2,692 | -0.020 | 43.7 | 0.98 | -5,798 | 0.7854 | 3/8 | +0.009 / -0.048 | -0.018 / +0.055 | fails | years, r, halves, neighbours, p |
+| C04 | Donchian(20) + 200 EMA | 1880 | -21,483 | -0.042 | 44.6 | 0.86 | -24,106 | 0.9668 | 1/8 | -0.007 / -0.075 | +0.006 / +0.014 | fails | years, r, halves, neighbours, p |
+| C05 | Supertrend(10, 3) flip + 200 EMA | 1555 | -2,749 | +0.027 | 48.3 | 0.98 | -8,265 | 0.1404 | 4/8 | +0.059 / -0.002 | -0.007 / +0.054 | fails | years, r, halves, neighbours, p |
+| C06 | EMA 8 / 14 / 50 + Stochastic RSI + ATR bracket | 5002 | -4,236 | -0.005 | 58.8 | 0.98 | -8,408 | 0.6967 | 2/8 | -0.009 / -0.002 | -0.016 / +0.000 | fails | years, r, halves, neighbours, p |
+| C07 | MACD + Parabolic SAR + 200 EMA | 2618 | +4,158 | +0.013 | 43.9 | 1.02 | -10,917 | 0.2769 | 4/8 | +0.069 / -0.039 | -0.014 / +0.005 | fails | years, r, halves, neighbours, p |
+| C08 | Bollinger upper-band breakout + 200 SMA + daily 9 EMA (long only) | 1015 | +3,514 | +0.029 | 48.7 | 1.06 | -3,304 | 0.1787 | 5/8 | +0.020 / +0.037 | +0.006 / +0.071 | fails | years, r, p |
+| C09 | Stochastic (14,3,3) arm + RSI(14) > 50 + MACD > signal | 2478 | +10,163 | -0.000 | 44.3 | 1.06 | -9,828 | 0.5055 | 5/8 | -0.005 / +0.004 | -0.025 / +0.009 | fails | years, r, halves, neighbours, p |
+| C10 | 9 / 20 EMA "Bone Zone" first pullback | 960 | -3,651 | -0.095 | 27.1 | 0.91 | -7,776 | 0.9613 | 3/8 | -0.056 / -0.131 | -0.103 / -0.026 | fails | years, r, halves, p |
+| C12 | TTM Squeeze fire (BB 20/2 inside KC 20/1.5xATR20, >= 6 on bars) | 325 | +4,466 | +0.002 | 41.2 | 1.27 | -1,481 | 0.4739 | 4/8 | -0.018 / +0.023 | +0.032 / +0.060 | fails | years, r, halves, p |
+| C13 | Connors RSI (3, 2, 100) out of the extreme + 200 SMA | 1679 | -8,948 | -0.183 | 37.7 | 0.84 | -9,070 | 1.0000 | 1/8 | -0.264 / -0.117 | -0.242 / -0.183 | fails | years, r, halves, p |
+| C15 | VWAP (09:30 anchor) trend-day first pullback | 823 | -4,744 | -0.141 | 33.0 | 0.84 | -4,977 | 0.9999 | 1/8 | -0.103 / -0.176 | -0.111 / -0.141 | fails | years, r, halves, p |
+| C17 | NQ 1-minute 9/20/50 EMA pullback | 16895 | -46,466 | -0.182 | 33.8 | 0.86 | -46,814 | 1.0000 | 0/8 | -0.204 / -0.162 | -0.187 / -0.188 | fails | years, r, halves, p |
+| C19a | TRADING RUSH Ichimoku cross above the cloud + EMA200 | 1749 | -5,152 | -0.008 | 46.5 | 0.96 | -13,546 | 0.6274 | 3/8 | +0.036 / -0.050 | +0.008 / +0.051 | fails | years, r, halves, neighbours, p |
+| C19b | TRADING RUSH Keltner (20, 2 x ATR10) open-and-close outside + EMA200 | 1632 | +18,001 | +0.066 | 50.8 | 1.13 | -5,490 | 0.0018 | 8/8 | +0.091 / +0.040 | +0.059 / +0.069 | candidate | p |
+| C19c | TRADING RUSH DMI(14) +DI / -DI cross + EMA200 | 2856 | -13,981 | -0.039 | 43.3 | 0.92 | -15,478 | 0.9721 | 2/8 | -0.015 / -0.061 | -0.055 / +0.028 | fails | years, r, halves, neighbours, p |
+| C19d | TRADING RUSH Stochastic(14,3,3) cross under 20 / over 80 + EMA200 | 1532 | -1,732 | -0.082 | 41.7 | 0.96 | -4,754 | 0.9956 | 3/8 | -0.122 / -0.043 | -0.110 / -0.054 | fails | years, r, halves, p |
+| C19e | TRADING RUSH RSI(14) back above 30 / below 70 + EMA200 | 192 | -2,952 | -0.141 | 38.5 | 0.72 | -4,456 | 0.9517 | 1/8 | -0.142 / -0.139 | -0.116 / -0.020 | fails | years, r, halves, p |
+| D03 | Stacked-imbalance pullback (ATAS) | 1782 | -7,556 | -1.351 | 17.1 | 0.10 | -7,556 | 1.0000 | 0/8 | -1.272 / -1.413 | -1.316 / -1.375 | fails | years, r, halves, p |
+| D05 | Absorption candle, POC in the wick, delta flip, at a level (Thraxx) | 786 | -2,361 | -0.184 | 33.6 | 0.81 | -2,532 | 0.9998 | 1/8 | -0.190 / -0.179 | -0.184 / -0.188 | fails | years, r, halves, p |
+| D06 | Trapped traders (Trader Dale) | 2468 | +11,988 | -0.024 | 36.5 | 1.11 | -3,818 | 0.8111 | 6/8 | -0.046 / -0.004 | -0.048 / -0.011 | fails | r, halves, p |
+| E01 | NQ Stats Hour Stats: fade the first breach of the previous hour's high / low to the hour's open | 2779 | -19,378 | -0.119 | 62.8 | 0.82 | -20,586 | 1.0000 | 0/8 | -0.120 / -0.117 | -0.118 / -0.113 | fails | years, r, halves, p |
+| E02 | NQ Stats IB breaks: at the IB close, with the midpoint / first-extreme bias, target the IB extreme | 1517 | -7,346 | -0.025 | 75.0 | 0.88 | -7,510 | 0.9681 | 1/8 | -0.028 / -0.022 | -0.028 / -0.032 | fails | years, r, halves, p |
+| E04 | NQ Stats Noon Curve: at the noon close, with Q2's one-sided break of Q1, stop beyond Q2's other extreme | 1460 | +5,304 | -0.010 | 42.2 | 1.06 | -5,394 | 0.6061 | 6/8 | -0.025 / +0.004 | -0.014 / +0.086 | fails | r, halves, neighbours, p |
+| E05 | NQ Stats ALN sessions: partial engulf of Asia by London, trade to the London extreme it points to | 1319 | -4,124 | -0.089 | 57.0 | 0.92 | -7,202 | 0.9635 | 3/8 | -0.118 / -0.061 | -0.095 / -0.085 | fails | years, r, halves, p |
+| E06 | AM TBR: after the first touch of the 08:00 open +/- 0.25 SD, limit at k SD, target the 08:00 open | 1260 | -7,296 | -0.044 | 54.0 | 0.91 | -8,121 | 0.9669 | 2/8 | -0.053 / -0.036 | -0.034 / -0.033 | fails | years, r, halves, p |
+| E08 | Outside-open reversal: 09:30 open beyond the previous RTH range by >= 0.05 ATR, fade to that level | 643 | +2,436 | -0.038 | 35.3 | 1.06 | -3,187 | 0.7566 | 3/8 | +0.012 / -0.088 | -0.053 / +0.011 | fails | years, r, halves, neighbours, p |
+| E09 | Noise-area intraday momentum: half-hourly closes beyond open/prior-close x (1 +/- sigma), VWAP trailing exit | 1627 | +21,238 | +0.204 | 40.7 | 1.25 | -3,998 | 0.0015 | 7/8 | +0.173 / +0.235 | +0.201 / +0.189 | candidate | p |
+| E10a | First hour continuation: at the 10:29 close, with the side of the 09:30 open, no stop, flat bar | 1852 | +22,968 | +0.208 | 54.5 | 1.13 | -7,610 | 0.0193 | 6/8 | +0.117 / +0.293 | +0.059 / +0.044 | candidate | p |
+| E10b | 15:00 continuation: at the 14:59 close, with the side of the 09:30 open and of the range middle, stop beyond the open | 1558 | +5,489 | -0.005 | 48.1 | 1.09 | -6,208 | 0.5973 | 4/8 | +0.041 / -0.050 | +0.098 / -0.033 | fails | years, r, halves, neighbours, p |
+| E11 | Larry Williams open +/- 0.25 x previous RTH range, stop orders to 15:00, first to fill, bracket 0.5 W | 1769 | +14,790 | +0.043 | 53.5 | 1.09 | -6,597 | 0.0180 | 5/8 | +0.033 / +0.052 | +0.061 / +0.040 | fails | years, r, p |
+| E12 | Larry Williams Oops: open below the previous RTH low, buy stop at that low to 15:00, no stop, flat bar | 175 | +5,224 | +0.547 | 56.6 | 1.33 | -3,342 | 0.0430 | 6/8 | +0.553 / +0.542 | +0.468 / +0.622 | candidate | p |
+| E13 | Crabel stretch after a 2-day narrow range: stop orders at the open +/- stretch, other level is the stop, BE after 60 min | 128 | +394 | +0.066 | 25.0 | 1.06 | -1,680 | 0.2197 | 5/8 | +0.107 / +0.029 | +0.097 / +0.033 | fails | years, p |
+| E15 | Camarilla pivots: S3 / R3 rejection and R4 / S4 breakout, four set-ups pooled | 3025 | +6,998 | +0.023 | 47.8 | 1.03 | -11,228 | 0.0985 | 3/8 | +0.051 / -0.002 | +0.028 / +0.001 | fails | years, r, halves, p |
+| E19 | Turnaround Tuesday, cash session: down Monday -> long Tuesday 09:30 open to the flat bar | 142 | +2,528 | +0.173 | 50.7 | 1.15 | -3,436 | 0.3373 | 7/8 | -0.103 / +0.510 | +0.881 / +0.261 | fails | halves, p |
+| E20 | Turn of the month, cash sessions: long 09:30 open to the flat bar on the last N and first M trading days | 616 | +9,602 | +0.112 | 55.0 | 1.12 | -5,751 | 0.3158 | 5/8 | -0.165 / +0.370 | +0.082 / +0.102 | fails | years, halves, p |

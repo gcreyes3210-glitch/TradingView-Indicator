@@ -1,0 +1,314 @@
+{
+ "claim": "98.9 % of sessions touch the 08:00 open +/- 0.25 SD by 12:00; 74 % of those return to the 08:00 open by 12:00 (first touch in the 08:00 hour: 79 %)",
+ "span": "2019-06-03 -> 2022-12-30",
+ "readings": {
+  "cc": {
+   "sd": "trading-day close-to-close % change",
+   "sessions": 901,
+   "touched": 862,
+   "touch_rate": 0.9567,
+   "claimed_touch_rate": 0.9895,
+   "median_sd_pct": 1.48,
+   "first_touch_upper": 407,
+   "first_touch_lower": 455,
+   "both_levels_in_the_first_touch_bar": 5,
+   "reverted": 532,
+   "reversion_rate": 0.6172,
+   "claimed_reversion_rate": 0.743,
+   "reversion_after_upper_touch": 0.6044,
+   "claimed_after_upper": 0.7404,
+   "reversion_after_lower_touch": 0.6286,
+   "claimed_after_lower": 0.7456,
+   "by_touch_hour": {
+    "08": {
+     "n": 294,
+     "reversion_rate": 0.7279,
+     "claimed": 0.79
+    },
+    "09": {
+     "n": 486,
+     "reversion_rate": 0.5967,
+     "claimed": 0.695
+    },
+    "10": {
+     "n": 69,
+     "reversion_rate": 0.4058,
+     "claimed": 0.396
+    },
+    "11": {
+     "n": 13,
+     "reversion_rate": 0.0,
+     "claimed": 0.091
+    }
+   },
+   "by_touch_half_hour": {
+    "08:00": {
+     "n": 93,
+     "reversion_rate": 0.7634,
+     "n_upper": 41,
+     "after_upper": 0.8293,
+     "claimed_after_upper": 0.828,
+     "n_lower": 52,
+     "after_lower": 0.7115,
+     "claimed_after_lower": 0.831
+    },
+    "08:30": {
+     "n": 201,
+     "reversion_rate": 0.7114,
+     "n_upper": 106,
+     "after_upper": 0.7075,
+     "claimed_after_upper": 0.751,
+     "n_lower": 95,
+     "after_lower": 0.7158,
+     "claimed_after_lower": 0.765
+    },
+    "09:00": {
+     "n": 102,
+     "reversion_rate": 0.6961,
+     "n_upper": 40,
+     "after_upper": 0.725,
+     "claimed_after_upper": 0.701,
+     "n_lower": 62,
+     "after_lower": 0.6774,
+     "claimed_after_lower": 0.712
+    },
+    "09:30": {
+     "n": 384,
+     "reversion_rate": 0.5703,
+     "n_upper": 183,
+     "after_upper": 0.5246,
+     "claimed_after_upper": 0.695,
+     "n_lower": 201,
+     "after_lower": 0.6119,
+     "claimed_after_lower": 0.683
+    },
+    "10:00": {
+     "n": 52,
+     "reversion_rate": 0.4231,
+     "n_upper": 22,
+     "after_upper": 0.4545,
+     "claimed_after_upper": null,
+     "n_lower": 30,
+     "after_lower": 0.4,
+     "claimed_after_lower": null
+    },
+    "10:30": {
+     "n": 17,
+     "reversion_rate": 0.3529,
+     "n_upper": 9,
+     "after_upper": 0.2222,
+     "claimed_after_upper": null,
+     "n_lower": 8,
+     "after_lower": 0.5,
+     "claimed_after_lower": null
+    },
+    "11:00": {
+     "n": 11,
+     "reversion_rate": 0.0,
+     "n_upper": 5,
+     "after_upper": 0.0,
+     "claimed_after_upper": null,
+     "n_lower": 6,
+     "after_lower": 0.0,
+     "claimed_after_lower": null
+    },
+    "11:30": {
+     "n": 2,
+     "reversion_rate": 0.0,
+     "n_upper": 1,
+     "after_upper": 0.0,
+     "claimed_after_upper": null,
+     "n_lower": 1,
+     "after_lower": 0.0,
+     "claimed_after_lower": null
+    }
+   },
+   "by_year": {
+    "2019": {
+     "sessions": 130,
+     "touch_rate": 0.9538,
+     "reversion_rate": 0.5242
+    },
+    "2020": {
+     "sessions": 255,
+     "touch_rate": 0.9451,
+     "reversion_rate": 0.6058
+    },
+    "2021": {
+     "sessions": 258,
+     "touch_rate": 0.9457,
+     "reversion_rate": 0.6639
+    },
+    "2022": {
+     "sessions": 258,
+     "touch_rate": 0.9806,
+     "reversion_rate": 0.6285
+    }
+   }
+  },
+  "am": {
+   "sd": "08:00 -> 12:00 % change",
+   "sessions": 902,
+   "touched": 891,
+   "touch_rate": 0.9878,
+   "claimed_touch_rate": 0.9895,
+   "median_sd_pct": 0.863,
+   "first_touch_upper": 416,
+   "first_touch_lower": 475,
+   "both_levels_in_the_first_touch_bar": 8,
+   "reverted": 664,
+   "reversion_rate": 0.7452,
+   "claimed_reversion_rate": 0.743,
+   "reversion_after_upper_touch": 0.7428,
+   "claimed_after_upper": 0.7404,
+   "reversion_after_lower_touch": 0.7474,
+   "claimed_after_lower": 0.7456,
+   "by_touch_hour": {
+    "08": {
+     "n": 544,
+     "reversion_rate": 0.7978,
+     "claimed": 0.79
+    },
+    "09": {
+     "n": 333,
+     "reversion_rate": 0.6787,
+     "claimed": 0.695
+    },
+    "10": {
+     "n": 11,
+     "reversion_rate": 0.2727,
+     "claimed": 0.396
+    },
+    "11": {
+     "n": 3,
+     "reversion_rate": 0.3333,
+     "claimed": 0.091
+    }
+   },
+   "by_touch_half_hour": {
+    "08:00": {
+     "n": 270,
+     "reversion_rate": 0.8407,
+     "n_upper": 127,
+     "after_upper": 0.8661,
+     "claimed_after_upper": 0.828,
+     "n_lower": 143,
+     "after_lower": 0.8182,
+     "claimed_after_lower": 0.831
+    },
+    "08:30": {
+     "n": 274,
+     "reversion_rate": 0.7555,
+     "n_upper": 129,
+     "after_upper": 0.7442,
+     "claimed_after_upper": 0.751,
+     "n_lower": 145,
+     "after_lower": 0.7655,
+     "claimed_after_lower": 0.765
+    },
+    "09:00": {
+     "n": 102,
+     "reversion_rate": 0.6765,
+     "n_upper": 42,
+     "after_upper": 0.619,
+     "claimed_after_upper": 0.701,
+     "n_lower": 60,
+     "after_lower": 0.7167,
+     "claimed_after_lower": 0.712
+    },
+    "09:30": {
+     "n": 231,
+     "reversion_rate": 0.6797,
+     "n_upper": 113,
+     "after_upper": 0.6814,
+     "claimed_after_upper": 0.695,
+     "n_lower": 118,
+     "after_lower": 0.678,
+     "claimed_after_lower": 0.683
+    },
+    "10:00": {
+     "n": 8,
+     "reversion_rate": 0.25,
+     "n_upper": 2,
+     "after_upper": 0.0,
+     "claimed_after_upper": null,
+     "n_lower": 6,
+     "after_lower": 0.3333,
+     "claimed_after_lower": null
+    },
+    "10:30": {
+     "n": 3,
+     "reversion_rate": 0.3333,
+     "n_upper": 1,
+     "after_upper": 0.0,
+     "claimed_after_upper": null,
+     "n_lower": 2,
+     "after_lower": 0.5,
+     "claimed_after_lower": null
+    },
+    "11:00": {
+     "n": 2,
+     "reversion_rate": 0.5,
+     "n_upper": 1,
+     "after_upper": 0.0,
+     "claimed_after_upper": null,
+     "n_lower": 1,
+     "after_lower": 1.0,
+     "claimed_after_lower": null
+    },
+    "11:30": {
+     "n": 1,
+     "reversion_rate": 0.0,
+     "n_upper": 1,
+     "after_upper": 0.0,
+     "claimed_after_upper": null,
+     "n_lower": 0,
+     "after_lower": null,
+     "claimed_after_lower": null
+    }
+   },
+   "by_year": {
+    "2019": {
+     "sessions": 131,
+     "touch_rate": 0.9847,
+     "reversion_rate": 0.6899
+    },
+    "2020": {
+     "sessions": 255,
+     "touch_rate": 0.9882,
+     "reversion_rate": 0.7897
+    },
+    "2021": {
+     "sessions": 258,
+     "touch_rate": 0.9845,
+     "reversion_rate": 0.7441
+    },
+    "2022": {
+     "sessions": 258,
+     "touch_rate": 0.9922,
+     "reversion_rate": 0.7305
+    }
+   }
+  }
+ },
+ "selection": {
+  "rule": "in-sample (before 2023-01-01) touch rate nearer the published 98.9 %; tie -> cc",
+  "published_touch_rate": 0.98950233281493,
+  "in_sample": {
+   "cc": {
+    "sessions": 901,
+    "touched": 862,
+    "touch_rate": 0.9567147613762487,
+    "distance_from_published": 0.032787571438681384
+   },
+   "am": {
+    "sessions": 902,
+    "touched": 891,
+    "touch_rate": 0.9878048780487805,
+    "distance_from_published": 0.0016974547661495754
+   }
+  },
+  "selected": "am",
+  "selected_label": "08:00 -> 12:00 % change"
+ }
+}

@@ -1,0 +1,161 @@
+{
+ "claim": "IB high / low broken by 12:00 and by 16:00, unfiltered and by the two conditions",
+ "span": "2019-06-03 -> 2022-12-30",
+ "counts": {
+  "days": 926,
+  "no_ib_bar": 0,
+  "opens_outside_ib": 0,
+  "qualifying": 926,
+  "close_at_midpoint": 1,
+  "extremes_in_same_bar": 0,
+  "early_close_days": 29
+ },
+ "all_qualifying_sessions": {
+  "unfiltered: high": {
+   "n": 926,
+   "by_noon": 0.459,
+   "by_close": 0.6339,
+   "claimed_n": 2571,
+   "claimed_by_noon": 0.47,
+   "claimed_by_close": 0.629
+  },
+  "unfiltered: low": {
+   "n": 926,
+   "by_noon": 0.3963,
+   "by_close": 0.5551,
+   "claimed_n": 2571,
+   "claimed_by_noon": 0.398,
+   "claimed_by_close": 0.549
+  },
+  "unfiltered: either side": {
+   "n": 926,
+   "by_noon": 0.8186,
+   "by_close": 0.96,
+   "claimed_n": 2571,
+   "claimed_by_noon": 0.825,
+   "claimed_by_close": 0.961
+  },
+  "close above midpoint: high": {
+   "n": 516,
+   "by_noon": 0.6996,
+   "by_close": 0.8295,
+   "claimed_n": 1405,
+   "claimed_by_noon": 0.701,
+   "claimed_by_close": 0.823
+  },
+  "close below midpoint: low": {
+   "n": 409,
+   "by_noon": 0.6773,
+   "by_close": 0.7848,
+   "claimed_n": 1156,
+   "claimed_by_noon": 0.658,
+   "claimed_by_close": 0.765
+  },
+  "low set first: high": {
+   "n": 472,
+   "by_noon": 0.6568,
+   "by_close": 0.8008,
+   "claimed_n": 1298,
+   "claimed_by_noon": 0.682,
+   "claimed_by_close": 0.809
+  },
+  "high set first: low": {
+   "n": 454,
+   "by_noon": 0.5771,
+   "by_close": 0.7269,
+   "claimed_n": 1269,
+   "claimed_by_noon": 0.578,
+   "claimed_by_close": 0.712
+  },
+  "both bullish: high": {
+   "n": 407,
+   "by_noon": 0.7248,
+   "by_close": 0.8329,
+   "claimed_n": 1114,
+   "claimed_by_noon": 0.74,
+   "claimed_by_close": 0.84
+  },
+  "both bearish: low": {
+   "n": 344,
+   "by_noon": 0.6919,
+   "by_close": 0.8081,
+   "claimed_n": 974,
+   "claimed_by_noon": 0.679,
+   "claimed_by_close": 0.78
+  }
+ },
+ "without_early_close_days": {
+  "unfiltered: high": {
+   "n": 897,
+   "by_noon": 0.4582,
+   "by_close": 0.6366,
+   "claimed_n": 2571,
+   "claimed_by_noon": 0.47,
+   "claimed_by_close": 0.629
+  },
+  "unfiltered: low": {
+   "n": 897,
+   "by_noon": 0.3991,
+   "by_close": 0.5608,
+   "claimed_n": 2571,
+   "claimed_by_noon": 0.398,
+   "claimed_by_close": 0.549
+  },
+  "unfiltered: either side": {
+   "n": 897,
+   "by_noon": 0.8216,
+   "by_close": 0.9632,
+   "claimed_n": 2571,
+   "claimed_by_noon": 0.825,
+   "claimed_by_close": 0.961
+  },
+  "close above midpoint: high": {
+   "n": 496,
+   "by_noon": 0.7016,
+   "by_close": 0.8367,
+   "claimed_n": 1405,
+   "claimed_by_noon": 0.701,
+   "claimed_by_close": 0.823
+  },
+  "close below midpoint: low": {
+   "n": 400,
+   "by_noon": 0.6825,
+   "by_close": 0.7875,
+   "claimed_n": 1156,
+   "claimed_by_noon": 0.658,
+   "claimed_by_close": 0.765
+  },
+  "low set first: high": {
+   "n": 458,
+   "by_noon": 0.6594,
+   "by_close": 0.8057,
+   "claimed_n": 1298,
+   "claimed_by_noon": 0.682,
+   "claimed_by_close": 0.809
+  },
+  "high set first: low": {
+   "n": 439,
+   "by_noon": 0.5831,
+   "by_close": 0.7335,
+   "claimed_n": 1269,
+   "claimed_by_noon": 0.578,
+   "claimed_by_close": 0.712
+  },
+  "both bullish: high": {
+   "n": 394,
+   "by_noon": 0.7284,
+   "by_close": 0.8401,
+   "claimed_n": 1114,
+   "claimed_by_noon": 0.74,
+   "claimed_by_close": 0.84
+  },
+  "both bearish: low": {
+   "n": 336,
+   "by_noon": 0.6964,
+   "by_close": 0.8095,
+   "claimed_n": 974,
+   "claimed_by_noon": 0.679,
+   "claimed_by_close": 0.78
+  }
+ }
+}

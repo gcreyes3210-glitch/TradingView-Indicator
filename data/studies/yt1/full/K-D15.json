@@ -1,0 +1,292 @@
+{
+ "claim": "a new session high (low) with <= 9 contracts traded at the extreme price holds for the next six 5-minute bars more often than one with more",
+ "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest",
+ "span": "2019-06-03 -> 2026-09-22",
+ "footprint_days": 876,
+ "rate_is": "share of events whose extreme is not traded through in the next six footprint bars (window cut at the day's last footprint bar)",
+ "highs": {
+  "events": 4024,
+  "exhaustion": {
+   "n": 2776,
+   "hits": 532,
+   "rate": 0.1916
+  },
+  "rest": {
+   "n": 1248,
+   "hits": 247,
+   "rate": 0.1979
+  },
+  "all": {
+   "n": 4024,
+   "hits": 779,
+   "rate": 0.1936
+  },
+  "difference_exhaustion_minus_rest": -0.0063,
+  "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+ },
+ "lows": {
+  "events": 3387,
+  "exhaustion": {
+   "n": 2539,
+   "hits": 570,
+   "rate": 0.2245
+  },
+  "rest": {
+   "n": 848,
+   "hits": 174,
+   "rate": 0.2052
+  },
+  "all": {
+   "n": 3387,
+   "hits": 744,
+   "rate": 0.2197
+  },
+  "difference_exhaustion_minus_rest": 0.0193,
+  "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+ },
+ "pooled": {
+  "events": 7411,
+  "exhaustion": {
+   "n": 5315,
+   "hits": 1102,
+   "rate": 0.2073
+  },
+  "rest": {
+   "n": 2096,
+   "hits": 421,
+   "rate": 0.2009
+  },
+  "all": {
+   "n": 7411,
+   "hits": 1523,
+   "rate": 0.2055
+  },
+  "difference_exhaustion_minus_rest": 0.0064,
+  "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+ },
+ "full_window_only": {
+  "note": "events with all six later bars (opening by 11:00)",
+  "highs": {
+   "events": 3489,
+   "exhaustion": {
+    "n": 2408,
+    "hits": 419,
+    "rate": 0.174
+   },
+   "rest": {
+    "n": 1081,
+    "hits": 206,
+    "rate": 0.1906
+   },
+   "all": {
+    "n": 3489,
+    "hits": 625,
+    "rate": 0.1791
+   },
+   "difference_exhaustion_minus_rest": -0.0166,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  },
+  "lows": {
+   "events": 3004,
+   "exhaustion": {
+    "n": 2260,
+    "hits": 487,
+    "rate": 0.2155
+   },
+   "rest": {
+    "n": 744,
+    "hits": 142,
+    "rate": 0.1909
+   },
+   "all": {
+    "n": 3004,
+    "hits": 629,
+    "rate": 0.2094
+   },
+   "difference_exhaustion_minus_rest": 0.0246,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  },
+  "pooled": {
+   "events": 6493,
+   "exhaustion": {
+    "n": 4668,
+    "hits": 906,
+    "rate": 0.1941
+   },
+   "rest": {
+    "n": 1825,
+    "hits": 348,
+    "rate": 0.1907
+   },
+   "all": {
+    "n": 6493,
+    "hits": 1254,
+    "rate": 0.1931
+   },
+   "difference_exhaustion_minus_rest": 0.0034,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  }
+ },
+ "by_year_pooled": {
+  "2019": {
+   "events": 387,
+   "exhaustion": {
+    "n": 147,
+    "hits": 37,
+    "rate": 0.2517
+   },
+   "rest": {
+    "n": 240,
+    "hits": 54,
+    "rate": 0.225
+   },
+   "all": {
+    "n": 387,
+    "hits": 91,
+    "rate": 0.2351
+   },
+   "difference_exhaustion_minus_rest": 0.0267,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  },
+  "2020": {
+   "events": 810,
+   "exhaustion": {
+    "n": 554,
+    "hits": 123,
+    "rate": 0.222
+   },
+   "rest": {
+    "n": 256,
+    "hits": 53,
+    "rate": 0.207
+   },
+   "all": {
+    "n": 810,
+    "hits": 176,
+    "rate": 0.2173
+   },
+   "difference_exhaustion_minus_rest": 0.015,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  },
+  "2021": {
+   "events": 1094,
+   "exhaustion": {
+    "n": 742,
+    "hits": 154,
+    "rate": 0.2075
+   },
+   "rest": {
+    "n": 352,
+    "hits": 62,
+    "rate": 0.1761
+   },
+   "all": {
+    "n": 1094,
+    "hits": 216,
+    "rate": 0.1974
+   },
+   "difference_exhaustion_minus_rest": 0.0314,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  },
+  "2022": {
+   "events": 1165,
+   "exhaustion": {
+    "n": 906,
+    "hits": 191,
+    "rate": 0.2108
+   },
+   "rest": {
+    "n": 259,
+    "hits": 48,
+    "rate": 0.1853
+   },
+   "all": {
+    "n": 1165,
+    "hits": 239,
+    "rate": 0.2052
+   },
+   "difference_exhaustion_minus_rest": 0.0255,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  },
+  "2023": {
+   "events": 1116,
+   "exhaustion": {
+    "n": 702,
+    "hits": 139,
+    "rate": 0.198
+   },
+   "rest": {
+    "n": 414,
+    "hits": 81,
+    "rate": 0.1957
+   },
+   "all": {
+    "n": 1116,
+    "hits": 220,
+    "rate": 0.1971
+   },
+   "difference_exhaustion_minus_rest": 0.0023,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  },
+  "2024": {
+   "events": 1088,
+   "exhaustion": {
+    "n": 795,
+    "hits": 162,
+    "rate": 0.2038
+   },
+   "rest": {
+    "n": 293,
+    "hits": 61,
+    "rate": 0.2082
+   },
+   "all": {
+    "n": 1088,
+    "hits": 223,
+    "rate": 0.205
+   },
+   "difference_exhaustion_minus_rest": -0.0044,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  },
+  "2025": {
+   "events": 1018,
+   "exhaustion": {
+    "n": 825,
+    "hits": 173,
+    "rate": 0.2097
+   },
+   "rest": {
+    "n": 193,
+    "hits": 42,
+    "rate": 0.2176
+   },
+   "all": {
+    "n": 1018,
+    "hits": 215,
+    "rate": 0.2112
+   },
+   "difference_exhaustion_minus_rest": -0.0079,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  },
+  "2026": {
+   "events": 733,
+   "exhaustion": {
+    "n": 644,
+    "hits": 123,
+    "rate": 0.191
+   },
+   "rest": {
+    "n": 89,
+    "hits": 20,
+    "rate": 0.2247
+   },
+   "all": {
+    "n": 733,
+    "hits": 143,
+    "rate": 0.1951
+   },
+   "difference_exhaustion_minus_rest": -0.0337,
+   "claimed": "no figure published; direction claimed: an extreme with <= 9 contracts holds more often than the rest"
+  }
+ }
+}

@@ -1,0 +1,136 @@
+{
+ "claim": "after the first 5-minute close beyond the range, the opposite extreme holds: 80 %",
+ "span": "2019-06-03 -> 2026-10-07",
+ "wick_range_DR": {
+  "days": 1897,
+  "days_with_confirmation": 1760,
+  "up": 966,
+  "down": 794,
+  "held": 1444,
+  "share_opposite_extreme_not_traded_through": 0.8205,
+  "claimed": 0.8,
+  "share_after_up_confirmation": 0.8333,
+  "share_after_down_confirmation": 0.8048,
+  "secondary": {
+   "share_not_even_touched": 0.8205,
+   "share_not_traded_through_at_any_time_from_1030": 0.7744
+  },
+  "without_early_close_days": {
+   "days": 1833,
+   "days_with_confirmation": 1709,
+   "up": 937,
+   "down": 772,
+   "held": 1394,
+   "share_opposite_extreme_not_traded_through": 0.8157,
+   "claimed": 0.8,
+   "share_after_up_confirmation": 0.8282,
+   "share_after_down_confirmation": 0.8005,
+   "secondary": {
+    "share_not_even_touched": 0.8157,
+    "share_not_traded_through_at_any_time_from_1030": 0.7689
+   }
+  },
+  "by_year": {
+   "2019": {
+    "n": 132,
+    "share": 0.8182
+   },
+   "2020": {
+    "n": 247,
+    "share": 0.7449
+   },
+   "2021": {
+    "n": 235,
+    "share": 0.8851
+   },
+   "2022": {
+    "n": 241,
+    "share": 0.8008
+   },
+   "2023": {
+    "n": 240,
+    "share": 0.8042
+   },
+   "2024": {
+    "n": 244,
+    "share": 0.8279
+   },
+   "2025": {
+    "n": 240,
+    "share": 0.8208
+   },
+   "2026": {
+    "n": 181,
+    "share": 0.8785
+   }
+  }
+ },
+ "body_range_IDR": {
+  "days": 1897,
+  "days_with_confirmation": 1835,
+  "up": 982,
+  "down": 853,
+  "held": 1349,
+  "share_opposite_extreme_not_traded_through": 0.7351,
+  "claimed": 0.8,
+  "share_after_up_confirmation": 0.7566,
+  "share_after_down_confirmation": 0.7104,
+  "secondary": {
+   "share_not_even_touched": 0.7341,
+   "share_not_traded_through_at_any_time_from_1030": 0.6627,
+   "share_opposite_body_extreme_not_closed_through_on_5m": 0.7613,
+   "share_opposite_DR_wick_extreme_not_traded_through": 0.7738
+  },
+  "without_early_close_days": {
+   "days": 1833,
+   "days_with_confirmation": 1776,
+   "up": 948,
+   "down": 828,
+   "held": 1297,
+   "share_opposite_extreme_not_traded_through": 0.7303,
+   "claimed": 0.8,
+   "share_after_up_confirmation": 0.7521,
+   "share_after_down_confirmation": 0.7053,
+   "secondary": {
+    "share_not_even_touched": 0.7297,
+    "share_not_traded_through_at_any_time_from_1030": 0.6577,
+    "share_opposite_body_extreme_not_closed_through_on_5m": 0.7556,
+    "share_opposite_DR_wick_extreme_not_traded_through": 0.7686
+   }
+  },
+  "by_year": {
+   "2019": {
+    "n": 139,
+    "share": 0.7194
+   },
+   "2020": {
+    "n": 255,
+    "share": 0.6549
+   },
+   "2021": {
+    "n": 247,
+    "share": 0.8016
+   },
+   "2022": {
+    "n": 251,
+    "share": 0.7131
+   },
+   "2023": {
+    "n": 250,
+    "share": 0.744
+   },
+   "2024": {
+    "n": 253,
+    "share": 0.7352
+   },
+   "2025": {
+    "n": 251,
+    "share": 0.745
+   },
+   "2026": {
+    "n": 189,
+    "share": 0.7725
+   }
+  }
+ }
+}

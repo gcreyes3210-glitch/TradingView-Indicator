@@ -1,0 +1,322 @@
+{
+ "claim": "open above the previous RTH high: closes above it 69.9 %, previous low not breached 88.1 %; open below: 59.5 %, 90.4 %; open inside: neither side 17.7 %, one 74.0 %, both 8.3 %",
+ "span": "2019-06-04 -> 2026-10-07",
+ "headline": {
+  "days": 1866,
+  "open_above": {
+   "n": 475,
+   "share_of_days": 0.2546,
+   "claimed_share": 0.2629,
+   "closes_above_prev_high": 0.7032,
+   "claimed_closes_above": 0.699,
+   "prev_low_not_breached": 0.8821,
+   "claimed_low_not_breached": 0.881
+  },
+  "open_below": {
+   "n": 292,
+   "share_of_days": 0.1565,
+   "claimed_share": 0.1459,
+   "closes_below_prev_low": 0.6301,
+   "claimed_closes_below": 0.595,
+   "prev_high_not_breached": 0.8801,
+   "claimed_high_not_breached": 0.904
+  },
+  "open_inside": {
+   "n": 1099,
+   "share_of_days": 0.589,
+   "claimed_share": 0.5912,
+   "neither_side": 0.1811,
+   "claimed_neither": 0.177,
+   "one_side": 0.7334,
+   "claimed_one": 0.74,
+   "both_sides": 0.0855,
+   "claimed_both": 0.083,
+   "one_side_high_only": 0.3894,
+   "one_side_low_only": 0.3439
+  }
+ },
+ "spoken_in_the_archived_video": {
+  "inside_neither": 0.14,
+  "inside_one": 0.73,
+  "inside_both": 0.13,
+  "above_low_not_breached": 0.84
+ },
+ "other_breach_definitions": {
+  "through_by_1_tick": {
+   "days": 1866,
+   "open_above": {
+    "n": 475,
+    "share_of_days": 0.2546,
+    "claimed_share": 0.2629,
+    "closes_above_prev_high": 0.7032,
+    "claimed_closes_above": 0.699,
+    "prev_low_not_breached": 0.8821,
+    "claimed_low_not_breached": 0.881
+   },
+   "open_below": {
+    "n": 292,
+    "share_of_days": 0.1565,
+    "claimed_share": 0.1459,
+    "closes_below_prev_low": 0.6301,
+    "claimed_closes_below": 0.595,
+    "prev_high_not_breached": 0.8801,
+    "claimed_high_not_breached": 0.904
+   },
+   "open_inside": {
+    "n": 1099,
+    "share_of_days": 0.589,
+    "claimed_share": 0.5912,
+    "neither_side": 0.1811,
+    "claimed_neither": 0.177,
+    "one_side": 0.7334,
+    "claimed_one": 0.74,
+    "both_sides": 0.0855,
+    "claimed_both": 0.083,
+    "one_side_high_only": 0.3894,
+    "one_side_low_only": 0.3439
+   }
+  },
+  "touch": {
+   "days": 1866,
+   "open_above": {
+    "n": 475,
+    "share_of_days": 0.2546,
+    "claimed_share": 0.2629,
+    "closes_above_prev_high": 0.7032,
+    "claimed_closes_above": 0.699,
+    "prev_low_not_breached": 0.8821,
+    "claimed_low_not_breached": 0.881
+   },
+   "open_below": {
+    "n": 292,
+    "share_of_days": 0.1565,
+    "claimed_share": 0.1459,
+    "closes_below_prev_low": 0.6301,
+    "claimed_closes_below": 0.595,
+    "prev_high_not_breached": 0.8801,
+    "claimed_high_not_breached": 0.904
+   },
+   "open_inside": {
+    "n": 1099,
+    "share_of_days": 0.589,
+    "claimed_share": 0.5912,
+    "neither_side": 0.1811,
+    "claimed_neither": 0.177,
+    "one_side": 0.7334,
+    "claimed_one": 0.74,
+    "both_sides": 0.0855,
+    "claimed_both": 0.083,
+    "one_side_high_only": 0.3894,
+    "one_side_low_only": 0.3439
+   }
+  }
+ },
+ "with_roll_days": {
+  "days": 1896,
+  "open_above": {
+   "n": 490,
+   "share_of_days": 0.2584,
+   "claimed_share": 0.2629,
+   "closes_above_prev_high": 0.7102,
+   "claimed_closes_above": 0.699,
+   "prev_low_not_breached": 0.8857,
+   "claimed_low_not_breached": 0.881
+  },
+  "open_below": {
+   "n": 294,
+   "share_of_days": 0.1551,
+   "claimed_share": 0.1459,
+   "closes_below_prev_low": 0.6293,
+   "claimed_closes_below": 0.595,
+   "prev_high_not_breached": 0.881,
+   "claimed_high_not_breached": 0.904
+  },
+  "open_inside": {
+   "n": 1112,
+   "share_of_days": 0.5865,
+   "claimed_share": 0.5912,
+   "neither_side": 0.1817,
+   "claimed_neither": 0.177,
+   "one_side": 0.7329,
+   "claimed_one": 0.74,
+   "both_sides": 0.0854,
+   "claimed_both": 0.083,
+   "one_side_high_only": 0.3885,
+   "one_side_low_only": 0.3444
+  }
+ },
+ "without_early_close_days": {
+  "days": 1803,
+  "open_above": {
+   "n": 456,
+   "share_of_days": 0.2529,
+   "claimed_share": 0.2629,
+   "closes_above_prev_high": 0.693,
+   "claimed_closes_above": 0.699,
+   "prev_low_not_breached": 0.8772,
+   "claimed_low_not_breached": 0.881
+  },
+  "open_below": {
+   "n": 281,
+   "share_of_days": 0.1559,
+   "claimed_share": 0.1459,
+   "closes_below_prev_low": 0.6192,
+   "claimed_closes_below": 0.595,
+   "prev_high_not_breached": 0.879,
+   "claimed_high_not_breached": 0.904
+  },
+  "open_inside": {
+   "n": 1066,
+   "share_of_days": 0.5912,
+   "claimed_share": 0.5912,
+   "neither_side": 0.1651,
+   "claimed_neither": 0.177,
+   "one_side": 0.7467,
+   "claimed_one": 0.74,
+   "both_sides": 0.0882,
+   "claimed_both": 0.083,
+   "one_side_high_only": 0.3949,
+   "one_side_low_only": 0.3518
+  }
+ },
+ "without_early_close_days_and_the_day_after_one": {
+  "days": 1750,
+  "open_above": {
+   "n": 441,
+   "share_of_days": 0.252,
+   "claimed_share": 0.2629,
+   "closes_above_prev_high": 0.6961,
+   "claimed_closes_above": 0.699,
+   "prev_low_not_breached": 0.8866,
+   "claimed_low_not_breached": 0.881
+  },
+  "open_below": {
+   "n": 259,
+   "share_of_days": 0.148,
+   "claimed_share": 0.1459,
+   "closes_below_prev_low": 0.6255,
+   "claimed_closes_below": 0.595,
+   "prev_high_not_breached": 0.9035,
+   "claimed_high_not_breached": 0.904
+  },
+  "open_inside": {
+   "n": 1050,
+   "share_of_days": 0.6,
+   "claimed_share": 0.5912,
+   "neither_side": 0.1676,
+   "claimed_neither": 0.177,
+   "one_side": 0.7514,
+   "claimed_one": 0.74,
+   "both_sides": 0.081,
+   "claimed_both": 0.083,
+   "one_side_high_only": 0.3981,
+   "one_side_low_only": 0.3533
+  }
+ },
+ "by_year": {
+  "2019": {
+   "days": 147,
+   "n_above": 51,
+   "above_closes_above": 0.7451,
+   "above_low_not_breached": 0.8824,
+   "n_below": 15,
+   "below_closes_below": 0.6667,
+   "below_high_not_breached": 0.9333,
+   "n_inside": 81,
+   "inside_neither": 0.1975,
+   "inside_one": 0.7037,
+   "inside_both": 0.0988
+  },
+  "2020": {
+   "days": 255,
+   "n_above": 79,
+   "above_closes_above": 0.6962,
+   "above_low_not_breached": 0.8861,
+   "n_below": 34,
+   "below_closes_below": 0.5294,
+   "below_high_not_breached": 0.8235,
+   "n_inside": 142,
+   "inside_neither": 0.2113,
+   "inside_one": 0.7113,
+   "inside_both": 0.0775
+  },
+  "2021": {
+   "days": 254,
+   "n_above": 67,
+   "above_closes_above": 0.7164,
+   "above_low_not_breached": 0.8955,
+   "n_below": 36,
+   "below_closes_below": 0.8056,
+   "below_high_not_breached": 0.9444,
+   "n_inside": 151,
+   "inside_neither": 0.1656,
+   "inside_one": 0.7881,
+   "inside_both": 0.0464
+  },
+  "2022": {
+   "days": 254,
+   "n_above": 45,
+   "above_closes_above": 0.6889,
+   "above_low_not_breached": 0.8667,
+   "n_below": 53,
+   "below_closes_below": 0.6604,
+   "below_high_not_breached": 0.9057,
+   "n_inside": 156,
+   "inside_neither": 0.109,
+   "inside_one": 0.7756,
+   "inside_both": 0.1154
+  },
+  "2023": {
+   "days": 253,
+   "n_above": 53,
+   "above_closes_above": 0.6604,
+   "above_low_not_breached": 0.8302,
+   "n_below": 41,
+   "below_closes_below": 0.561,
+   "below_high_not_breached": 0.878,
+   "n_inside": 159,
+   "inside_neither": 0.1824,
+   "inside_one": 0.7044,
+   "inside_both": 0.1132
+  },
+  "2024": {
+   "days": 255,
+   "n_above": 61,
+   "above_closes_above": 0.7705,
+   "above_low_not_breached": 0.8689,
+   "n_below": 35,
+   "below_closes_below": 0.6286,
+   "below_high_not_breached": 0.8857,
+   "n_inside": 159,
+   "inside_neither": 0.2453,
+   "inside_one": 0.7044,
+   "inside_both": 0.0503
+  },
+  "2025": {
+   "days": 253,
+   "n_above": 71,
+   "above_closes_above": 0.6197,
+   "above_low_not_breached": 0.8732,
+   "n_below": 40,
+   "below_closes_below": 0.55,
+   "below_high_not_breached": 0.9,
+   "n_inside": 142,
+   "inside_neither": 0.1972,
+   "inside_one": 0.7113,
+   "inside_both": 0.0915
+  },
+  "2026": {
+   "days": 195,
+   "n_above": 48,
+   "above_closes_above": 0.75,
+   "above_low_not_breached": 0.9583,
+   "n_below": 38,
+   "below_closes_below": 0.6579,
+   "below_high_not_breached": 0.7895,
+   "n_inside": 109,
+   "inside_neither": 0.1376,
+   "inside_one": 0.7615,
+   "inside_both": 0.1009
+  }
+ }
+}

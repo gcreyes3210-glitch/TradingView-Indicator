@@ -1,0 +1,371 @@
+{
+ "claim": "first breach of the previous hour's high / low -> the hour's open trades before the hour ends",
+ "span": "2019-06-03 -> 2026-10-07",
+ "days": 1897,
+ "counts": {
+  "hours": 14996,
+  "contract_change": 0,
+  "not_inside": 56,
+  "no_breach": 1784,
+  "both_in_one_bar": 33,
+  "breaches": 13123,
+  "breaches_in_the_hours_first_bar": 2718
+ },
+ "overall": {
+  "n": 13123,
+  "reverted": 8386,
+  "rate": 0.639,
+  "rate_later": 0.6383,
+  "rate_any": 0.6611,
+  "claimed": 0.615
+ },
+ "h13_seg1": {
+  "n": 1157,
+  "reverted": 836,
+  "rate": 0.7226,
+  "rate_later": 0.7226,
+  "rate_any": 0.7459,
+  "claimed": 0.71
+ },
+ "h09_seg1": {
+  "n": 1006,
+  "reverted": 886,
+  "rate": 0.8807,
+  "rate_later": 0.8807,
+  "rate_any": 0.8887,
+  "claimed": 0.874
+ },
+ "by_hour": {
+  "08:00": {
+   "n": 1693,
+   "reverted": 1114,
+   "rate": 0.658,
+   "rate_later": 0.6574,
+   "rate_any": 0.6905
+  },
+  "09:00": {
+   "n": 1833,
+   "reverted": 1433,
+   "rate": 0.7818,
+   "rate_later": 0.7807,
+   "rate_any": 0.808
+  },
+  "10:00": {
+   "n": 1714,
+   "reverted": 1065,
+   "rate": 0.6214,
+   "rate_later": 0.6208,
+   "rate_any": 0.6383
+  },
+  "11:00": {
+   "n": 1492,
+   "reverted": 845,
+   "rate": 0.5664,
+   "rate_later": 0.5664,
+   "rate_any": 0.5845
+  },
+  "12:00": {
+   "n": 1549,
+   "reverted": 904,
+   "rate": 0.5836,
+   "rate_later": 0.5823,
+   "rate_any": 0.603
+  },
+  "13:00": {
+   "n": 1591,
+   "reverted": 956,
+   "rate": 0.6009,
+   "rate_later": 0.6009,
+   "rate_any": 0.626
+  },
+  "14:00": {
+   "n": 1581,
+   "reverted": 954,
+   "rate": 0.6034,
+   "rate_later": 0.6028,
+   "rate_any": 0.618
+  },
+  "15:00": {
+   "n": 1670,
+   "reverted": 1115,
+   "rate": 0.6677,
+   "rate_later": 0.6659,
+   "rate_any": 0.6904
+  }
+ },
+ "by_segment": {
+  "seg1": {
+   "n": 9236,
+   "reverted": 6899,
+   "rate": 0.747,
+   "rate_later": 0.7464,
+   "rate_any": 0.7644
+  },
+  "seg2": {
+   "n": 2833,
+   "reverted": 1283,
+   "rate": 0.4529,
+   "rate_later": 0.4518,
+   "rate_any": 0.4878
+  },
+  "seg3": {
+   "n": 1054,
+   "reverted": 204,
+   "rate": 0.1935,
+   "rate_later": 0.1917,
+   "rate_any": 0.222
+  }
+ },
+ "by_hour_and_segment": {
+  "08:00 seg1": {
+   "n": 1188,
+   "reverted": 929,
+   "rate": 0.782,
+   "rate_later": 0.782,
+   "rate_any": 0.7997
+  },
+  "08:00 seg2": {
+   "n": 394,
+   "reverted": 172,
+   "rate": 0.4365,
+   "rate_later": 0.434,
+   "rate_any": 0.5127
+  },
+  "08:00 seg3": {
+   "n": 111,
+   "reverted": 13,
+   "rate": 0.1171,
+   "rate_later": 0.1171,
+   "rate_any": 0.1532
+  },
+  "09:00 seg1": {
+   "n": 1006,
+   "reverted": 886,
+   "rate": 0.8807,
+   "rate_later": 0.8807,
+   "rate_any": 0.8887
+  },
+  "09:00 seg2": {
+   "n": 767,
+   "reverted": 526,
+   "rate": 0.6858,
+   "rate_later": 0.6832,
+   "rate_any": 0.7366
+  },
+  "09:00 seg3": {
+   "n": 60,
+   "reverted": 21,
+   "rate": 0.35,
+   "rate_later": 0.35,
+   "rate_any": 0.3667
+  },
+  "10:00 seg1": {
+   "n": 1356,
+   "reverted": 967,
+   "rate": 0.7131,
+   "rate_later": 0.7124,
+   "rate_any": 0.7301
+  },
+  "10:00 seg2": {
+   "n": 260,
+   "reverted": 81,
+   "rate": 0.3115,
+   "rate_later": 0.3115,
+   "rate_any": 0.3346
+  },
+  "10:00 seg3": {
+   "n": 98,
+   "reverted": 17,
+   "rate": 0.1735,
+   "rate_later": 0.1735,
+   "rate_any": 0.1735
+  },
+  "11:00 seg1": {
+   "n": 1080,
+   "reverted": 748,
+   "rate": 0.6926,
+   "rate_later": 0.6926,
+   "rate_any": 0.7102
+  },
+  "11:00 seg2": {
+   "n": 273,
+   "reverted": 81,
+   "rate": 0.2967,
+   "rate_later": 0.2967,
+   "rate_any": 0.3114
+  },
+  "11:00 seg3": {
+   "n": 139,
+   "reverted": 16,
+   "rate": 0.1151,
+   "rate_later": 0.1151,
+   "rate_any": 0.1439
+  },
+  "12:00 seg1": {
+   "n": 1110,
+   "reverted": 785,
+   "rate": 0.7072,
+   "rate_later": 0.7054,
+   "rate_any": 0.7279
+  },
+  "12:00 seg2": {
+   "n": 290,
+   "reverted": 95,
+   "rate": 0.3276,
+   "rate_later": 0.3276,
+   "rate_any": 0.3448
+  },
+  "12:00 seg3": {
+   "n": 149,
+   "reverted": 24,
+   "rate": 0.1611,
+   "rate_later": 0.1611,
+   "rate_any": 0.1745
+  },
+  "13:00 seg1": {
+   "n": 1157,
+   "reverted": 836,
+   "rate": 0.7226,
+   "rate_later": 0.7226,
+   "rate_any": 0.7459
+  },
+  "13:00 seg2": {
+   "n": 299,
+   "reverted": 91,
+   "rate": 0.3043,
+   "rate_later": 0.3043,
+   "rate_any": 0.3278
+  },
+  "13:00 seg3": {
+   "n": 135,
+   "reverted": 29,
+   "rate": 0.2148,
+   "rate_later": 0.2148,
+   "rate_any": 0.2593
+  },
+  "14:00 seg1": {
+   "n": 1158,
+   "reverted": 818,
+   "rate": 0.7064,
+   "rate_later": 0.7055,
+   "rate_any": 0.7211
+  },
+  "14:00 seg2": {
+   "n": 261,
+   "reverted": 96,
+   "rate": 0.3678,
+   "rate_later": 0.3678,
+   "rate_any": 0.387
+  },
+  "14:00 seg3": {
+   "n": 162,
+   "reverted": 40,
+   "rate": 0.2469,
+   "rate_later": 0.2469,
+   "rate_any": 0.2531
+  },
+  "15:00 seg1": {
+   "n": 1181,
+   "reverted": 930,
+   "rate": 0.7875,
+   "rate_later": 0.7866,
+   "rate_any": 0.8069
+  },
+  "15:00 seg2": {
+   "n": 289,
+   "reverted": 141,
+   "rate": 0.4879,
+   "rate_later": 0.4879,
+   "rate_any": 0.4983
+  },
+  "15:00 seg3": {
+   "n": 200,
+   "reverted": 44,
+   "rate": 0.22,
+   "rate_later": 0.21,
+   "rate_any": 0.28
+  }
+ },
+ "by_side": {
+  "high": {
+   "n": 7060,
+   "reverted": 4541,
+   "rate": 0.6432,
+   "rate_later": 0.6424,
+   "rate_any": 0.666
+  },
+  "low": {
+   "n": 6063,
+   "reverted": 3845,
+   "rate": 0.6342,
+   "rate_later": 0.6335,
+   "rate_any": 0.6555
+  }
+ },
+ "by_year": {
+  "2019": {
+   "n": 1013,
+   "reverted": 610,
+   "rate": 0.6022,
+   "rate_later": 0.6022,
+   "rate_any": 0.6249
+  },
+  "2020": {
+   "n": 1804,
+   "reverted": 1147,
+   "rate": 0.6358,
+   "rate_later": 0.6341,
+   "rate_any": 0.6619
+  },
+  "2021": {
+   "n": 1771,
+   "reverted": 1113,
+   "rate": 0.6285,
+   "rate_later": 0.6268,
+   "rate_any": 0.6522
+  },
+  "2022": {
+   "n": 1805,
+   "reverted": 1117,
+   "rate": 0.6188,
+   "rate_later": 0.6188,
+   "rate_any": 0.6399
+  },
+  "2023": {
+   "n": 1800,
+   "reverted": 1154,
+   "rate": 0.6411,
+   "rate_later": 0.6411,
+   "rate_any": 0.6639
+  },
+  "2024": {
+   "n": 1800,
+   "reverted": 1190,
+   "rate": 0.6611,
+   "rate_later": 0.66,
+   "rate_any": 0.6817
+  },
+  "2025": {
+   "n": 1771,
+   "reverted": 1191,
+   "rate": 0.6725,
+   "rate_later": 0.6719,
+   "rate_any": 0.6911
+  },
+  "2026": {
+   "n": 1359,
+   "reverted": 864,
+   "rate": 0.6358,
+   "rate_later": 0.635,
+   "rate_any": 0.6571
+  }
+ },
+ "without_early_close_days": {
+  "n": 12847,
+  "reverted": 8214,
+  "rate": 0.6394,
+  "rate_later": 0.6386,
+  "rate_any": 0.6616,
+  "claimed": 0.615
+ }
+}

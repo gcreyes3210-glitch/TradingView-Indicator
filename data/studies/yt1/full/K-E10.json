@@ -1,0 +1,408 @@
+{
+ "claim": "green first hour -> day closes above its open 76-79 %; red -> below 72-72.5 %; above the open at 15:00 -> closes above the open about 90 % (YM), 91 % with the range middle (ES)",
+ "span": "2019-06-03 -> 2026-10-07",
+ "days": 1897,
+ "early_close_days": 64,
+ "first_hour": {
+  "days": 1897,
+  "green": {
+   "n": 985,
+   "closes_same_side_of_open": 747,
+   "rate_closes_same_side_of_open": 0.7584,
+   "claimed": "76-79 %",
+   "closes_beyond_signal_price": 593,
+   "rate_closes_beyond_signal_price": 0.602,
+   "closes_equal_to_signal_price": 0
+  },
+  "red": {
+   "n": 910,
+   "closes_same_side_of_open": 634,
+   "rate_closes_same_side_of_open": 0.6967,
+   "claimed": "72-72.5 % (82 % in a 3-month sample)",
+   "closes_beyond_signal_price": 452,
+   "rate_closes_beyond_signal_price": 0.4967,
+   "closes_equal_to_signal_price": 0
+  },
+  "flat": 2,
+  "all_days": {
+   "n": 1897,
+   "rate_close_above_open": 0.5387,
+   "rate_close_above_signal_price": 0.5551
+  },
+  "without_early_close_days": {
+   "days": 1833,
+   "green": {
+    "n": 953,
+    "closes_same_side_of_open": 720,
+    "rate_closes_same_side_of_open": 0.7555,
+    "claimed": "76-79 %",
+    "closes_beyond_signal_price": 573,
+    "rate_closes_beyond_signal_price": 0.6013,
+    "closes_equal_to_signal_price": 0
+   },
+   "red": {
+    "n": 879,
+    "closes_same_side_of_open": 609,
+    "rate_closes_same_side_of_open": 0.6928,
+    "claimed": "72-72.5 % (82 % in a 3-month sample)",
+    "closes_beyond_signal_price": 434,
+    "rate_closes_beyond_signal_price": 0.4937,
+    "closes_equal_to_signal_price": 0
+   },
+   "flat": 1,
+   "all_days": {
+    "n": 1833,
+    "rate_close_above_open": 0.5396,
+    "rate_close_above_signal_price": 0.5559
+   }
+  },
+  "by_year": {
+   "2019": {
+    "green": {
+     "n": 75,
+     "rate_closes_same_side_of_open": 0.76,
+     "rate_closes_beyond_signal_price": 0.56
+    },
+    "red": {
+     "n": 76,
+     "rate_closes_same_side_of_open": 0.6974,
+     "rate_closes_beyond_signal_price": 0.4737
+    }
+   },
+   "2020": {
+    "green": {
+     "n": 144,
+     "rate_closes_same_side_of_open": 0.7222,
+     "rate_closes_beyond_signal_price": 0.5972
+    },
+    "red": {
+     "n": 114,
+     "rate_closes_same_side_of_open": 0.6053,
+     "rate_closes_beyond_signal_price": 0.4649
+    }
+   },
+   "2021": {
+    "green": {
+     "n": 137,
+     "rate_closes_same_side_of_open": 0.7664,
+     "rate_closes_beyond_signal_price": 0.6423
+    },
+    "red": {
+     "n": 121,
+     "rate_closes_same_side_of_open": 0.6612,
+     "rate_closes_beyond_signal_price": 0.5289
+    }
+   },
+   "2022": {
+    "green": {
+     "n": 126,
+     "rate_closes_same_side_of_open": 0.7063,
+     "rate_closes_beyond_signal_price": 0.5873
+    },
+    "red": {
+     "n": 132,
+     "rate_closes_same_side_of_open": 0.7348,
+     "rate_closes_beyond_signal_price": 0.5606
+    }
+   },
+   "2023": {
+    "green": {
+     "n": 132,
+     "rate_closes_same_side_of_open": 0.803,
+     "rate_closes_beyond_signal_price": 0.6439
+    },
+    "red": {
+     "n": 124,
+     "rate_closes_same_side_of_open": 0.6532,
+     "rate_closes_beyond_signal_price": 0.5081
+    }
+   },
+   "2024": {
+    "green": {
+     "n": 130,
+     "rate_closes_same_side_of_open": 0.7846,
+     "rate_closes_beyond_signal_price": 0.5923
+    },
+    "red": {
+     "n": 129,
+     "rate_closes_same_side_of_open": 0.7287,
+     "rate_closes_beyond_signal_price": 0.4806
+    }
+   },
+   "2025": {
+    "green": {
+     "n": 135,
+     "rate_closes_same_side_of_open": 0.7926,
+     "rate_closes_beyond_signal_price": 0.6222
+    },
+    "red": {
+     "n": 122,
+     "rate_closes_same_side_of_open": 0.7295,
+     "rate_closes_beyond_signal_price": 0.4672
+    }
+   },
+   "2026": {
+    "green": {
+     "n": 106,
+     "rate_closes_same_side_of_open": 0.7264,
+     "rate_closes_beyond_signal_price": 0.5377
+    },
+    "red": {
+     "n": 92,
+     "rate_closes_same_side_of_open": 0.7717,
+     "rate_closes_beyond_signal_price": 0.4674
+    }
+   }
+  }
+ },
+ "at_1500": {
+  "days": 1832,
+  "green": {
+   "n": 1002,
+   "closes_same_side_of_open": 898,
+   "rate_closes_same_side_of_open": 0.8962,
+   "claimed": "about 90 % (YM)",
+   "closes_beyond_signal_price": 524,
+   "rate_closes_beyond_signal_price": 0.523,
+   "closes_equal_to_signal_price": 2
+  },
+  "red": {
+   "n": 829,
+   "closes_same_side_of_open": 738,
+   "rate_closes_same_side_of_open": 0.8902,
+   "claimed": null,
+   "closes_beyond_signal_price": 434,
+   "rate_closes_beyond_signal_price": 0.5235,
+   "closes_equal_to_signal_price": 5
+  },
+  "flat": 1,
+  "all_days": {
+   "n": 1832,
+   "rate_close_above_open": 0.5393,
+   "rate_close_above_signal_price": 0.4995
+  },
+  "by_year": {
+   "2019": {
+    "green": {
+     "n": 77,
+     "rate_closes_same_side_of_open": 0.8701,
+     "rate_closes_beyond_signal_price": 0.5195
+    },
+    "red": {
+     "n": 67,
+     "rate_closes_same_side_of_open": 0.8806,
+     "rate_closes_beyond_signal_price": 0.4925
+    }
+   },
+   "2020": {
+    "green": {
+     "n": 149,
+     "rate_closes_same_side_of_open": 0.8725,
+     "rate_closes_beyond_signal_price": 0.5168
+    },
+    "red": {
+     "n": 102,
+     "rate_closes_same_side_of_open": 0.8627,
+     "rate_closes_beyond_signal_price": 0.5196
+    }
+   },
+   "2021": {
+    "green": {
+     "n": 146,
+     "rate_closes_same_side_of_open": 0.9041,
+     "rate_closes_beyond_signal_price": 0.4726
+    },
+    "red": {
+     "n": 105,
+     "rate_closes_same_side_of_open": 0.9048,
+     "rate_closes_beyond_signal_price": 0.5619
+    }
+   },
+   "2022": {
+    "green": {
+     "n": 120,
+     "rate_closes_same_side_of_open": 0.9,
+     "rate_closes_beyond_signal_price": 0.625
+    },
+    "red": {
+     "n": 130,
+     "rate_closes_same_side_of_open": 0.9,
+     "rate_closes_beyond_signal_price": 0.5692
+    }
+   },
+   "2023": {
+    "green": {
+     "n": 144,
+     "rate_closes_same_side_of_open": 0.9444,
+     "rate_closes_beyond_signal_price": 0.5556
+    },
+    "red": {
+     "n": 103,
+     "rate_closes_same_side_of_open": 0.8932,
+     "rate_closes_beyond_signal_price": 0.5534
+    }
+   },
+   "2024": {
+    "green": {
+     "n": 130,
+     "rate_closes_same_side_of_open": 0.8846,
+     "rate_closes_beyond_signal_price": 0.5077
+    },
+    "red": {
+     "n": 119,
+     "rate_closes_same_side_of_open": 0.8824,
+     "rate_closes_beyond_signal_price": 0.5042
+    }
+   },
+   "2025": {
+    "green": {
+     "n": 134,
+     "rate_closes_same_side_of_open": 0.9179,
+     "rate_closes_beyond_signal_price": 0.4925
+    },
+    "red": {
+     "n": 113,
+     "rate_closes_same_side_of_open": 0.8938,
+     "rate_closes_beyond_signal_price": 0.531
+    }
+   },
+   "2026": {
+    "green": {
+     "n": 102,
+     "rate_closes_same_side_of_open": 0.8529,
+     "rate_closes_beyond_signal_price": 0.5
+    },
+    "red": {
+     "n": 90,
+     "rate_closes_same_side_of_open": 0.9,
+     "rate_closes_beyond_signal_price": 0.4222
+    }
+   }
+  }
+ },
+ "at_1500_and_range_middle": {
+  "days": 1832,
+  "green": {
+   "n": 924,
+   "closes_same_side_of_open": 848,
+   "rate_closes_same_side_of_open": 0.9177,
+   "claimed": "91 % (ES)",
+   "closes_beyond_signal_price": 489,
+   "rate_closes_beyond_signal_price": 0.5292,
+   "closes_equal_to_signal_price": 2
+  },
+  "red": {
+   "n": 670,
+   "closes_same_side_of_open": 615,
+   "rate_closes_same_side_of_open": 0.9179,
+   "claimed": null,
+   "closes_beyond_signal_price": 354,
+   "rate_closes_beyond_signal_price": 0.5284,
+   "closes_equal_to_signal_price": 5
+  },
+  "neither": 238,
+  "all_days": {
+   "n": 1832,
+   "rate_close_above_open": 0.5393,
+   "rate_close_above_signal_price": 0.4995
+  },
+  "by_year": {
+   "2019": {
+    "green": {
+     "n": 73,
+     "rate_closes_same_side_of_open": 0.8904,
+     "rate_closes_beyond_signal_price": 0.5342
+    },
+    "red": {
+     "n": 49,
+     "rate_closes_same_side_of_open": 0.9184,
+     "rate_closes_beyond_signal_price": 0.5102
+    }
+   },
+   "2020": {
+    "green": {
+     "n": 137,
+     "rate_closes_same_side_of_open": 0.9051,
+     "rate_closes_beyond_signal_price": 0.5182
+    },
+    "red": {
+     "n": 78,
+     "rate_closes_same_side_of_open": 0.9231,
+     "rate_closes_beyond_signal_price": 0.5513
+    }
+   },
+   "2021": {
+    "green": {
+     "n": 138,
+     "rate_closes_same_side_of_open": 0.9203,
+     "rate_closes_beyond_signal_price": 0.4855
+    },
+    "red": {
+     "n": 84,
+     "rate_closes_same_side_of_open": 0.9405,
+     "rate_closes_beyond_signal_price": 0.5952
+    }
+   },
+   "2022": {
+    "green": {
+     "n": 112,
+     "rate_closes_same_side_of_open": 0.9196,
+     "rate_closes_beyond_signal_price": 0.6429
+    },
+    "red": {
+     "n": 115,
+     "rate_closes_same_side_of_open": 0.9217,
+     "rate_closes_beyond_signal_price": 0.5739
+    }
+   },
+   "2023": {
+    "green": {
+     "n": 129,
+     "rate_closes_same_side_of_open": 0.9612,
+     "rate_closes_beyond_signal_price": 0.5659
+    },
+    "red": {
+     "n": 81,
+     "rate_closes_same_side_of_open": 0.9136,
+     "rate_closes_beyond_signal_price": 0.5802
+    }
+   },
+   "2024": {
+    "green": {
+     "n": 116,
+     "rate_closes_same_side_of_open": 0.9224,
+     "rate_closes_beyond_signal_price": 0.5259
+    },
+    "red": {
+     "n": 99,
+     "rate_closes_same_side_of_open": 0.899,
+     "rate_closes_beyond_signal_price": 0.4949
+    }
+   },
+   "2025": {
+    "green": {
+     "n": 125,
+     "rate_closes_same_side_of_open": 0.928,
+     "rate_closes_beyond_signal_price": 0.48
+    },
+    "red": {
+     "n": 90,
+     "rate_closes_same_side_of_open": 0.9222,
+     "rate_closes_beyond_signal_price": 0.5111
+    }
+   },
+   "2026": {
+    "green": {
+     "n": 94,
+     "rate_closes_same_side_of_open": 0.8723,
+     "rate_closes_beyond_signal_price": 0.4894
+    },
+    "red": {
+     "n": 74,
+     "rate_closes_same_side_of_open": 0.9054,
+     "rate_closes_beyond_signal_price": 0.3784
+    }
+   }
+  }
+ }
+}
