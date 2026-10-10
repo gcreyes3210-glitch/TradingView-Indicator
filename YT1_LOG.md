@@ -686,3 +686,131 @@ H4's second neighbour (the same break with the stop at the far side of the range
 - The out-of-sample years had been run on 102 rules and two grids before this.
 - Count of things tried: 112 rules (6 picks and 4 fixed rules added), three grid searches (5,184, 230,850 and 25,920
   combinations), 31 claim checks, FLOW3's eleven measures.
+
+---
+# YT9 — which levels react: first tap after the open against placebo levels (LEV1) (rules in `YT9_SPEC.md`, registered 2026-10-09)
+
+**Verdict: no level is a reacting level.** None of the eight picks meets the registered bar out of sample, and
+across all 31 level × side cells with 100+ fresh events over the full span, a fade with a 20-point stop and a 3R
+target wins between 16 % and 26 % of the time (break-even is 25 % before costs); two cells are above zero and
+neither holds in both periods. **Real levels bounce less often than fake ones:** pooled over every static level,
+the fade won 22.5 % in-sample against 24.8 % at placebo levels (p 0.013) and 23.1 % against 26.6 % out of sample
+(p 0.0001). A tap of a real level is more likely to go through it than a tap of an arbitrary price.
+Selection frozen before the later bars were run (`YT9_IS_STAMP.txt`); in-sample tables rebuilt from the full data
+are identical to the frozen ones; tables and standard runner agree on all 43 variants; the simulator's fill bar is
+the tap bar on 220,773 of 220,776 orders. Notes: `data/studies/yt1/notes/LEV1.md`.
+
+**The study.** Every level is a price fixed before it is tapped. The first tap from 09:30 (to 15:00) is one event,
+scored as a fade: limit at the level, stop beyond it, target a multiple of the stop, house fills. Stops: 20 points
+as asked, and 0.04 × daily ATR (20 points at 2026 volatility, about 5 points in 2019; 20 points was 0.17 × ATR in
+2019, so the fixed stop is a different trade each year). "Fresh" = price had not traded through the level between
+the time it was set and 09:30. Placebo = the same level shifted by 0.12 × ATR to a price with no meaning.
+Levels: previous day's high / low / close / midpoint, previous week's high / low, overnight, Asia (18:00–01:59),
+London (02:00–07:59) and pre-market (08:00–09:29) highs and lows, the 18:00 / 00:00 / 08:30 opens, round hundreds,
+the opening range, and the Aceflw set as `Aceflw_Levels.pine` computes it: overnight profile VAH / POC / VAL, the
+18:00 VWAP with ±1σ and ±2σ bands, and the two-hour expected-move bands. Aceflw's options levels (Vol Trigger, Call
+Wall, gamma) cannot be tested: there is no historical options data.
+
+## Reaction by level, full span, fresh events, fade with a 20-point stop (`full/LEV1_reaction_full.csv`)
+
+R = resistance (level above the price at the open), S = support. Sorted by the 3R fade.
+
+| Level | Events | Fade wins at 3R | Fade R at 3R | Placebo wins | Fade wins at 1R | Break-through R at 3R |
+|---|---|---|---|---|---|---|
+| Overnight POC, R | 214 | 26.2 % | +0.042 | 31.5 % | 53.3 % | −0.205 |
+| VWAP (18:00), S | 649 | 25.4 % | +0.024 | – | 50.1 % | −0.041 |
+| Expected move +2σ, R | 714 | 25.2 % | −0.029 | – | 49.9 % | −0.077 |
+| London high, R | 308 | 23.7 % | −0.054 | 23.9 % | 48.7 % | +0.047 |
+| VWAP, R | 556 | 24.1 % | −0.055 | – | 48.9 % | −0.096 |
+| Overnight VAL, S | 424 | 23.6 % | −0.059 | 24.4 % | 50.5 % | −0.043 |
+| VWAP −1σ, S | 866 | 23.3 % | −0.063 | – | 50.5 % | −0.008 |
+| Expected move −2σ, S | 945 | 23.2 % | −0.077 | – | 50.3 % | −0.040 |
+| Asia high, R | 132 | 21.2 % | −0.085 | 23.6 % | 46.2 % | −0.024 |
+| London low, S | 323 | 22.0 % | −0.092 | 25.5 % | 49.5 % | −0.113 |
+| Round hundred, R | 629 | 23.4 % | −0.094 | 23.4 % | 44.8 % | **+0.258** |
+| Expected move ±1σ (R / S) | 2,264 / 2,395 | 21.7 % / 22.1 % | −0.112 / −0.096 | – | 48.4 % / 49.1 % | −0.022 / −0.032 |
+| Pre-market high, R | 624 | 22.1 % | −0.143 | 25.9 % | 47.3 % | +0.095 |
+| Previous day high, R | 204 | 21.1 % | −0.148 | 22.1 % | 46.1 % | −0.034 |
+| Asia low, S | 215 | 20.9 % | −0.155 | 27.4 % | 49.3 % | −0.104 |
+| Overnight low, S | 530 | 21.3 % | −0.156 | 26.4 % | 46.8 % | −0.093 |
+| Overnight high, R | 512 | 21.3 % | −0.157 | 24.0 % | 46.9 % | +0.120 |
+| Overnight POC, S | 234 | 21.8 % | −0.163 | 26.1 % | 47.4 % | +0.086 |
+| Opening range low / high | 1,018 / 1,002 | 20.5 % / 20.6 % | −0.167 / −0.178 | 25.9 % / 20.9 % | 43.7 % / 45.9 % | −0.024 / −0.046 |
+| Overnight VAH, R | 394 | 21.1 % | −0.175 | 21.0 % | 48.0 % | −0.140 |
+| VWAP +2σ, R | 911 | 21.0 % | −0.183 | – | 46.0 % | −0.001 |
+| Round hundred, S | 608 | 20.9 % | −0.188 | 27.0 % | 47.2 % | −0.021 |
+| Pre-market low, S | 627 | 20.1 % | −0.193 | 26.6 % | 44.2 % | +0.070 |
+| Previous day midpoint, S | 127 | 18.1 % | −0.197 | 28.0 % | 45.7 % | −0.173 |
+| Previous day low, S | 243 | 16.0 % | −0.359 | 24.3 % | 41.2 % | **+0.255** |
+
+- **The two cells above zero do not hold.** Overnight POC as resistance: −0.113 R in 2019–22, +0.188 in 2023–26,
+  and its placebo did better. VWAP as support: −0.034, then +0.075; with the volatility-scaled stop it is negative in
+  both periods.
+- **At a 1R target every level is a coin flip** (41–53 % wins) and negative after costs.
+- **Taking every fresh first tap as a fade** with a 20-point stop and 3R: 20,566 events, −96,444 $.
+- **Stacked levels are less bad, not good:** one level alone −0.157 R, two −0.171, three or more within 0.03 × ATR
+  −0.090 (1,292 events, 22.7 % wins).
+- **Time of the tap makes no difference:** 09:30–10:00 −0.140 R, 10:00–11:30 −0.131, 11:30–15:00 −0.093.
+
+## The picks (ranked on 2019–2022 by the volatility-scaled fade, tested once on 2023–2026)
+
+| Pick | Level | In-sample: events, R | Out of sample: events, wins, R | p | + years | Verdict |
+|---|---|---|---|---|---|---|
+| 1 | Expected move +2σ, R | 320, +0.074 | 394, 23.4 %, −0.186 | 0.99 | 0 / 4 | not a reacting level |
+| 2 | Overnight high, R | 260, −0.030 | 252, 21.8 %, −0.230 | 0.99 | 0 / 4 | not a reacting level |
+| 3 | London high, R | 159, −0.079 | 149, 24.2 %, −0.141 | 0.86 | 1 / 4 | not a reacting level |
+| 4 | VWAP, S | 305, −0.171 | 344, 26.5 %, −0.048 | 0.69 | 2 / 4 | not a reacting level |
+| 5 | Expected move +1σ, R | 1,090, −0.172 | 1,174, 24.7 %, −0.123 | 0.99 | 0 / 4 | not a reacting level |
+| 6 | 00:00 open + previous day high | 8, +0.645 | 12, 0 %, −1.082 | – | – | not enough data |
+| 7 | London high + 08:30 open | 11, +0.612 | 14, 28.6 %, −0.001 | – | – | not enough data |
+| 8 | 08:30 open + pre-market high | 17, +0.479 | 20, 30.0 %, +0.090 | – | – | not enough data |
+
+Only one of 22 eligible level cells had a positive in-sample mean R, so four of the five level picks were negative
+before the test began. Pairs of levels coincide too rarely to judge: the pair picks rest on 8 to 20 trades.
+Rank correlation of the level cells between the two periods: +0.28.
+
+## Draw: is price pulled to a level? (`full/LEV1_draw_full.csv`)
+
+Share of days a level is tapped by 15:00, by its distance from the 09:30 open, next to placebo levels at the same
+distance:
+
+| Distance from the open | Real levels | Placebo |
+|---|---|---|
+| under 0.10 ATR | 84.4 % | 85.6 % |
+| 0.10–0.25 ATR | 67.5 % | 64.7 % |
+| 0.25–0.50 ATR | 44.6 % | 41.3 % |
+| 0.50–1.00 ATR | 21.2 % | 18.7 % |
+
+A real level is tapped about 3 points more often than a fake one at the same distance: a weak draw. Distance does
+almost all the work. At 0.25–0.50 ATR the largest gaps over placebo are the previous day's midpoint (46 % against
+35 %), the pre-market low (53 % against 46 %), the overnight VAH (51 % against 45 %) and the previous week's high
+(39 % against 33 %); the previous day's low and the overnight POC are tapped no more often than a fake level.
+
+## What the levels do instead (description, found after the result; not a test)
+
+The mirror trade, entering through the level with the move, 20-point stop, 3R:
+
+| Level | 2019–22: events, wins, R | 2023–26: events, wins, R | Full-span net $ |
+|---|---|---|---|
+| Round hundred above the open, taken long | 289, 29.4 %, +0.248 | 340, 33.2 %, +0.267 | +6,579 |
+| Previous day low, taken short | 126, 27.0 %, +0.067 | 117, 38.5 %, +0.458 | +2,511 |
+| Overnight high, taken long | 260, 23.8 %, +0.061 | 252, 31.3 %, +0.180 | +2,479 |
+| Pre-market high, taken long | 325, 26.2 %, +0.100 | 299, 28.8 %, +0.090 | +2,403 |
+
+Nine of the 31 cells are positive as break-through trades against two as fades. With the volatility-scaled stop the
+round-hundred result is −0.031 R in 2019–22 and +0.171 in 2023–26, so it leans on the fixed stop being wide in the
+early years. These four are the best of 31 cells picked in hindsight; they say which way the levels lean, in line
+with everything else in this log (continuation after a break, not reversal at a level).
+
+## Readings and limits
+
+- A level's side is set by the 09:30 open and its order rests from the open, so each order reads that one price
+  (the same exception as E08). With that open held fixed the mirrored-future test passes for all 43 variants; levels
+  themselves pass a separate cut at the bar each is set.
+- Readings: session hours for Asia, London and pre-market are mine; clusters form only among levels whose watch
+  starts together, so the opening range joins none; a level within 0.04 × ATR of the open is skipped that day;
+  expected-move bands use realised volatility on 5-minute bars as the script does on a 5-minute chart, not Aceflw's
+  implied-volatility band.
+- "Fresh" removes most taps of the previous close and the opens, which price nearly always crosses overnight; their
+  `used` rows are in `full/LEV1_used_full.csv`.
+- Count of things tried: 120 rules (8 picks added), three grid searches, 31 claim checks, FLOW3, LEV1.
