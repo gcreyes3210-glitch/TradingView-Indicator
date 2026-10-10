@@ -1,0 +1,9 @@
+# Kept out of the repository (all rebuilt by the scripts in tools/yt1/, or local-only):
+#   *.parquet            signal / trade / event tables: g8_signals.py, g9_signals.py, g11_sim.py, lev1_events.py --phase is|full
+#   G9_grid*.csv         the 230,850-row grids (about 40 MB each): g9_grid.py --phase is|full
+#   research/            notes taken from the creators' videos, with many verbatim quotes; kept local
+*.parquet
+is/G9_grid.csv
+full/G9_grid_full.csv
+full/G9_grid_oos.csv
+research/
