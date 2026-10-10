@@ -1,0 +1,8 @@
+bada3083edb78f7a96297ade0a1ff4a204f45bb575d3b5cebb28db04870187eb  tools/yt1/lev2_levels.py
+bdea10d2b553bad46b55131fbc226852e2d04ad9343ca395fc30e1260dad1960  tools/yt1/lev2_events.py
+640e395e5f9e32cb7d6d4b017e80e4e7010bb039936b08fadf38a41b377fa617  tools/yt1/lev2_tables.py
+15185439619d29906972b96fff86de6799a4cb1d25856660bd53ef1efc9c896b  tools/yt1/s_L2.py
+463984a0ac16bf73d2a26a3324f3792fb9a06b2d85fe1a46c15774c0db84858d  data/studies/yt1/VPN1_selected.json
+6fc1782db9bf54cae242e6d414806d4205a0aea4dacf8f2c1856c6bb81f1fb76  data/studies/yt1/is/VPN1_reaction.csv
+486531d49310e764e06299e0b4bf52aa4897eb6477e13a9630d93df5f0e29337  data/studies/yt1/is/MID1_levels.csv
+YT10 in-sample tables (MID1, VPN1) and eight picks frozen 2026-10-10T03:28:41Z (bars cut at 2022-12-31 23:59 only); later bars not yet run

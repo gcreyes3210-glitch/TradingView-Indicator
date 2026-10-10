@@ -814,3 +814,105 @@ with everything else in this log (continuation after a break, not reversal at a 
 - "Fresh" removes most taps of the previous close and the opens, which price nearly always crosses overnight; their
   `used` rows are in `full/LEV1_used_full.csv`.
 - Count of things tried: 120 rules (8 picks added), three grid searches, 31 claim checks, FLOW3, LEV1.
+
+---
+# YT10 — the midnight open (MID1) and volume profiles of the previous 1 to 5 sessions (VPN1) (rules in `YT10_SPEC.md`, registered 2026-10-09)
+
+**Verdict. The midnight open is not a reacting level, with or without the daily bias. No volume-profile level,
+lookback or alignment counts: all eight picks fail out of sample.** Longer lookbacks do not react more than shorter
+ones (the weekly profile is the worst), stacked levels do not react more than single ones, and opening above or
+below every value area does not predict the day. Registration was pushed to GitHub before any code ran; selection
+frozen before the later bars (`YT10_IS_STAMP.txt`); in-sample tables rebuilt from the full data are identical to the
+frozen ones; tables and runner agree on all 46 variants; fill bar = tap bar on every order. Notes:
+`data/studies/yt1/notes/LEV2.md`.
+
+Method as YT9, with one change: every level is scored on its own every day (first tap from 09:30 to 15:00; fade =
+limit at the level, stop beyond, target a multiple; break = with the move). Stops: 20 points as asked, and
+0.04 × ATR (the same trade every year; used for ranking).
+
+## MID1 — the 00:00 open, full span
+
+| | Taps | Fade, 20-pt stop, 3R: wins / R | Fade, 0.04 ATR stop, 3R: wins / R | Break-through R |
+|---|---|---|---|---|
+| Midnight open, all taps | 961 | 22.7 % / −0.096 | 26.5 % / −0.071 | −0.160 |
+| as support (open above it) | 518 | 22.4 % / −0.080 | 27.0 % / −0.049 | −0.180 |
+| as resistance | 443 | 23.0 % / −0.114 | 26.0 % / −0.097 | −0.138 |
+| tapped 09:30–09:59 | 555 | 25.8 % / −0.005 | 27.9 % / −0.028 | −0.205 |
+| tapped 10:00–11:29 | 256 | 17.6 % / −0.254 | 23.4 % / −0.174 | −0.070 |
+| tapped 11:30–15:00 | 150 | 20.0 % / −0.164 | 26.7 % / −0.056 | −0.148 |
+| **with the daily bias** (the ICT use) | 402 | 22.9 % / −0.085 | 26.1 % / −0.088 | −0.151 |
+| against the daily bias | 380 | 22.4 % / −0.118 | 27.9 % / −0.018 | −0.151 |
+| Placebo (midnight open ± 0.12 ATR) | 852 | 25.2 % / +0.022 | 25.8 % / −0.102 | −0.104 |
+
+- Registered verdict (0.04 ATR stop, 3R): 2 of 8 years positive, −0.095 R then −0.049 R, p 0.90: **fails**. With the
+  bias: 3 of 8 years, p 0.85: **fails**.
+- **Midnight is not special among overnight hours.** Scored the same way, it ranks 5th of the 13 hourly opens
+  (19:00 … 07:00); the 23:00 and 05:00 opens rank above it. With the 20-point stop it ranks 10th, and a level placed
+  at no particular price beside it did better.
+- It is tapped on 961 of 1,591 watched days and price had already crossed it before 09:30 on all but 12 of them.
+- Taps in the first half hour are the only split near break-even; that is 25.8 % wins against a 25 % break-even
+  before costs.
+
+## VPN1 — profiles of the previous 1, 2, 3, 4, 5 sessions and the previous week
+
+Thirteen profiles a day, built as `Aceflw_Levels.pine` builds its profile (1-minute bars, 1-point rows, 70 % value
+area): regular sessions (`rth1` … `rth5`, `rthw`), full 18:00–17:00 sessions (`eth1` … `eth5`, `ethw`), and tonight's
+overnight session (`on`). Three levels each (VAH, POC, VAL): 39 levels a day, 21,865 taps over the full span.
+
+**By lookback, fade with the 0.04 ATR stop and 3R, all three levels pooled (full span):**
+
+| Lookback | Regular sessions: taps, wins, R | Full sessions: taps, wins, R |
+|---|---|---|
+| 1 session | 2,331 · 24.7 % · −0.147 | 2,225 · 24.3 % · −0.165 |
+| 2 | 1,930 · 25.0 % · −0.135 | 1,815 · 25.1 % · −0.134 |
+| 3 | 1,652 · 25.4 % · −0.118 | 1,597 · 24.2 % · −0.167 |
+| 4 | 1,486 · 23.6 % · −0.195 | 1,417 · 24.3 % · −0.167 |
+| 5 | 1,347 · 24.1 % · −0.176 | 1,283 · 23.6 % · −0.192 |
+| Previous week | 980 · 22.1 % · −0.253 | 967 · 22.3 % · −0.241 |
+| Tonight's overnight | 2,835 · 26.1 % · −0.093 | |
+
+Every lookback is negative, none beats its placebo, and going further back does not help.
+
+**The picks (ranked on 2019–2022, tested once on 2023–2026):**
+
+| Pick | Cell | In-sample: events, R | Out of sample: events, wins, R | + years | Verdict |
+|---|---|---|---|---|---|
+| 1 | Previous full session's VAL as support, break-through | 209, +0.212 | 243, 26.7 %, −0.046 | 0 / 4 | does not count |
+| 2 | 3-session VAL as support, break-through | 154, +0.194 | 163, 28.2 %, +0.009 | 2 / 4 | does not count |
+| 3 | Overnight POC as support, break-through | 206, +0.035 | 230, 27.8 %, −0.005 | 2 / 4 | does not count |
+| 4 | 2-session POC as support, break-through | 173, +0.005 | 213, 25.8 %, −0.075 | 1 / 4 | does not count |
+| 5 | 3-session POC as support, fade | 150, +0.000 | 162, 26.5 %, −0.054 | 1 / 4 | does not count |
+| 6 | 3 or more profiles stacked, break-through | 4,522, +0.008 | 5,277, 25.4 %, −0.099 | 1 / 4 | does not count |
+| 7 | All five POCs aligned, fade | 102, +0.123 | 123, 26.8 %, −0.051 | 1 / 4 | does not count |
+| 8 | `VA-trend` (open above / below all five value areas, trade that way to the close) | 286, −0.674 | 290, 46.2 %, −0.053 | 2 / 4 | does not count |
+
+**"When they all align" (full span):**
+- **Stacked levels** (other profiles with a level within 0.03 ATR), fade R: none −0.133, one −0.156, two −0.135,
+  three or more −0.175. Stacking makes the fade no better.
+- **All five POCs within 0.06 ATR of each other:** 225 taps, 29.3 % wins, +0.028 R with the scaled stop and −0.067 R
+  with the 20-point stop. Nothing.
+- **Open above all five value areas:** 373 days, the session went up from the open on 50.4 %, mean −0.04 ATR.
+  **Below all five:** 203 days, down on 46.8 %. `VA-trend` over the full span: 576 trades, −12,648 $.
+- **ORB v1.4 by day type:** above all value areas 185 trades, +6,747 $ (+0.22 R); below all 98 trades, −2,977 $
+  (−0.09 R); inside all 84 trades, +3,278 $; mixed 434 trades, +12,058 $. The "below all" loss is all in 2019–2022
+  (−0.32 R on 49 trades) and reverses in 2023–2026, so it is not a filter.
+
+**Hindsight (the top of 72 cells over the full span; selection, not evidence).** Most profitable fade: **the previous
+regular session's POC as support** (price opens above yesterday's POC and comes down to it), 20-point stop, 3R:
+445 taps, 29.0 % wins, +0.165 R, +2,972 $; 24.8 % wins in 2019–2022 and 33.0 % in 2023–2026. With the scaled stop it
+is −0.13 R then +0.13 R. Next: the 2-session POC as support (+1,121 $). As break-through trades 43 of the 72 cells
+are positive with the 20-point stop against 13 as fades; the best is the 2-session POC taken long from below
+(281 taps, 30.2 % wins, +2,450 $). Pooled, real profile levels and placebo levels win equally often (24.5 % against
+24.8 %).
+
+## Readings and limits
+
+- "Weekly" was read two ways (the last five sessions; the previous calendar trading week); both are in the tables.
+  A profile is not built across a contract roll. Aceflw's own profile windows may differ from these; its options
+  levels cannot be tested.
+- Picks 6 and 7 count repeated levels once per profile; counted once per distinct order they are still negative out
+  of sample (−0.044 R and −0.052 R).
+- A neighbour variant (break with a 2R target) was added by the coder so that break picks have the registered
+  `a04` × 2R neighbour.
+- Count of things tried: 130 rules (8 picks and 2 midnight verdicts added), three grid searches, 31 claim checks,
+  FLOW3, LEV1, MID1, VPN1.
