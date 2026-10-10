@@ -1,0 +1,18 @@
+{
+ "n_grid": 756,
+ "with_a_trade": 756,
+ "gross_positive": 243,
+ "net_positive": 27,
+ "share_gross_positive": 0.32142857142857145,
+ "share_net_positive": 0.03571428571428571,
+ "mkt": {
+  "n": 378,
+  "gross_positive": 189,
+  "net_positive": 17
+ },
+ "lim": {
+  "n": 378,
+  "gross_positive": 54,
+  "net_positive": 10
+ }
+}

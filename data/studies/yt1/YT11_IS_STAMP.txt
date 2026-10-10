@@ -1,0 +1,28 @@
+bf087b178fdb94d118ee76d293a1e7925bd92f1f3ef9d6b08653bc1173a60e75  tools/yt1/core.py
+223cca9e0cfa319d8c434f68d97936c35df451bea8c91709adecd74b7b187776  tools/yt1/g12_sim.py
+e10ad36838c95eb12b000428658c9af57a3c9d3ecc99beab870b16cc3efb8c17  tools/yt1/g12_grid.py
+c2fee4a246b836535a46296bfb5510bad247b5184e274b1bc16f54942c5ccaac  tools/yt1/g12_verify.py
+7e798a2dab01eb75e7833042092943ff3459a651f24fb81a05f651fe3f758da7  tools/yt1/cost1.py
+c426b79b8c6d729f07aecd50d763e9062bb114835a8648bf16f3d1397e8e857b  tools/yt1/pred1.py
+f06052a2b941ddb6edb0e7b0752f027227019d2f5325f53b50b9d3e6d633447d  tools/yt1/s_Q1.py
+4dfaa34b31278a60e8e61e76b2bf2b89b1eb01207089cc8c15074e4337989a39  tools/yt1/s_Q2.py
+27ce91c8f649d04d4313e9d48b7bb48b0790fca1ac77acf6433e38000870ea1f  tools/yt1/s_Q3.py
+155bdf4e8d581cfeb00aaed19140ad1b0959858e78669cb8fc246854768f22e8  tools/yt1/s_Q4.py
+6e3c6f2d2856447e22f9a0f3464da5f977001949f8a458b25dab2f9232708856  tools/yt1/s_Q5.py
+801fd9262ec8b457ce16782f5e110475c96c2de1406a10abcf1d017c2063be56  tools/yt1/s_Q6.py
+e06763e19404682723b1babcb0795c85a29de307595d40814c66eae5448a6cd3  tools/yt1/s_Q7.py
+4f730c1d9161e92612d09da34e1cf780cf8ccf339962f4d743ab8d4a5116f1cb  tools/yt1/s_Q8.py
+e2ab0a1b3ef1a0e64e7785769d8d659480e899e8e54b774dc90abc4f9e3ab362  tools/yt1/s_Q9.py
+b5417f12bfe4d25659508ba20ab6d99d85ef8a0c21ae862ab14fd557129f4c5e  tools/yt1/s_Q10.py
+546b5a6596616fe7126b70a97a512150ca130e6487f4ac8608e78965068ff213  tools/yt1/s_Q11.py
+39051210b347b2b5a554fac25c28dcb5c322acb2d739b47c7589cb17a9f61c8f  tools/yt1/k_Q78.py
+f7a3fe5b82b34cbc4b6bcb893a26cdd0505b4fda09b6a84e7f6f1f0ed0249365  tools/yt1/k_Q10.py
+f3ef7272dc328651072f849f1d5e05ff1adb91afa7bd2c15c53f684fea2b2027  data/studies/yt1/G12_selected.json
+cc1424b4ac12beaa75ff108e08e6135fd3f8fce8325324a2640b270feac6d471  data/studies/yt1/PRED1_models.joblib
+7a50074ee39cc0962c85314d7e5cbeb77437af01cf790a73976ae2fd41831dc5  data/studies/yt1/PRED1_ols.json
+1041dcf619432f68786c698bd53a24e487c5674fe75735677cd8a7c918e3db33  data/studies/yt1/is/G12_grid.csv
+d4813bfa10f1da752214a20249921d3063c2271732c9b04d368ebc484ad02da0  data/studies/yt1/is/PRED1_report.csv
+7a7132aa2719ec717c6593495c6a37cc6efd2e7eae5116a910fc06a68476836c  data/studies/yt1/is/COST1.csv
+YT11 in-sample results (COST1, PRED1 models, G12 grid and six picks, Q1-Q11) frozen 2026-10-10T04:45:45Z (bars cut at 2022-12-31 23:59 only); later bars not yet run
+core.py differs from the registered file only in boot_p, which now draws its 10,000 resamples in blocks of rows (memory); every resampled mean is bit-identical to the old single draw (tested on 6 sample sizes x 4 block sizes).
+Readings fixed by the coders before any result and kept: Q5 and Q6 time windows are bars STAMPED in the window (one bar later than YT1's 'closing by' convention); PRED1 gbr keeps scikit-learn's default early stopping (on above 10,000 rows).

@@ -1,0 +1,96 @@
+G12 verify   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00   traded days 898   frozen picks: mom-1.z0.k1.mkt, rev-1.z0.k3.lim, mom-1.z1.k1.mkt, vw.z0.k10.mkt, mom-1.z2.k1.mkt, vw.z0.k30.mkt
+  ok    756 combinations, names unique and parse back, mirror of mirror is itself
+  ok    decisions on a full session: k1 360, k2 180, k3 120, k5 72, k10 36, k15 24, k30 12 (the spec: 360, 180, 120, 72, 36, 24, 12)
+
+(a) replay through core.run_orders / core.simulate (one_at_a_time=False, skip_roll=True)
+  132 cash days: 104 traded, 28 roll / no-ATR days, 6 early closes
+  ok    mom-1.z0.k1.mkt      orders  44597 (9308 on untraded days, dropped by run_orders)  harness trades  35289  vectorised  35289  largest P&L difference $0.0000  net $-97441.50 = $-97441.50   [3s]
+  ok    rev-5.z1.k5.mkt      orders   2215 (440 on untraded days, dropped by run_orders)  harness trades   1775  vectorised   1775  largest P&L difference $0.0000  net $-3752.50 = $-3752.50   [0s]
+  ok    es-15.z0.k15.mkt     orders   3058 (638 on untraded days, dropped by run_orders)  harness trades   2420  vectorised   2420  largest P&L difference $0.0000  net $-7192.00 = $-7192.00   [1s]
+  ok    esr-30.z2.k30.mkt    orders     85 (19 on untraded days, dropped by run_orders)  harness trades     66  vectorised     66  largest P&L difference $0.0000  net $+1388.00 = $+1388.00   [0s]
+  ok    vw.z1.k2.mkt         orders  12356 (2244 on untraded days, dropped by run_orders)  harness trades  10112  vectorised  10112  largest P&L difference $0.0000  net $-27793.00 = $-27793.00   [1s]
+  ok    vwr.z0.k10.mkt       orders   4629 (1000 on untraded days, dropped by run_orders)  harness trades   3629  vectorised   3629  largest P&L difference $0.0000  net $-15729.00 = $-15729.00   [0s]
+  ok    rev-1.z0.k3.mkt      orders  14845 (3097 on untraded days, dropped by run_orders)  harness trades  11748  vectorised  11748  largest P&L difference $0.0000  net $-35480.00 = $-35480.00   [1s]
+  ok    mom-1.z1.k1.mkt      orders  10716 (2232 on untraded days, dropped by run_orders)  harness trades   8484  vectorised   8484  largest P&L difference $0.0000  net $-19907.00 = $-19907.00   [1s]
+  ok    vw.z0.k10.mkt        orders   4629 (1000 on untraded days, dropped by run_orders)  harness trades   3629  vectorised   3629  largest P&L difference $0.0000  net $-6045.00 = $-6045.00   [0s]
+  ok    mom-1.z2.k1.mkt      orders   2019 (419 on untraded days, dropped by run_orders)  harness trades   1600  vectorised   1600  largest P&L difference $0.0000  net $-3792.00 = $-3792.00   [0s]
+  ok    vw.z0.k30.mkt        orders   1541 (332 on untraded days, dropped by run_orders)  harness trades   1209  vectorised   1209  largest P&L difference $0.0000  net $+1641.50 = $+1641.50   [0s]
+  ok    79961 mkt trades replayed (at least 2,000 required)
+
+(b) lim orders: a limit at the decision bar's close, filled only if the next 1-minute bar trades at least one tick through it
+    (long: next low <= limit - 0.25; short: next high >= limit + 0.25), at the limit, no slippage; out at the close k minutes after the decision, 1 tick against; $1 a side
+  mom-5.z0.k1.lim: 313806 orders, 295552 filled (94.2%)
+    2020-02-10 12:57 LONG  z  0.31  decision bar O 9467.00 H 9467.50 L 9465.25 C 9465.25 -> limit 9465.25; next bar 12:58 O 9465.50 H 9467.00 L 9465.50 C 9466.00; needs low <= 9465.00: not filled
+    2020-07-29 15:52 SHORT z  0.12  decision bar O 10642.75 H 10651.25 L 10642.00 C 10646.50 -> limit 10646.50; next bar 15:53 O 10646.75 H 10646.75 L 10641.25 C 10643.25; needs high >= 10646.75: FILLED; out 15:53 close 10643.25: gross $+6.50 net $+4.00
+    2020-11-12 10:34 LONG  z  0.69  decision bar O 11941.75 H 11945.00 L 11936.00 C 11936.25 -> limit 11936.25; next bar 10:35 O 11936.50 H 11943.50 L 11934.25 C 11941.25; needs low <= 11936.00: FILLED; out 10:35 close 11941.25: gross $+10.00 net $+7.50
+    2021-07-07 11:54 LONG  z  0.83  decision bar O 14825.25 H 14825.75 L 14820.50 C 14820.75 -> limit 14820.75; next bar 11:55 O 14821.00 H 14828.50 L 14820.75 C 14822.75; needs low <= 14820.50: not filled
+    2022-04-01 11:03 SHORT z  0.16  decision bar O 14882.25 H 14894.50 L 14881.75 C 14889.50 -> limit 14889.50; next bar 11:04 O 14889.75 H 14890.75 L 14878.00 C 14887.25; needs high >= 14889.75: FILLED; out 11:04 close 14887.25: gross $+4.50 net $+2.00
+  rev-30.z1.k3.lim: 26637 orders, 25584 filled (96.0%)
+    2019-09-10 10:08 LONG  z  1.23  decision bar O 7757.50 H 7757.50 L 7750.50 C 7752.50 -> limit 7752.50; next bar 10:09 O 7752.75 H 7756.25 L 7752.75 C 7754.75; needs low <= 7752.25: not filled
+    2019-09-25 10:35 SHORT z  1.17  decision bar O 7722.00 H 7730.75 L 7721.00 C 7730.50 -> limit 7730.50; next bar 10:36 O 7730.25 H 7730.50 L 7725.50 C 7727.25; needs high >= 7730.75: not filled
+    2020-11-10 13:32 LONG  z  2.16  decision bar O 11608.00 H 11609.75 L 11593.25 C 11595.25 -> limit 11595.25; next bar 13:33 O 11595.25 H 11596.50 L 11585.25 C 11590.75; needs low <= 11595.00: FILLED; out 13:35 close 11599.75: gross $+9.00 net $+6.50
+    2021-12-27 10:44 SHORT z  1.65  decision bar O 16519.50 H 16520.00 L 16513.00 C 16514.50 -> limit 16514.50; next bar 10:45 O 16514.50 H 16519.00 L 16513.50 C 16515.00; needs high >= 16514.75: FILLED; out 10:47 close 16510.50: gross $+8.00 net $+5.50
+    2022-04-05 12:44 LONG  z  1.05  decision bar O 14864.00 H 14866.00 L 14857.75 C 14861.50 -> limit 14861.50; next bar 12:45 O 14861.25 H 14868.75 L 14860.00 C 14868.50; needs low <= 14861.25: FILLED; out 12:47 close 14866.50: gross $+10.00 net $+7.50
+  es-1.z0.k2.lim: 157552 orders, 147677 filled (93.7%)
+    2019-06-27 15:21 LONG  z  0.18  decision bar O 7686.00 H 7686.00 L 7684.25 C 7684.50 -> limit 7684.50; next bar 15:22 O 7684.75 H 7686.00 L 7684.50 C 7685.50; needs low <= 7684.25: not filled
+    2019-10-24 15:37 LONG  z  1.91  decision bar O 7967.25 H 7968.00 L 7964.50 C 7964.50 -> limit 7964.50; next bar 15:38 O 7964.50 H 7968.00 L 7964.50 C 7967.75; needs low <= 7964.25: not filled
+    2020-04-08 14:15 SHORT z  0.11  decision bar O 8156.00 H 8166.25 L 8155.75 C 8164.50 -> limit 8164.50; next bar 14:16 O 8164.50 H 8170.50 L 8164.50 C 8166.50; needs high >= 8164.75: FILLED; out 14:17 close 8165.25: gross $-1.50 net $-4.00
+    2020-04-29 11:03 LONG  z  1.58  decision bar O 8914.50 H 8916.00 L 8905.00 C 8906.50 -> limit 8906.50; next bar 11:04 O 8907.00 H 8914.50 L 8904.00 C 8914.50; needs low <= 8906.25: FILLED; out 11:05 close 8922.25: gross $+31.50 net $+29.00
+    2021-07-26 14:39 LONG  z  1.15  decision bar O 15107.50 H 15108.25 L 15103.00 C 15103.50 -> limit 15103.50; next bar 14:40 O 15103.25 H 15110.25 L 15103.00 C 15109.25; needs low <= 15103.25: FILLED; out 14:41 close 15109.75: gross $+12.50 net $+10.00
+  esr-5.z1.k10.lim: 6115 orders, 5821 filled (95.2%)
+    2019-10-24 10:59 LONG  z  1.10  decision bar O 7942.00 H 7943.50 L 7940.50 C 7941.25 -> limit 7941.25; next bar 11:00 O 7941.50 H 7945.25 L 7941.50 C 7944.75; needs low <= 7941.00: not filled
+    2020-07-01 10:19 LONG  z  3.42  decision bar O 10191.00 H 10194.75 L 10190.25 C 10193.50 -> limit 10193.50; next bar 10:20 O 10194.00 H 10199.00 L 10193.50 C 10193.75; needs low <= 10193.25: not filled
+    2021-07-20 11:39 LONG  z  1.24  decision bar O 14669.50 H 14673.25 L 14669.50 C 14673.00 -> limit 14673.00; next bar 11:40 O 14673.25 H 14677.00 L 14672.25 C 14676.00; needs low <= 14672.75: FILLED; out 11:49 close 14694.50: gross $+43.00 net $+40.50
+    2022-08-30 10:49 LONG  z  1.07  decision bar O 12276.75 H 12281.50 L 12270.50 C 12277.50 -> limit 12277.50; next bar 10:50 O 12277.75 H 12285.50 L 12269.00 C 12284.50; needs low <= 12277.25: FILLED; out 10:59 close 12345.25: gross $+135.50 net $+133.00
+    2022-11-02 15:09 LONG  z  1.23  decision bar O 11225.00 H 11244.75 L 11207.00 C 11234.50 -> limit 11234.50; next bar 15:10 O 11234.25 H 11234.25 L 11187.75 C 11202.75; needs low <= 11234.25: FILLED; out 15:19 close 11109.00: gross $-251.00 net $-253.50
+  vw.z2.k30.lim: 1018 orders, 931 filled (91.5%)
+    2020-05-29 14:59 LONG  z  2.37  decision bar O 9487.50 H 9498.50 L 9476.50 C 9497.00 -> limit 9497.00; next bar 15:00 O 9497.25 H 9519.75 L 9497.00 C 9513.50; needs low <= 9496.75: not filled
+    2020-11-19 14:59 LONG  z  2.13  decision bar O 11992.00 H 11994.00 L 11991.25 C 11992.25 -> limit 11992.25; next bar 15:00 O 11992.50 H 11993.00 L 11984.25 C 11986.25; needs low <= 11992.00: FILLED; out 15:29 close 11980.25: gross $-24.00 net $-26.50
+    2021-03-22 12:29 LONG  z  2.26  decision bar O 13131.00 H 13133.25 L 13130.50 C 13132.50 -> limit 13132.50; next bar 12:30 O 13132.75 H 13135.75 L 13130.50 C 13131.00; needs low <= 13132.25: FILLED; out 12:59 close 13150.50: gross $+36.00 net $+33.50
+    2021-04-22 10:29 LONG  z  2.35  decision bar O 13912.00 H 13919.50 L 13910.50 C 13911.00 -> limit 13911.00; next bar 10:30 O 13911.00 H 13919.50 L 13910.00 C 13918.25; needs low <= 13910.75: FILLED; out 10:59 close 13924.00: gross $+26.00 net $+23.50
+    2021-11-24 11:29 LONG  z  2.12  decision bar O 16312.00 H 16315.75 L 16309.00 C 16313.50 -> limit 16313.50; next bar 11:30 O 16313.75 H 16333.25 L 16313.75 C 16330.50; needs low <= 16313.25: not filled
+  vwr.z0.k5.lim: 63567 orders, 60565 filled (95.3%)
+    2019-09-05 15:44 SHORT z  0.70  decision bar O 7867.00 H 7867.50 L 7865.50 C 7865.50 -> limit 7865.50; next bar 15:45 O 7865.25 H 7865.25 L 7860.50 C 7863.00; needs high >= 7865.75: not filled
+    2020-05-08 12:59 SHORT z  1.77  decision bar O 9213.50 H 9214.50 L 9212.50 C 9214.25 -> limit 9214.25; next bar 13:00 O 9214.00 H 9216.00 L 9212.50 C 9214.00; needs high >= 9214.50: FILLED; out 13:04 close 9217.00: gross $-5.50 net $-8.00
+    2020-10-20 12:14 SHORT z  0.65  decision bar O 11691.00 H 11691.00 L 11684.50 C 11687.75 -> limit 11687.75; next bar 12:15 O 11687.50 H 11698.25 L 11687.25 C 11696.25; needs high >= 11688.00: FILLED; out 12:19 close 11691.25: gross $-7.00 net $-9.50
+    2021-07-27 13:54 LONG  z  1.09  decision bar O 14828.25 H 14829.25 L 14821.00 C 14821.50 -> limit 14821.50; next bar 13:55 O 14821.75 H 14827.50 L 14821.75 C 14825.00; needs low <= 14821.25: not filled
+    2022-02-23 10:44 LONG  z  1.64  decision bar O 13791.00 H 13797.75 L 13772.25 C 13780.75 -> limit 13780.75; next bar 10:45 O 13781.25 H 13789.75 L 13771.25 C 13780.75; needs low <= 13780.50: FILLED; out 10:49 close 13771.75: gross $-18.00 net $-20.50
+  ok    30 printed lim orders and 3000 more agree with the scalar recomputation from the bars
+
+(c) look-ahead: bars truncated at random mid-session times
+  ok    cut 2021-07-23 15:06: 12 combinations, 628367 trades exited by the cut identical; side and z of all 18 signals identical at every bar up to the cut   [3s]
+  ok    cut 2021-09-17 15:13: 12 combinations, 674842 trades exited by the cut identical; side and z of all 18 signals identical at every bar up to the cut   [3s]
+  ok    cut 2021-11-30 12:16: 12 combinations, 736664 trades exited by the cut identical; side and z of all 18 signals identical at every bar up to the cut   [3s]
+  ok    cut 2022-03-28 13:52: 12 combinations, 836660 trades exited by the cut identical; side and z of all 18 signals identical at every bar up to the cut   [4s]
+  ok    cut 2022-08-22 14:55: 12 combinations, 963498 trades exited by the cut identical; side and z of all 18 signals identical at every bar up to the cut   [4s]
+  ok    cut 2022-10-14 12:40: 12 combinations, 1009869 trades exited by the cut identical; side and z of all 18 signals identical at every bar up to the cut   [4s]
+  ok    negative control, every signal reading 1 bar ahead: the signal test fails 18 of 18 signals; the exited-trades test alone fails 0 of 12 combinations (a peek shorter than the holding time is inside every exited trade: that is why the signal test is run as well)
+  ok    negative control, every signal reading 31 bars ahead: the signal test fails 18 of 18 signals; the exited-trades test alone fails 7 of 12 combinations
+
+(c) the harness's mirrored-future test (core.causal_check) on the mkt orders
+  ok    mom-15.z1.k5.mkt: orders up to 5 sampled signal bars unchanged under a mirrored future   [6s]
+  ok    es-5.z0.k10.mkt: orders up to 5 sampled signal bars unchanged under a mirrored future   [8s]
+  ok    vw.z1.k15.mkt: orders up to 5 sampled signal bars unchanged under a mirrored future   [5s]
+
+(d) whole days re-derived with plain loops from the spec text
+  ok    mom-1.z0.k1.mkt      18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 5170 trades identical, largest z difference 9.6e-12   [2s]
+  ok    rev-5.z1.k5.mkt      18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 255 trades identical, largest z difference 4.4e-12   [0s]
+  ok    es-15.z0.k15.mkt     18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 357 trades identical, largest z difference 8.7e-12   [0s]
+  ok    esr-30.z2.k30.mkt    18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 6 trades identical, largest z difference 2.1e-12   [0s]
+  ok    vw.z1.k2.mkt         18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 1339 trades identical, largest z difference 0.0e+00   [1s]
+  ok    vwr.z0.k10.mkt       18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 516 trades identical, largest z difference 0.0e+00   [0s]
+  ok    mom-30.z1.k3.lim     18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 428 trades identical, largest z difference 1.7e-12   [1s]
+  ok    es-1.z1.k1.lim       18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 894 trades identical, largest z difference 2.5e-11   [3s]
+  ok    vwr.z2.k30.lim       18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 14 trades identical, largest z difference 0.0e+00   [0s]
+  ok    rev-1.z0.k3.lim      18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 1545 trades identical, largest z difference 9.1e-12   [1s]
+  ok    mom-1.z1.k1.mkt      18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 1157 trades identical, largest z difference 6.8e-12   [2s]
+  ok    vw.z0.k10.mkt        18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 516 trades identical, largest z difference 0.0e+00   [0s]
+  ok    mom-1.z2.k1.mkt      18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 302 trades identical, largest z difference 6.6e-12   [2s]
+  ok    vw.z0.k30.mkt        18 days (early close, missing minutes, roll day, no ATR, an ES minute missing, the session after an ES minute is missing + 12 random): 178 trades identical, largest z difference 0.0e+00   [0s]
+
+(e) grid rows recomputed with pandas from the trade lists; the selection recomputed from the grid file
+  ok    30 combinations (6 picks + 24 random): every column of the grid row equals the pandas recomputation (largest relative difference 7.8e-16)
+  ok    the picks of G12_selected.json are the ones the frozen grid file gives: A1 mom-1.z0.k1.mkt, A2 rev-1.z0.k3.lim, B1 mom-1.z1.k1.mkt, B2 vw.z0.k10.mkt, C1 mom-1.z2.k1.mkt, C2 vw.z0.k30.mkt; the frozen grid file equals a fresh evaluation: True
+
+total 79s
+PASS  G12 verification, parts abcde: every check agreed

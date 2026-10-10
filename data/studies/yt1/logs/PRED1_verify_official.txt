@@ -1,0 +1,13 @@
+PRED1 --verify   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+1. 2400 trades (1089 of them sel trades; by horizon {1: 600, 5: 600, 15: 600, 30: 600}) replayed through core.run_orders -> core.simulate(etype='close', exit_i=the bar h minutes later): 2400 agree to the cent on entry, exit, bars and net P&L, 0 differ
+   roll / no-ATR days: 28; decisions here on those days 0; of 28 probe orders on them run_orders kept 0
+2. 349 decisions (50 of them dropped ones), 15 inputs + s + target each, recomputed one at a time from the bar table: 0 values differ (largest absolute difference 2.51e-13)
+3. cut 2019-10-24 12:24: truncated bars -> 33616 input rows at or before the cut (116 on the cut day) IDENTICAL; mirrored future -> 37167 decision rows at or before the cut IDENTICAL (340992 later rows changed); control column reading 5 bars ahead caught
+3. cut 2019-12-12 14:23: truncated bars -> 44955 input rows at or before the cut (235 on the cut day) IDENTICAL; mirrored future -> 51860 decision rows at or before the cut IDENTICAL (326299 later rows changed); control column reading 5 bars ahead caught
+3. cut 2021-01-19 12:33: truncated bars -> 136650 input rows at or before the cut (125 on the cut day) IDENTICAL; mirrored future -> 168542 decision rows at or before the cut IDENTICAL (209617 later rows changed); control column reading 5 bars ahead caught
+3. cut 2021-05-06 10:59: truncated bars -> 161522 input rows at or before the cut (31 on the cut day) IDENTICAL; mirrored future -> 200348 decision rows at or before the cut IDENTICAL (177811 later rows changed); control column reading 5 bars ahead caught
+3. cut 2022-03-03 11:23: truncated bars -> 231065 input rows at or before the cut (55 on the cut day) IDENTICAL; mirrored future -> 289180 decision rows at or before the cut IDENTICAL (88979 later rows changed); control column reading 5 bars ahead caught
+3. cut 2022-10-03 11:11: truncated bars -> 280274 input rows at or before the cut (43 on the cut day) IDENTICAL; mirrored future -> 351665 decision rows at or before the cut IDENTICAL (26494 later rows changed); control column reading 5 bars ahead caught
+[24s]
+PASS  PRED1 --verify: trade replay to the cent, plain recomputation of the inputs, and the look-ahead test on 6 truncated / mirrored cuts all agree
+ALLDONE

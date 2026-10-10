@@ -1,0 +1,318 @@
+{
+ "definition": "hour H = close of the (H-1):59 bar -> close of the H:59 bar, New York wall clock; trading days that are cash days of the day table; roll days excluded",
+ "span": "2019-06-03 -> 2022-12-30",
+ "cash_days": 926,
+ "roll_days": 15,
+ "days_counted_at_most": 911,
+ "left_out_hour_pairs": {
+  "not_a_cash_trading_day": 15,
+  "roll_day": 327,
+  "start_bar_missing": 945,
+  "contract_change": 0
+ },
+ "q10_hour": {
+  "hour": "02:00-03:00",
+  "n": 903,
+  "mean_bp": 1.521,
+  "t_bp": 1.88,
+  "mean_pts": 1.403,
+  "claimed_es_bp": 1.48,
+  "cost_round_trip_pts": 1.5
+ },
+ "hours": {
+  "00": {
+   "n": 899,
+   "mean_bp": 1.916,
+   "t_bp": 2.61,
+   "mean_pts": 1.916,
+   "t_pts": 2.79,
+   "sd_bp": 22.03,
+   "share_up": 0.5328,
+   "hour": "00:00-01:00",
+   "days_without_the_pair": 12,
+   "claimed_es_bp": 0.46,
+   "claimed_es_t": 2.8
+  },
+  "01": {
+   "n": 900,
+   "mean_bp": 0.814,
+   "t_bp": 1.27,
+   "mean_pts": 0.853,
+   "t_pts": 1.25,
+   "sd_bp": 19.3,
+   "share_up": 0.51,
+   "hour": "01:00-02:00",
+   "days_without_the_pair": 11,
+   "claimed_es_bp": 0.43,
+   "claimed_es_t": 2.8
+  },
+  "02": {
+   "n": 903,
+   "mean_bp": 1.521,
+   "t_bp": 1.88,
+   "mean_pts": 1.403,
+   "t_pts": 1.6,
+   "sd_bp": 24.31,
+   "share_up": 0.5205,
+   "hour": "02:00-03:00",
+   "days_without_the_pair": 8,
+   "claimed_es_bp": 1.5,
+   "claimed_es_t": 7.1
+  },
+  "03": {
+   "n": 905,
+   "mean_bp": 0.386,
+   "t_bp": 0.38,
+   "mean_pts": 0.116,
+   "t_pts": 0.1,
+   "sd_bp": 30.7,
+   "share_up": 0.5028,
+   "hour": "03:00-04:00",
+   "days_without_the_pair": 6
+  },
+  "04": {
+   "n": 907,
+   "mean_bp": 0.564,
+   "t_bp": 0.63,
+   "mean_pts": 0.592,
+   "t_pts": 0.58,
+   "sd_bp": 27.08,
+   "share_up": 0.4994,
+   "hour": "04:00-05:00",
+   "days_without_the_pair": 4
+  },
+  "05": {
+   "n": 906,
+   "mean_bp": 0.477,
+   "t_bp": 0.62,
+   "mean_pts": 0.379,
+   "t_pts": 0.44,
+   "sd_bp": 23.24,
+   "share_up": 0.5143,
+   "hour": "05:00-06:00",
+   "days_without_the_pair": 5
+  },
+  "06": {
+   "n": 904,
+   "mean_bp": 0.503,
+   "t_bp": 0.61,
+   "mean_pts": 0.46,
+   "t_pts": 0.53,
+   "sd_bp": 24.91,
+   "share_up": 0.5144,
+   "hour": "06:00-07:00",
+   "days_without_the_pair": 7
+  },
+  "07": {
+   "n": 906,
+   "mean_bp": -1.548,
+   "t_bp": -1.71,
+   "mean_pts": -1.635,
+   "t_pts": -1.59,
+   "sd_bp": 27.22,
+   "share_up": 0.5143,
+   "hour": "07:00-08:00",
+   "days_without_the_pair": 5
+  },
+  "08": {
+   "n": 906,
+   "mean_bp": -0.28,
+   "t_bp": -0.18,
+   "mean_pts": -1.09,
+   "t_pts": -0.62,
+   "sd_bp": 47.73,
+   "share_up": 0.4956,
+   "hour": "08:00-09:00",
+   "days_without_the_pair": 5
+  },
+  "09": {
+   "n": 907,
+   "mean_bp": 1.074,
+   "t_bp": 0.61,
+   "mean_pts": 1.256,
+   "t_pts": 0.6,
+   "sd_bp": 53.43,
+   "share_up": 0.516,
+   "hour": "09:00-10:00",
+   "days_without_the_pair": 4
+  },
+  "10": {
+   "n": 911,
+   "mean_bp": -1.288,
+   "t_bp": -0.68,
+   "mean_pts": -2.513,
+   "t_pts": -1.14,
+   "sd_bp": 56.82,
+   "share_up": 0.5335,
+   "hour": "10:00-11:00",
+   "days_without_the_pair": 0
+  },
+  "11": {
+   "n": 911,
+   "mean_bp": 0.826,
+   "t_bp": 0.54,
+   "mean_pts": 0.965,
+   "t_pts": 0.55,
+   "sd_bp": 46.22,
+   "share_up": 0.5477,
+   "hour": "11:00-12:00",
+   "days_without_the_pair": 0
+  },
+  "12": {
+   "n": 910,
+   "mean_bp": -0.298,
+   "t_bp": -0.23,
+   "mean_pts": -0.771,
+   "t_pts": -0.51,
+   "sd_bp": 39.88,
+   "share_up": 0.5264,
+   "hour": "12:00-13:00",
+   "days_without_the_pair": 1
+  },
+  "13": {
+   "n": 881,
+   "mean_bp": -1.391,
+   "t_bp": -1.03,
+   "mean_pts": -1.244,
+   "t_pts": -0.79,
+   "sd_bp": 39.98,
+   "share_up": 0.5278,
+   "hour": "13:00-14:00",
+   "days_without_the_pair": 30
+  },
+  "14": {
+   "n": 881,
+   "mean_bp": 2.478,
+   "t_bp": 1.86,
+   "mean_pts": 3.161,
+   "t_pts": 2.08,
+   "sd_bp": 39.57,
+   "share_up": 0.5539,
+   "hour": "14:00-15:00",
+   "days_without_the_pair": 30
+  },
+  "15": {
+   "n": 881,
+   "mean_bp": 0.446,
+   "t_bp": 0.23,
+   "mean_pts": -0.396,
+   "t_pts": -0.18,
+   "sd_bp": 57.55,
+   "share_up": 0.4938,
+   "hour": "15:00-16:00",
+   "days_without_the_pair": 30
+  },
+  "16": {
+   "n": 882,
+   "mean_bp": 0.697,
+   "t_bp": 0.71,
+   "mean_pts": 1.022,
+   "t_pts": 0.89,
+   "sd_bp": 29.22,
+   "share_up": 0.5658,
+   "hour": "16:00-17:00",
+   "days_without_the_pair": 29
+  },
+  "17": {
+   "n": 2,
+   "mean_bp": -6.609,
+   "t_bp": -1.43,
+   "mean_pts": -5.375,
+   "t_pts": -1.59,
+   "sd_bp": 6.56,
+   "share_up": 0.0,
+   "hour": "17:00-18:00",
+   "days_without_the_pair": 909,
+   "claimed_es_bp": -0.43,
+   "claimed_es_t": -3.6
+  },
+  "18": {
+   "n": 1,
+   "mean_bp": -51.147,
+   "t_bp": null,
+   "mean_pts": -39.75,
+   "t_pts": null,
+   "sd_bp": null,
+   "share_up": 0.0,
+   "hour": "18:00-19:00",
+   "days_without_the_pair": 910
+  },
+  "19": {
+   "n": 900,
+   "mean_bp": 0.247,
+   "t_bp": 0.34,
+   "mean_pts": -0.116,
+   "t_pts": -0.14,
+   "sd_bp": 21.91,
+   "share_up": 0.5022,
+   "hour": "19:00-20:00",
+   "days_without_the_pair": 11
+  },
+  "20": {
+   "n": 905,
+   "mean_bp": 1.024,
+   "t_bp": 1.25,
+   "mean_pts": 0.99,
+   "t_pts": 1.09,
+   "sd_bp": 24.59,
+   "share_up": 0.5039,
+   "hour": "20:00-21:00",
+   "days_without_the_pair": 6
+  },
+  "21": {
+   "n": 908,
+   "mean_bp": -0.063,
+   "t_bp": -0.07,
+   "mean_pts": -0.317,
+   "t_pts": -0.34,
+   "sd_bp": 28.24,
+   "share_up": 0.5264,
+   "hour": "21:00-22:00",
+   "days_without_the_pair": 3
+  },
+  "22": {
+   "n": 906,
+   "mean_bp": -0.476,
+   "t_bp": -0.65,
+   "mean_pts": -0.625,
+   "t_pts": -0.8,
+   "sd_bp": 22.19,
+   "share_up": 0.511,
+   "hour": "22:00-23:00",
+   "days_without_the_pair": 5
+  },
+  "23": {
+   "n": 902,
+   "mean_bp": 0.348,
+   "t_bp": 0.64,
+   "mean_pts": 0.614,
+   "t_pts": 1.06,
+   "sd_bp": 16.42,
+   "share_up": 0.5377,
+   "hour": "23:00-00:00",
+   "days_without_the_pair": 9
+  }
+ },
+ "outside_the_24": {
+  "17_halt": {
+   "n": 706,
+   "mean_bp": 0.453,
+   "t_bp": 1.38,
+   "mean_pts": 0.631,
+   "t_pts": 1.75,
+   "sd_bp": 8.71,
+   "share_up": 0.5241,
+   "hour": "16:59 close -> 18:00 open"
+  },
+  "18_from_open": {
+   "n": 902,
+   "mean_bp": 0.257,
+   "t_bp": 0.25,
+   "mean_pts": 0.409,
+   "t_pts": 0.38,
+   "sd_bp": 31.13,
+   "share_up": 0.5255,
+   "hour": "18:00 open -> 18:59 close"
+  }
+ }
+}

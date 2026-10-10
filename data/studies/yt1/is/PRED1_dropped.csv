@@ -1,0 +1,43 @@
+sample,h,reason,n
+IN-SAMPLE (the models were fitted on these same decisions),1,decision bars on used days,290911
+IN-SAMPLE (the models were fitted on these same decisions),1,kept,290802
+IN-SAMPLE (the models were fitted on these same decisions),1,dropped,109
+IN-SAMPLE (the models were fitted on these same decisions),1,"dropped, first missing: r60",45
+IN-SAMPLE (the models were fitted on these same decisions),1,"dropped, first missing: r15",17
+IN-SAMPLE (the models were fitted on these same decisions),1,"dropped, first missing: r30",15
+IN-SAMPLE (the models were fitted on these same decisions),1,"dropped, first missing: r5",11
+IN-SAMPLE (the models were fitted on these same decisions),1,"dropped, first missing: r1",9
+IN-SAMPLE (the models were fitted on these same decisions),1,"dropped, first missing: r2",6
+IN-SAMPLE (the models were fitted on these same decisions),1,"dropped, first missing: no bar h minutes later",4
+IN-SAMPLE (the models were fitted on these same decisions),1,"dropped, first missing: es1",1
+IN-SAMPLE (the models were fitted on these same decisions),1,"dropped, first missing: es5",1
+IN-SAMPLE (the models were fitted on these same decisions),1,grid minutes without a bar (no decision),24
+IN-SAMPLE (the models were fitted on these same decisions),5,decision bars on used days,58182
+IN-SAMPLE (the models were fitted on these same decisions),5,kept,58153
+IN-SAMPLE (the models were fitted on these same decisions),5,dropped,29
+IN-SAMPLE (the models were fitted on these same decisions),5,"dropped, first missing: r60",12
+IN-SAMPLE (the models were fitted on these same decisions),5,"dropped, first missing: r30",4
+IN-SAMPLE (the models were fitted on these same decisions),5,"dropped, first missing: no bar h minutes later",3
+IN-SAMPLE (the models were fitted on these same decisions),5,"dropped, first missing: r15",3
+IN-SAMPLE (the models were fitted on these same decisions),5,"dropped, first missing: r1",3
+IN-SAMPLE (the models were fitted on these same decisions),5,"dropped, first missing: r5",2
+IN-SAMPLE (the models were fitted on these same decisions),5,"dropped, first missing: es1",1
+IN-SAMPLE (the models were fitted on these same decisions),5,"dropped, first missing: es5",1
+IN-SAMPLE (the models were fitted on these same decisions),5,grid minutes without a bar (no decision),5
+IN-SAMPLE (the models were fitted on these same decisions),15,decision bars on used days,19385
+IN-SAMPLE (the models were fitted on these same decisions),15,kept,19373
+IN-SAMPLE (the models were fitted on these same decisions),15,dropped,12
+IN-SAMPLE (the models were fitted on these same decisions),15,"dropped, first missing: r60",7
+IN-SAMPLE (the models were fitted on these same decisions),15,"dropped, first missing: r1",1
+IN-SAMPLE (the models were fitted on these same decisions),15,"dropped, first missing: es5",1
+IN-SAMPLE (the models were fitted on these same decisions),15,"dropped, first missing: no bar h minutes later",1
+IN-SAMPLE (the models were fitted on these same decisions),15,"dropped, first missing: r5",1
+IN-SAMPLE (the models were fitted on these same decisions),15,"dropped, first missing: r30",1
+IN-SAMPLE (the models were fitted on these same decisions),15,grid minutes without a bar (no decision),1
+IN-SAMPLE (the models were fitted on these same decisions),30,decision bars on used days,9681
+IN-SAMPLE (the models were fitted on these same decisions),30,kept,9674
+IN-SAMPLE (the models were fitted on these same decisions),30,dropped,7
+IN-SAMPLE (the models were fitted on these same decisions),30,"dropped, first missing: r60",5
+IN-SAMPLE (the models were fitted on these same decisions),30,"dropped, first missing: no bar h minutes later",1
+IN-SAMPLE (the models were fitted on these same decisions),30,"dropped, first missing: r30",1
+IN-SAMPLE (the models were fitted on these same decisions),30,grid minutes without a bar (no decision),1

@@ -491,7 +491,13 @@ def boot_p(R, n=10000, seed=1):
     if len(R) < 2:
         return 1.0
     rng = np.random.default_rng(seed)
-    m = rng.choice(R, size=(n, len(R)), replace=True).mean(axis=1)
+    # Drawn in blocks of rows so that tens of thousands of trades fit in memory (YT11). The random stream is consumed
+    # in the same order, so every resampled mean is bit-identical to the single draw of (n, len(R)) used before.
+    rows = max(1, min(n, int(2e7 // len(R))))
+    m = np.empty(n)
+    for a in range(0, n, rows):
+        b = min(n, a + rows)
+        m[a:b] = rng.choice(R, size=(b - a, len(R)), replace=True).mean(axis=1)
     return float((m <= 0).mean())
 
 

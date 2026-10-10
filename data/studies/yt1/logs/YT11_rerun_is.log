@@ -1,0 +1,129 @@
+=== Q1
+Q1  VWAP stop-and-reverse on 1-minute closes (N20)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n 14443  net     -5364  R  -0.017  win  16.0  pf  0.98  dd    -9736  p 0.9288  yrs+ 1/4  h1 -0.017 h2 +nan  | -4756 -480 -2798 +2670 +0 +0 +0 +0   [3s]
+nb1                    n  8915  net     -4676  R  -0.020  win  20.8  pf  0.98  dd    -9146  p 0.8569  yrs+ 1/4  h1 -0.020 h2 +nan  | -2870 -328 -3613 +2136 +0 +0 +0 +0   [2s]
+nb2                    n  7108  net     +1482  R  -0.012  win  23.3  pf  1.01  dd    -8816  p 0.7114  yrs+ 1/4  h1 -0.012 h2 +nan  | -2438 -2466 -154 +6540 +0 +0 +0 +0   [1s]
+Q1 look-ahead test: PASS
+=== Q2
+Q2  1-minute VWAP + EMA 9/21 cross, exit on the cross back or a close across VWAP (M14)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n  7530  net    -13191  R  -0.040  win  27.3  pf  0.91  dd   -14060  p 0.9985  yrs+ 0/4  h1 -0.040 h2 +nan  | -3505 -430 -6229 -3028 +0 +0 +0 +0   [3s]
+nb1                    n  6832  net     -8943  R  -0.036  win  29.2  pf  0.94  dd   -11657  p 0.9910  yrs+ 1/4  h1 -0.036 h2 +nan  | -3548 -1482 -6301 +2388 +0 +0 +0 +0   [1s]
+nb2                    n  3878  net     +8272  R  +0.034  win  22.8  pf  1.07  dd    -3777  p 0.1441  yrs+ 3/4  h1 +0.034 h2 +nan  | -1304 +3863 +1560 +4154 +0 +0 +0 +0   [1s]
+Q2 look-ahead test: PASS
+=== Q3
+Q3  1-minute VWAP + EMA 9 pullback, stop under the pullback low, 2R (M14)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n 14702  net    -38574  R  -0.258  win  33.9  pf  0.81  dd   -38592  p 1.0000  yrs+ 0/4  h1 -0.258 h2 +nan  | -5576 -9820 -11184 -11994 +0 +0 +0 +0   [3s]
+nb1                    n 16138  net    -45148  R  -0.266  win  40.1  pf  0.78  dd   -45216  p 1.0000  yrs+ 0/4  h1 -0.266 h2 +nan  | -5787 -11718 -12432 -15212 +0 +0 +0 +0   [3s]
+nb2                    n 12512  net    -34334  R  -0.253  win  25.7  pf  0.83  dd   -34373  p 1.0000  yrs+ 0/4  h1 -0.253 h2 +nan  | -4586 -7290 -10504 -11955 +0 +0 +0 +0   [2s]
+long                   n  8106  net    -22044  R  -0.305  win  33.7  pf  0.78  dd   -22062  p 1.0000  yrs+ 0/4  h1 -0.305 h2 +nan  | -3349 -7360 -5476 -5858 +0 +0 +0 +0   [1s]
+Q3 look-ahead test: PASS
+=== Q4
+Q4  EMA 9/21 cross + RSI(14) side of 50 and rising + volume surge, held N bars (M13)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n  1882  net     -4212  R  -0.057  win  43.3  pf  0.81  dd    -4403  p 1.0000  yrs+ 0/4  h1 -0.057 h2 +nan  | -926 -260 -1742 -1282 +0 +0 +0 +0   [2s]
+nb1                    n  1949  net     -3724  R  -0.055  win  39.8  pf  0.76  dd    -3800  p 1.0000  yrs+ 0/4  h1 -0.055 h2 +nan  | -1000 -537 -1724 -463 +0 +0 +0 +0   [0s]
+nb2                    n  1834  net     -4026  R  -0.054  win  44.5  pf  0.86  dd    -4254  p 0.9988  yrs+ 0/4  h1 -0.054 h2 +nan  | -949 -965 -1080 -1032 +0 +0 +0 +0   [0s]
+Q4 look-ahead test: PASS
+=== Q5
+Q5  Bollinger(20,2) wick fade to the middle band with ADX(14) <= 25, 5-minute bars (M15)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n  1468  net    -10896  R  -0.131  win  51.0  pf  0.75  dd   -11036  p 1.0000  yrs+ 0/4  h1 -0.131 h2 +nan  | -694 -4714 -544 -4944 +0 +0 +0 +0   [1s]
+nb1                    n   605  net     -3933  R  -0.105  win  52.2  pf  0.78  dd    -4212  p 0.9993  yrs+ 1/4  h1 -0.105 h2 +nan  | -109 -2752 +244 -1315 +0 +0 +0 +0   [0s]
+nb2                    n   869  net     -5864  R  -0.130  win  53.0  pf  0.75  dd    -6243  p 1.0000  yrs+ 0/4  h1 -0.130 h2 +nan  | -571 -2142 -572 -2579 +0 +0 +0 +0   [0s]
+m1                     n  8579  net    -24882  R  -0.154  win  51.5  pf  0.78  dd   -24989  p 1.0000  yrs+ 0/4  h1 -0.154 h2 +nan  | -4217 -7611 -6159 -6896 +0 +0 +0 +0   [3s]
+noadx                  n  2773  net    -16932  R  -0.115  win  49.3  pf  0.81  dd   -17066  p 1.0000  yrs+ 0/4  h1 -0.115 h2 +nan  | -1519 -7464 -835 -7114 +0 +0 +0 +0   [0s]
+Q5 look-ahead test: PASS
+=== Q6
+Q6  MNQ 5/30/200 EMA: stop-entry 1 tick beyond the set-up bar, stop beyond its other end, 3R (M17)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n 15943  net    -52692  R  -0.223  win  24.8  pf  0.83  dd   -52880  p 1.0000  yrs+ 0/4  h1 -0.223 h2 +nan  | -7258 -10380 -14902 -20153 +0 +0 +0 +0   [4s]
+nb1                    n 19881  net    -67608  R  -0.226  win  32.9  pf  0.80  dd   -67704  p 1.0000  yrs+ 0/4  h1 -0.226 h2 +nan  | -8012 -14525 -20843 -24228 +0 +0 +0 +0   [4s]
+nb2                    n 13349  net    -40694  R  -0.206  win  20.6  pf  0.85  dd   -40860  p 1.0000  yrs+ 0/4  h1 -0.206 h2 +nan  | -5654 -7244 -11216 -16580 +0 +0 +0 +0   [3s]
+fresh                  n 12360  net    -35124  R  -0.196  win  25.3  pf  0.86  dd   -35728  p 1.0000  yrs+ 0/4  h1 -0.196 h2 +nan  | -5564 -6670 -10994 -11895 +0 +0 +0 +0   [2s]
+Q6 look-ahead test: PASS
+=== Q7
+Q7  Momentum scalp, tick bracket: close beyond the session extreme on 1.5x volume, 09:30-10:29 (M12a)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n  2741  net    -11274  R  -1.175  win  17.3  pf  0.17  dd   -11274  p 1.0000  yrs+ 0/4  h1 -1.175 h2 +nan  | -1242 -3282 -2956 -3794 +0 +0 +0 +0   [1s]
+nb1                    n  2751  net    -11550  R  -1.679  win  13.6  pf  0.03  dd   -11550  p 1.0000  yrs+ 0/4  h1 -1.679 h2 +nan  | -1532 -3286 -3082 -3650 +0 +0 +0 +0   [1s]
+nb2                    n  2746  net    -12131  R  -1.262  win  17.7  pf  0.11  dd   -12131  p 1.0000  yrs+ 0/4  h1 -1.262 h2 +nan  | -1416 -3492 -3231 -3993 +0 +0 +0 +0   [1s]
+x4                     n  2479  net     -7330  R  -0.236  win  27.4  pf  0.73  dd    -7376  p 1.0000  yrs+ 0/4  h1 -0.236 h2 +nan  | -687 -1652 -2170 -2820 +0 +0 +0 +0   [1s]
+Q7 look-ahead test: PASS
+=== Q8
+Q8  VWAP 2-sd reversion scalp, tick bracket, 11:00-13:59 (M12b)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n  2860  net     -9790  R  -0.237  win  58.4  pf  0.54  dd    -9843  p 1.0000  yrs+ 0/4  h1 -0.237 h2 +nan  | -593 -2902 -3000 -3294 +0 +0 +0 +0   [1s]
+nb1                    n  3311  net    -12987  R  -0.294  win  67.8  pf  0.26  dd   -12991  p 1.0000  yrs+ 0/4  h1 -0.294 h2 +nan  | -784 -3964 -3970 -4269 +0 +0 +0 +0   [1s]
+nb2                    n   565  net     -2286  R  -0.277  win  56.1  pf  0.49  dd    -2306  p 1.0000  yrs+ 0/4  h1 -0.277 h2 +nan  | -208 -449 -696 -932 +0 +0 +0 +0   [1s]
+x4                     n  1631  net     -6236  R  -0.137  win  41.7  pf  0.80  dd    -6550  p 1.0000  yrs+ 0/4  h1 -0.137 h2 +nan  | -96 -1523 -2298 -2319 +0 +0 +0 +0   [1s]
+Q8 look-ahead test: PASS
+=== Q9
+Q9  Rest of the day (previous close -> 15:30) predicts the last half-hour (N02)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n   869  net     +3076  R  +0.037  win  50.4  pf  1.12  dd    -2650  p 0.2498  yrs+ 3/4  h1 +0.037 h2 +nan  | +76 +1022 -265 +2244 +0 +0 +0 +0   [0s]
+nb1                    n   868  net     +5080  R  +0.076  win  50.6  pf  1.16  dd    -2374  p 0.1509  yrs+ 2/4  h1 +0.076 h2 +nan  | -266 +2296 -260 +3309 +0 +0 +0 +0   [0s]
+nb2                    n   866  net     +2447  R  +0.034  win  51.2  pf  1.12  dd    -1416  p 0.2230  yrs+ 4/4  h1 +0.034 h2 +nan  | +40 +1664 +160 +584 +0 +0 +0 +0   [0s]
+big                    n   359  net     +1682  R  -0.008  win  49.0  pf  1.14  dd    -3106  p 0.5206  yrs+ 2/4  h1 -0.008 h2 +nan  | -99 +1023 -1908 +2666 +0 +0 +0 +0   [0s]
+Q9 look-ahead test: PASS
+=== Q10
+Q10  Overnight drift hour: long 02:00 -> 03:00 New York (N06)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n   892  net       -94  R  -0.030  win  48.3  pf  0.99  dd    -1494  p 0.8218  yrs+ 1/4  h1 -0.030 h2 +nan  | -174 +948 -366 -502 +0 +0 +0 +0   [0s]
+nb1                    n   890  net      +456  R  -0.016  win  52.5  pf  1.02  dd    -2699  p 0.6202  yrs+ 2/4  h1 -0.016 h2 +nan  | +110 +2767 -745 -1675 +0 +0 +0 +0   [0s]
+nb2                    n   893  net     -1052  R  -0.045  win  51.0  pf  0.96  dd    -3060  p 0.8342  yrs+ 2/4  h1 -0.045 h2 +nan  | +14 +1909 -1156 -1819 +0 +0 +0 +0   [0s]
+eu                     n   892  net     +4218  R  +0.052  win  54.3  pf  1.16  dd    -2273  p 0.1732  yrs+ 3/4  h1 +0.052 h2 +nan  | +454 +3823 +147 -206 +0 +0 +0 +0   [0s]
+Q10 look-ahead test: PASS
+=== Q11
+Q11  Lunch pattern: short 11:00 -> 12:00, long 12:00 -> 14:00 (N11)   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+base                   n  1796  net    -11110  R  -0.130  win  47.6  pf  0.86  dd   -11792  p 0.9958  yrs+ 0/4  h1 -0.130 h2 +nan  | -420 -3427 -2138 -5125 +0 +0 +0 +0   [1s]
+nb1                    n  1795  net     -8267  R  -0.101  win  46.6  pf  0.87  dd    -9046  p 0.9916  yrs+ 0/4  h1 -0.101 h2 +nan  | -440 -1221 -1929 -4677 +0 +0 +0 +0   [1s]
+nb2                    n  1796  net    -10313  R  -0.125  win  47.1  pf  0.84  dd   -10344  p 0.9988  yrs+ 0/4  h1 -0.125 h2 +nan  | -745 -2504 -2028 -5036 +0 +0 +0 +0   [1s]
+short                  n   898  net     -4485  R  -0.110  win  42.2  pf  0.88  dd    -6030  p 0.9536  yrs+ 1/4  h1 -0.110 h2 +nan  | +226 -2268 -1482 -962 +0 +0 +0 +0   [0s]
+long                   n   898  net     -6624  R  -0.149  win  53.0  pf  0.84  dd    -6629  p 0.9783  yrs+ 0/4  h1 -0.149 h2 +nan  | -646 -1159 -656 -4164 +0 +0 +0 +0   [0s]
+Q11 look-ahead test: PASS
+=== K-Q78
+K-Q78  Q7 / Q8: trades whose exit bar held both the stop and the target; house result against the best case   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+a 1-minute bar that holds both the stop and the target counts as a stop, so Q7 and Q8 are scored at their worst; the best case counts every such trade as a winner; the truth is between the two
+span 2019-06-03 -> 2022-12-30   round trip $3.00
+Q7 base  n  2741  both in the exit bar  1443 = 52.6%  net house  -11274.00  net best case   +4619.00  win 17.3% -> 69.9%  (bar opened beyond the stop 7, beyond the target 1, order unknown 1435)
+          by year: 2019 n 412 both 16% -1242 / -506  2020 n 753 both 54% -3282 / +1194  2021 n 753 both 54% -2956 / +1543  2022 n 823 both 68% -3794 / +2388
+Q7 nb1   n  2751  both in the exit bar  1935 = 70.3%  net house  -11549.50  net best case     +93.50  win 13.6% -> 84.0%  (bar opened beyond the stop 36, beyond the target 7, order unknown 1892)
+          by year: 2019 n 422 both 44% -1532 / -416  2020 n 753 both 72% -3286 / -10  2021 n 753 both 73% -3082 / +212  2022 n 823 both 80% -3650 / +306
+Q7 nb2   n  2746  both in the exit bar  1617 = 58.9%  net house  -12131.00  net best case   +2443.00  win 17.7% -> 76.6%  (bar opened beyond the stop 8, beyond the target 2, order unknown 1607)
+          by year: 2019 n 417 both 24% -1416 / -506  2020 n 753 both 60% -3492 / +616  2021 n 753 both 62% -3231 / +972  2022 n 823 both 72% -3993 / +1362
+Q7 x4    n  2479  both in the exit bar   135 = 5.5%  net house   -7329.50  net best case   -1389.50  win 27.4% -> 32.9%  (bar opened beyond the stop 0, beyond the target 1, order unknown 134)
+          by year: 2019 n 301 both 1% -687 / -599  2020 n 681 both 5% -1652 / -288  2021 n 693 both 3% -2170 / -1290  2022 n 804 both 10% -2820 / +788
+Q8 base  n  2860  both in the exit bar    95 = 3.3%  net house   -9790.00  net best case   -7004.00  win 58.4% -> 61.7%  (bar opened beyond the stop 0, beyond the target 0, order unknown 95)
+          by year: 2019 n 245 both 0% -593 / -593  2020 n 823 both 4% -2902 / -1990  2021 n 925 both 2% -3000 / -2552  2022 n 867 both 5% -3294 / -1869
+Q8 nb1   n  3311  both in the exit bar   242 = 7.3%  net house  -12987.00  net best case   -8104.50  win 67.8% -> 75.1%  (bar opened beyond the stop 0, beyond the target 1, order unknown 241)
+          by year: 2019 n 323 both 0% -784 / -775  2020 n 937 both 8% -3964 / -2462  2021 n 1108 both 6% -3970 / -2796  2022 n 943 both 10% -4269 / -2071
+Q8 nb2   n   565  both in the exit bar    30 = 5.3%  net house   -2285.50  net best case   -1341.00  win 56.1% -> 61.4%  (bar opened beyond the stop 0, beyond the target 0, order unknown 30)
+          by year: 2019 n 51 both 0% -208 / -208  2020 n 134 both 5% -449 / -246  2021 n 204 both 2% -696 / -572  2022 n 176 both 10% -932 / -316
+Q8 x4    n  1631  both in the exit bar     5 = 0.3%  net house   -6236.50  net best case   -5869.50  win 41.7% -> 42.0%  (bar opened beyond the stop 0, beyond the target 0, order unknown 5)
+          by year: 2019 n 141 both 1% -96 / +4  2020 n 493 both 0% -1523 / -1346  2021 n 479 both 0% -2298 / -2208  2022 n 518 both 0% -2319 / -2319
+=== K-Q10
+K-Q10  Mean MNQ return of each of the 24 clock hours (New York), roll days excluded   phase is   bars 2019-06-02 18:00:00-04:00 -> 2022-12-30 16:59:00-05:00
+hour H = close of the (H-1):59 bar -> close of the H:59 bar, New York wall clock; trading days that are cash days of the day table; roll days excluded
+span 2019-06-03 -> 2022-12-30   cash days 926, roll days 15, days counted at most 911   left out: {'not_a_cash_trading_day': 15, 'roll_day': 327, 'start_bar_missing': 945, 'contract_change': 0}
+  00            00:00-01:00                n   899  mean  +1.916 bp  t  +2.61    +1.916 pts  t  +2.79   up 53.3%   ES published +0.46 bp (t +2.8)
+  01            01:00-02:00                n   900  mean  +0.814 bp  t  +1.27    +0.853 pts  t  +1.25   up 51.0%   ES published +0.43 bp (t +2.8)
+  02            02:00-03:00                n   903  mean  +1.521 bp  t  +1.88    +1.403 pts  t  +1.60   up 52.0%   ES published +1.50 bp (t +7.1)
+  03            03:00-04:00                n   905  mean  +0.386 bp  t  +0.38    +0.116 pts  t  +0.10   up 50.3%
+  04            04:00-05:00                n   907  mean  +0.564 bp  t  +0.63    +0.592 pts  t  +0.58   up 49.9%
+  05            05:00-06:00                n   906  mean  +0.477 bp  t  +0.62    +0.379 pts  t  +0.44   up 51.4%
+  06            06:00-07:00                n   904  mean  +0.503 bp  t  +0.61    +0.460 pts  t  +0.53   up 51.4%
+  07            07:00-08:00                n   906  mean  -1.548 bp  t  -1.71    -1.635 pts  t  -1.59   up 51.4%
+  08            08:00-09:00                n   906  mean  -0.280 bp  t  -0.18    -1.090 pts  t  -0.62   up 49.6%
+  09            09:00-10:00                n   907  mean  +1.074 bp  t  +0.61    +1.256 pts  t  +0.60   up 51.6%
+  10            10:00-11:00                n   911  mean  -1.288 bp  t  -0.68    -2.513 pts  t  -1.14   up 53.3%
+  11            11:00-12:00                n   911  mean  +0.826 bp  t  +0.54    +0.965 pts  t  +0.55   up 54.8%
+  12            12:00-13:00                n   910  mean  -0.298 bp  t  -0.23    -0.771 pts  t  -0.51   up 52.6%
+  13            13:00-14:00                n   881  mean  -1.391 bp  t  -1.03    -1.244 pts  t  -0.79   up 52.8%
+  14            14:00-15:00                n   881  mean  +2.478 bp  t  +1.86    +3.161 pts  t  +2.08   up 55.4%
+  15            15:00-16:00                n   881  mean  +0.446 bp  t  +0.23    -0.396 pts  t  -0.18   up 49.4%
+  16            16:00-17:00                n   882  mean  +0.697 bp  t  +0.71    +1.022 pts  t  +0.89   up 56.6%
+  17            17:00-18:00                n     2  mean  -6.609 bp  t  -1.43    -5.375 pts  t  -1.59   up 0.0%   ES published -0.43 bp (t -3.6)
+  18            18:00-19:00                n     1  mean -51.147 bp  t      -   -39.750 pts  t      -   up 0.0%
+  19            19:00-20:00                n   900  mean  +0.247 bp  t  +0.34    -0.116 pts  t  -0.14   up 50.2%
+  20            20:00-21:00                n   905  mean  +1.024 bp  t  +1.25    +0.990 pts  t  +1.09   up 50.4%
+  21            21:00-22:00                n   908  mean  -0.063 bp  t  -0.07    -0.317 pts  t  -0.34   up 52.6%
+  22            22:00-23:00                n   906  mean  -0.476 bp  t  -0.65    -0.625 pts  t  -0.80   up 51.1%
+  23            23:00-00:00                n   902  mean  +0.348 bp  t  +0.64    +0.614 pts  t  +1.06   up 53.8%
+outside the 24 rows (MNQ is shut 17:00-18:00, so there is no 17:59 bar to end hour 17 or start hour 18):
+  17_halt       16:59 close -> 18:00 open  n   706  mean  +0.453 bp  t  +1.38    +0.631 pts  t  +1.75   up 52.4%
+  18_from_open  18:00 open -> 18:59 close  n   902  mean  +0.257 bp  t  +0.25    +0.409 pts  t  +0.38   up 52.5%
+Q10's hour 02:00-03:00: +1.521 bp = +1.403 points a day before costs (n 903, t 1.88); published on ES 1.48 bp; a round trip costs 1.5 points
+=== DONE

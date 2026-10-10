@@ -1,0 +1,482 @@
+{
+ "stated_in_advance": "a 1-minute bar that holds both the stop and the target counts as a stop, so Q7 and Q8 are scored at their worst; the best case counts every such trade as a winner; the truth is between the two",
+ "span": "2019-06-03 -> 2022-12-30",
+ "cost_round_trip_usd": 3.0,
+ "Q7": {
+  "base": {
+   "params": {
+    "stop_ticks": 6,
+    "target_ticks": 16
+   },
+   "n": 2741,
+   "both": 1443,
+   "both_share": 0.5265,
+   "net_house": -11274.0,
+   "net_best": 4619.0,
+   "sessions_with_a_trade": 885,
+   "win_rate_house": 0.1726,
+   "win_rate_best": 0.699,
+   "net_per_trade_house": -4.113,
+   "net_per_trade_best": 1.685,
+   "both_scored_as": {
+    "SL": 1443
+   },
+   "both_bar_opened_at_or_beyond_stop": 7,
+   "both_bar_opened_at_or_beyond_target": 1,
+   "both_order_inside_bar_unknown": 1435,
+   "exits": {
+    "SL": 2268,
+    "TP": 473
+   },
+   "mean_stop_ticks": 6.0,
+   "mean_target_ticks": 16.0,
+   "by_year": {
+    "2019": {
+     "n": 412,
+     "both": 67,
+     "both_share": 0.1626,
+     "net_house": -1242.5,
+     "net_best": -505.5
+    },
+    "2020": {
+     "n": 753,
+     "both": 405,
+     "both_share": 0.5378,
+     "net_house": -3281.5,
+     "net_best": 1193.5
+    },
+    "2021": {
+     "n": 753,
+     "both": 409,
+     "both_share": 0.5432,
+     "net_house": -2956.0,
+     "net_best": 1543.0
+    },
+    "2022": {
+     "n": 823,
+     "both": 562,
+     "both_share": 0.6829,
+     "net_house": -3794.0,
+     "net_best": 2388.0
+    }
+   }
+  },
+  "nb1": {
+   "params": {
+    "stop_ticks": 4,
+    "target_ticks": 8
+   },
+   "n": 2751,
+   "both": 1935,
+   "both_share": 0.7034,
+   "net_house": -11549.5,
+   "net_best": 93.5,
+   "sessions_with_a_trade": 885,
+   "win_rate_house": 0.1363,
+   "win_rate_best": 0.8397,
+   "net_per_trade_house": -4.198,
+   "net_per_trade_best": 0.034,
+   "both_scored_as": {
+    "SL": 1935
+   },
+   "both_bar_opened_at_or_beyond_stop": 36,
+   "both_bar_opened_at_or_beyond_target": 7,
+   "both_order_inside_bar_unknown": 1892,
+   "exits": {
+    "SL": 2376,
+    "TP": 375
+   },
+   "mean_stop_ticks": 4.0,
+   "mean_target_ticks": 8.0,
+   "by_year": {
+    "2019": {
+     "n": 422,
+     "both": 186,
+     "both_share": 0.4408,
+     "net_house": -1531.5,
+     "net_best": -415.5
+    },
+    "2020": {
+     "n": 753,
+     "both": 541,
+     "both_share": 0.7185,
+     "net_house": -3286.5,
+     "net_best": -10.0
+    },
+    "2021": {
+     "n": 753,
+     "both": 549,
+     "both_share": 0.7291,
+     "net_house": -3082.0,
+     "net_best": 212.5
+    },
+    "2022": {
+     "n": 823,
+     "both": 659,
+     "both_share": 0.8007,
+     "net_house": -3649.5,
+     "net_best": 306.5
+    }
+   }
+  },
+  "nb2": {
+   "params": {
+    "stop_ticks": 6,
+    "target_ticks": 12
+   },
+   "n": 2746,
+   "both": 1617,
+   "both_share": 0.5889,
+   "net_house": -12131.0,
+   "net_best": 2443.0,
+   "sessions_with_a_trade": 885,
+   "win_rate_house": 0.177,
+   "win_rate_best": 0.7658,
+   "net_per_trade_house": -4.418,
+   "net_per_trade_best": 0.89,
+   "both_scored_as": {
+    "SL": 1617
+   },
+   "both_bar_opened_at_or_beyond_stop": 8,
+   "both_bar_opened_at_or_beyond_target": 2,
+   "both_order_inside_bar_unknown": 1607,
+   "exits": {
+    "SL": 2260,
+    "TP": 486
+   },
+   "mean_stop_ticks": 6.0,
+   "mean_target_ticks": 12.0,
+   "by_year": {
+    "2019": {
+     "n": 417,
+     "both": 101,
+     "both_share": 0.2422,
+     "net_house": -1415.5,
+     "net_best": -506.5
+    },
+    "2020": {
+     "n": 753,
+     "both": 454,
+     "both_share": 0.6029,
+     "net_house": -3491.5,
+     "net_best": 615.5
+    },
+    "2021": {
+     "n": 753,
+     "both": 467,
+     "both_share": 0.6202,
+     "net_house": -3231.0,
+     "net_best": 972.0
+    },
+    "2022": {
+     "n": 823,
+     "both": 595,
+     "both_share": 0.723,
+     "net_house": -3993.0,
+     "net_best": 1362.0
+    }
+   }
+  },
+  "x4": {
+   "params": {
+    "stop_ticks": 24,
+    "target_ticks": 64
+   },
+   "n": 2479,
+   "both": 135,
+   "both_share": 0.0545,
+   "net_house": -7329.5,
+   "net_best": -1389.5,
+   "sessions_with_a_trade": 885,
+   "win_rate_house": 0.2743,
+   "win_rate_best": 0.3288,
+   "net_per_trade_house": -2.957,
+   "net_per_trade_best": -0.561,
+   "both_scored_as": {
+    "SL": 135
+   },
+   "both_bar_opened_at_or_beyond_stop": 0,
+   "both_bar_opened_at_or_beyond_target": 1,
+   "both_order_inside_bar_unknown": 134,
+   "exits": {
+    "SL": 1799,
+    "TP": 677,
+    "time": 3
+   },
+   "mean_stop_ticks": 24.0,
+   "mean_target_ticks": 64.0,
+   "by_year": {
+    "2019": {
+     "n": 301,
+     "both": 2,
+     "both_share": 0.0066,
+     "net_house": -687.0,
+     "net_best": -599.0
+    },
+    "2020": {
+     "n": 681,
+     "both": 31,
+     "both_share": 0.0455,
+     "net_house": -1652.5,
+     "net_best": -288.5
+    },
+    "2021": {
+     "n": 693,
+     "both": 20,
+     "both_share": 0.0289,
+     "net_house": -2170.0,
+     "net_best": -1290.0
+    },
+    "2022": {
+     "n": 804,
+     "both": 82,
+     "both_share": 0.102,
+     "net_house": -2820.0,
+     "net_best": 788.0
+    }
+   }
+  }
+ },
+ "Q8": {
+  "base": {
+   "params": {
+    "sd_k": 2.0,
+    "stop_ticks": 8,
+    "target_ticks": 20
+   },
+   "n": 2860,
+   "both": 95,
+   "both_share": 0.0332,
+   "net_house": -9790.0,
+   "net_best": -7004.0,
+   "sessions_with_a_trade": 531,
+   "win_rate_house": 0.5839,
+   "win_rate_best": 0.6171,
+   "net_per_trade_house": -3.423,
+   "net_per_trade_best": -2.449,
+   "both_scored_as": {
+    "SL": 95
+   },
+   "both_bar_opened_at_or_beyond_stop": 0,
+   "both_bar_opened_at_or_beyond_target": 0,
+   "both_order_inside_bar_unknown": 95,
+   "exits": {
+    "TP": 1668,
+    "SL": 1187,
+    "time": 5
+   },
+   "mean_stop_ticks": 36.18,
+   "mean_target_ticks": 19.99,
+   "by_year": {
+    "2019": {
+     "n": 245,
+     "both": 0,
+     "both_share": 0.0,
+     "net_house": -593.0,
+     "net_best": -593.0
+    },
+    "2020": {
+     "n": 823,
+     "both": 31,
+     "both_share": 0.0377,
+     "net_house": -2902.0,
+     "net_best": -1989.5
+    },
+    "2021": {
+     "n": 925,
+     "both": 18,
+     "both_share": 0.0195,
+     "net_house": -3000.5,
+     "net_best": -2552.5
+    },
+    "2022": {
+     "n": 867,
+     "both": 46,
+     "both_share": 0.0531,
+     "net_house": -3294.5,
+     "net_best": -1869.0
+    }
+   }
+  },
+  "nb1": {
+   "params": {
+    "sd_k": 2.0,
+    "stop_ticks": 6,
+    "target_ticks": 10
+   },
+   "n": 3311,
+   "both": 242,
+   "both_share": 0.0731,
+   "net_house": -12987.0,
+   "net_best": -8104.5,
+   "sessions_with_a_trade": 531,
+   "win_rate_house": 0.6777,
+   "win_rate_best": 0.7508,
+   "net_per_trade_house": -3.922,
+   "net_per_trade_best": -2.448,
+   "both_scored_as": {
+    "SL": 242
+   },
+   "both_bar_opened_at_or_beyond_stop": 0,
+   "both_bar_opened_at_or_beyond_target": 1,
+   "both_order_inside_bar_unknown": 241,
+   "exits": {
+    "TP": 2244,
+    "SL": 1066,
+    "time": 1
+   },
+   "mean_stop_ticks": 32.75,
+   "mean_target_ticks": 10.0,
+   "by_year": {
+    "2019": {
+     "n": 323,
+     "both": 1,
+     "both_share": 0.0031,
+     "net_house": -784.0,
+     "net_best": -775.0
+    },
+    "2020": {
+     "n": 937,
+     "both": 73,
+     "both_share": 0.0779,
+     "net_house": -3964.0,
+     "net_best": -2462.5
+    },
+    "2021": {
+     "n": 1108,
+     "both": 70,
+     "both_share": 0.0632,
+     "net_house": -3970.0,
+     "net_best": -2796.0
+    },
+    "2022": {
+     "n": 943,
+     "both": 98,
+     "both_share": 0.1039,
+     "net_house": -4269.0,
+     "net_best": -2071.0
+    }
+   }
+  },
+  "nb2": {
+   "params": {
+    "sd_k": 2.5,
+    "stop_ticks": 8,
+    "target_ticks": 20
+   },
+   "n": 565,
+   "both": 30,
+   "both_share": 0.0531,
+   "net_house": -2285.5,
+   "net_best": -1341.0,
+   "sessions_with_a_trade": 206,
+   "win_rate_house": 0.5611,
+   "win_rate_best": 0.6142,
+   "net_per_trade_house": -4.045,
+   "net_per_trade_best": -2.373,
+   "both_scored_as": {
+    "SL": 30
+   },
+   "both_bar_opened_at_or_beyond_stop": 0,
+   "both_bar_opened_at_or_beyond_target": 0,
+   "both_order_inside_bar_unknown": 30,
+   "exits": {
+    "TP": 316,
+    "SL": 248,
+    "time": 1
+   },
+   "mean_stop_ticks": 36.52,
+   "mean_target_ticks": 20.0,
+   "by_year": {
+    "2019": {
+     "n": 51,
+     "both": 0,
+     "both_share": 0.0,
+     "net_house": -207.5,
+     "net_best": -207.5
+    },
+    "2020": {
+     "n": 134,
+     "both": 7,
+     "both_share": 0.0522,
+     "net_house": -449.0,
+     "net_best": -245.5
+    },
+    "2021": {
+     "n": 204,
+     "both": 5,
+     "both_share": 0.0245,
+     "net_house": -696.5,
+     "net_best": -571.5
+    },
+    "2022": {
+     "n": 176,
+     "both": 18,
+     "both_share": 0.1023,
+     "net_house": -932.5,
+     "net_best": -316.5
+    }
+   }
+  },
+  "x4": {
+   "params": {
+    "sd_k": 2.0,
+    "stop_ticks": 32,
+    "target_ticks": 80
+   },
+   "n": 1631,
+   "both": 5,
+   "both_share": 0.0031,
+   "net_house": -6236.5,
+   "net_best": -5869.5,
+   "sessions_with_a_trade": 531,
+   "win_rate_house": 0.4169,
+   "win_rate_best": 0.42,
+   "net_per_trade_house": -3.824,
+   "net_per_trade_best": -3.599,
+   "both_scored_as": {
+    "SL": 5
+   },
+   "both_bar_opened_at_or_beyond_stop": 0,
+   "both_bar_opened_at_or_beyond_target": 0,
+   "both_order_inside_bar_unknown": 5,
+   "exits": {
+    "SL": 941,
+    "TP": 676,
+    "time": 14
+   },
+   "mean_stop_ticks": 63.5,
+   "mean_target_ticks": 79.1,
+   "by_year": {
+    "2019": {
+     "n": 141,
+     "both": 2,
+     "both_share": 0.0142,
+     "net_house": -96.5,
+     "net_best": 4.5
+    },
+    "2020": {
+     "n": 493,
+     "both": 2,
+     "both_share": 0.0041,
+     "net_house": -1523.0,
+     "net_best": -1346.5
+    },
+    "2021": {
+     "n": 479,
+     "both": 1,
+     "both_share": 0.0021,
+     "net_house": -2298.0,
+     "net_best": -2208.5
+    },
+    "2022": {
+     "n": 518,
+     "both": 0,
+     "both_share": 0.0,
+     "net_house": -2319.0,
+     "net_best": -2319.0
+    }
+   }
+  }
+ }
+}
