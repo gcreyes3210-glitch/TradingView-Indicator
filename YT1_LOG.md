@@ -916,3 +916,160 @@ are positive with the 20-point stop against 13 as fades; the best is the 2-sessi
   `a04` × 2R neighbour.
 - Count of things tried: 130 rules (8 picks and 2 midnight verdicts added), three grid searches, 31 claim checks,
   FLOW3, LEV1, MID1, VPN1.
+
+# YT11 — trading 100+ times a day: cost (COST1), predictability (PRED1), a frequency grid (G12) and eleven fixed rules (Q1–Q11) (rules in `YT11_SPEC.md`, registered 2026-10-09)
+
+**Verdict. Nothing that trades often makes money after costs, in either period, and no source was found that states
+a mechanical rule with 100+ trades a day and a record of results.** Of the 448 grid combinations that trade 10 or
+more times a day, none is net positive in 2019–2022 and none in 2023–2026. The six picks fail; the eight prediction
+models fail; the eleven fixed rules fail. The cause is the same everywhere: the edge per trade before costs is a few
+hundredths of a point to one point, and one MNQ round trip costs 1.5 points. Registration and the frozen in-sample
+results were pushed to GitHub before the later bars were run (`YT11_REGISTRY_STAMP.txt`, `YT11_IS_STAMP.txt`); the
+in-sample grid and the in-sample prediction report rebuilt from the full data are identical to the frozen ones;
+three headline numbers were recomputed from the raw bars with separate code and agree exactly (pick A1 out of sample:
+332,039 trades, −0.0607 points gross a trade, −1,036,434 $; Q1: 30,204 trades, −35,396.50 $; the 1-minute moves of
+COST1). Notes: `data/studies/yt1/notes/G12.md`, `PRED1.md`, `Q1.md` … `Q11.md`, `K-Q78.md`, `K-Q10.md`; sourcing:
+`data/studies/yt1/research/M_hft_retail.md`, `N_hft_quant.md`.
+
+## What the sources say
+
+- Traders known to trade 50 to several hundred times a day work by hand from the order book at exchange-member
+  costs (pit-style scalpers, order-book traders). None publishes a rule that can be coded.
+- Written scalping guides that give numbers say 5 to 50 trades a day, with brackets of 2 to 20 ticks. One MNQ round
+  trip costs 6 ticks here, so a 4-tick target with a 2-tick stop loses on its winners too.
+- Published research on index futures: once-a-day clock effects are worth 1.5 to 3 basis points before costs; the
+  evidence for many trades a day is 0.04 to 0.9 basis points a trade. One MNQ round trip is 0.5 to 0.75 basis points.
+  Studies of very active retail day traders (Brazil, Taiwan) find 97 % of persistent ones lose and under 1 % are
+  predictably profitable. Firms that do trade thousands of times a day earn about a fifth of a basis point a
+  contract and depend on speed and their place in the order queue.
+
+## COST1 — the cost next to the moves (`full/COST1.csv`)
+
+One MNQ round trip = 2 ticks of slippage + $2 commission = **$3.00 = 1.5 points**. At 100 round trips a day that is
+$300 a day, **$75,600 a year**. ORB v1.4 nets about $2,850 a year.
+
+| Year | Average 1-minute move (points) | Hit rate a 1-minute coin-flip bet needs to break even | 5-minute | 30-minute |
+|---|---|---|---|---|
+| 2019 | 1.82 | 91 % | 68 % | 58 % |
+| 2022 | 6.94 | 61 % | 55 % | 52 % |
+| 2024 | 5.59 | 63 % | 56 % | 53 % |
+| 2026 | 8.94 | 58 % | 54 % | 52 % |
+
+The cost is a smaller share of a move now than in 2019, but a 1-minute trade in 2026 still needs to be right 58 %
+of the time. MES is worse in every year (its round trip is 0.9 ES points against a 1-minute move of 0.55 to 1.7).
+
+## PRED1 — can the next 1 to 30 minutes be predicted from the bars? (`full/PRED1_report_oos.csv`)
+
+Two models (a linear regression and a gradient-boosted regressor, 15 inputs: recent returns, distance from VWAP and
+from the session's high and low, volume, ES against MNQ, time of day, the gap), fitted once on 2019–2022.
+
+| Model, horizon | Out of sample: sign right | R² against a zero forecast | Trading every decision: net a day | Trading only forecasts ≥ 1.5 points: trades a day, net a trade |
+|---|---|---|---|---|
+| linear, 1 min | 48.7 % | −0.0013 | −999 $ (323 trades a day) | 0.9, −6.60 $ |
+| linear, 5 min | 49.8 % | −0.0006 | −191 $ | 1.7, −3.09 $ |
+| linear, 15 min | 50.2 % | −0.0015 | −49 $ | 5.7, −1.03 $ |
+| linear, 30 min | 49.5 % | −0.0068 | −37 $ | 5.8, −3.23 $ |
+| boosted, 1 min | 48.7 % | −0.0005 | −999 $ | 0.2, 0.00 $ |
+| boosted, 5 min | 49.9 % | −0.0004 | −174 $ | 2.2, −5.06 $ |
+| boosted, 15 min | 49.9 % | −0.0025 | −63 $ | 5.8, −2.63 $ |
+| boosted, 30 min | 50.3 % | −0.0104 | −34 $ | 7.1, −3.69 $ |
+
+**None counts.** Every R² is negative out of sample: the models forecast worse than "no move". In sample the boosted
+30-minute model looked like 57.7 % right and +17 $ a trade; out of sample it is 50.3 % and −3.69 $. That is the
+size of the over-fitting trap at this horizon.
+
+## G12 — the frequency grid, 756 combinations (`full/G12_grid_oos.csv`, `G12_oos.json`)
+
+Every k minutes from 10:00 (k = 1, 2, 3, 5, 10, 15, 30): take a side from a simple signal, hold k minutes, repeat.
+Signals: with or against the last 1, 5, 15, 30 minutes; with or against VWAP; MNQ catching up with ES or the
+opposite. Three strength thresholds. Entry at the market, or a resting limit filled only on a one-tick trade-through.
+
+| By trades a day | Combinations | Net positive, 2019–2022 | Net positive, 2023–2026 | Best net a day, 2023–2026 | Median net a day, 2023–2026 |
+|---|---|---|---|---|---|
+| 100 or more | 112 | 0 | 0 | −338 $ | −533 $ |
+| 30 to 100 | 152 | 0 | 0 | −87 $ | −160 $ |
+| 10 to 30 | 184 | 0 | 0 | −5 $ | −51 $ |
+| under 10 | 308 | 27 | 33 | +6 $ | −10 $ |
+
+The six picks (chosen on 2019–2022 by signal quality and by least loss), tested once on 2023–2026:
+
+| Pick | Rule | Trades a day | In sample: gross a trade | Out of sample: gross a trade | Net a day | Net, 3¾ years | |
+|---|---|---|---|---|---|---|---|
+| A1 | with the last minute, hold 1 min | 347 | +0.23 $ (t +10.3) | −0.12 $ | −1,084 $ | −1,036,434 $ | fails |
+| A2 | against the last minute, hold 3 min, limit entry | 111 | −0.53 $ | −0.61 $ | −345 $ | −329,660 $ | fails |
+| B1 | with a 1-sd minute, hold 1 min | 82 | +0.61 $ | −0.19 $ | −261 $ | −249,890 $ | fails |
+| B2 | with VWAP, hold 10 min | 35 | +0.86 $ | +0.10 $ | −103 $ | −98,103 $ | fails |
+| C1 | with a 2-sd minute, hold 1 min | 15 | +0.96 $ | −0.05 $ | −47 $ | −44,794 $ | fails |
+| C2 | with VWAP, hold 30 min | 12 | +2.18 $ | +0.02 $ | −35 $ | −33,462 $ | fails |
+
+ORB v1.4 on the same dates: 460 trades, +15,417 $, net ÷ drawdown 4.91.
+
+- **The best signal of 2019–2022 reversed.** One-minute momentum had the strongest in-sample statistic of the whole
+  grid (t +10.3 on 309,000 trades) and a gross edge of 0.12 points; in 2023–2026 it is −0.06 points. Across the 756,
+  the rank correlation of gross per trade between the two periods is +0.24.
+- **How far from break-even.** The best out-of-sample gross edge among combinations trading 100+ times a day is
+  0.10 points a trade (against the last minute, hold 2 minutes): it would break even at a round-trip cost of 0.4
+  ticks. The cost is 6. At 30–100 a day the best breaks even at 1.1 ticks; at 10–30 a day at 5.2 ticks.
+- **Limit orders do not rescue it.** With the conservative fill rule 96 % of limits fill, and a filled trade is on
+  average 0.33 points worse before costs than the same trade at the market, because the order only fills after
+  price has gone through it. That costs more than the tick of slippage it saves. A real resting order also needs a
+  place in the queue, which bars cannot show.
+- White's reality check on the out-of-sample net of all 756: p = 1.00. The hindsight best is +5.65 $ a day at 0.7
+  trades a day (`mom-30.z2.k30.mkt`), which is no result.
+
+## The eleven fixed rules, full span (2019-06 → 2026-10; `full/Q*_base.csv`)
+
+| Rule | Trades a day | Trades | Gross (before costs) | Costs | Net | R a trade | Years + | |
+|---|---|---|---|---|---|---|---|---|
+| Q1 VWAP stop-and-reverse, 1-minute closes (published on QQQ) | 16.3 | 30,204 | +55,216 $ | 90,612 $ | −35,396 $ | −0.022 | 1 / 8 | fails |
+| Q2 VWAP + EMA 9 / 21 cross | 8.4 | 15,588 | +2,140 $ | 46,764 $ | −44,624 $ | −0.047 | 0 / 8 | fails |
+| Q3 VWAP + EMA 9 pullback, 2R | 16.5 | 30,626 | +7,348 $ | 91,878 $ | −84,530 $ | −0.226 | 0 / 8 | fails |
+| Q4 EMA cross + RSI + volume surge, 3 bars | 2.0 | 3,750 | −728 $ | 11,250 $ | −11,978 $ | −0.053 | 0 / 8 | fails |
+| Q5 Bollinger fade with ADX, 5-minute | 1.7 | 3,236 | −9,605 $ | 9,708 $ | −19,312 $ | −0.086 | 0 / 8 | fails |
+| Q6 MNQ 5 / 30 / 200 EMA, 3R | 17.7 | 32,789 | −24,730 $ | 98,367 $ | −123,098 $ | −0.198 | 0 / 8 | fails |
+| Q7 momentum scalp, 6-tick stop / 16-tick target | 3.1 | 5,826 | see below | 17,478 $ | −26,127 $ worst case | −1.281 | 0 / 8 | fails; cannot be scored on 1-minute bars |
+| Q8 VWAP 2-sd reversion scalp, 8 / 20 ticks | 3.4 | 6,368 | −5,222 $ | 19,104 $ | −24,326 $ | −0.233 | 0 / 8 | fails |
+| Q9 rest of day → last half-hour | 1.0 | 1,791 | −1,342 $ | 5,373 $ | −6,714 $ | −0.064 | 3 / 8 | fails |
+| Q10 overnight hour 02:00–03:00 | 1.0 | 1,847 | +4,940 $ | 5,541 $ | −601 $ | −0.034 | 2 / 8 | fails |
+| Q11 lunch pattern (short 11–12, long 12–14) | 2.0 | 3,708 | −3,349 $ | 11,124 $ | −14,473 $ | −0.099 | 2 / 8 | fails |
+
+- **Q1 is the one rule with a real edge before costs**, and it shows the problem exactly: +1.83 $ a trade gross
+  (+1.09 $ in 2023–2026) against 3.00 $ of costs. It would break even at a round trip of 3.7 ticks on the full span
+  and 2.2 ticks on 2023–2026; slippage alone is 2 ticks. Deciding on 3-minute closes (9.9 trades a day) loses
+  11,824 $, on 5-minute closes 14,169 $. Its win rate is 16 %: many small losses, a few long winners.
+- **Q7 cannot be scored.** In 58.6 % of its trades one 1-minute bar holds both the stop and the target. Counted as
+  stops (house rule): −26,127 $. Counted as wins: +11,440 $. The truth is in between and these bars cannot say where.
+  The arithmetic is against it: after costs a win is 10 ticks and a loss 12, so it needs 55 % winners, and a 6-tick
+  stop with a 16-tick target wins about 27 % of the time when price has no direction. With the bracket four times
+  wider (7.5 % of trades unresolved) it loses 18,660 $ at worst and 796 $ at best.
+- **Q5 on 1-minute bars** (9.9 trades a day): gross +191 $ on 18,320 trades, net −54,769 $. **Q6** loses before
+  costs. **Q3** is the same idea as C17 of YT1 and loses the same way.
+- **Q10.** The hour 02:00–03:00 averages +0.93 basis points on MNQ (t 2.0; 1.5 published on ES): +1.3 points a
+  night, less than the 1.5-point cost. The longer 23:30–03:30 window nets +5,358 $ over the span (5 of 8 years,
+  p 0.35): not a result. **Q9:** the published last-half-hour effect is not there on MNQ in 2023–2026 (−9,791 $).
+  **Q11:** the long leg alone (12:00–14:00) is +8,780 $ in 2023–2026 and −6,625 $ in 2019–2022; the short leg loses.
+
+## Outside the backtest
+
+Prop-firm rules as their own pages stated them on 2026-10-09: AquaFutures bans 100 or more trades a day; Tradeify
+and Funded Futures Family require over half of trades and profit to come from holds longer than 10 seconds; Lucid
+flags half of profit from holds of 5 seconds or less; Topstep prohibits "hundreds of rapid trades" and tight brackets
+that exploit simulator fills; Apex prohibits high-frequency trading and, on the page read, automation; My Funded
+Futures prohibits high-frequency trading. Rules change often.
+
+## Readings and limits
+
+- Fills are on 1-minute bars: 1 tick against every market fill. Real slippage on hundreds of market orders a day
+  is not measured here and is unlikely to be smaller. Nothing here uses the order book; a rule that needs queue
+  position cannot be tested with this data.
+- Selection for G12 was by signal quality (gross), not net, because the cost was a much larger share of a move in
+  2019 than now; the test was on net. The picks' verdicts do not depend on that choice: no combination trading 10 or
+  more times a day is net positive in either period.
+- Readings fixed by the coders before any result and kept: the Q5 and Q6 time windows are bars stamped in the window
+  (one bar later than YT1's "closing by" wording); the boosted model keeps scikit-learn's default early stopping.
+  `core.boot_p` now draws its resamples in blocks to fit in memory; every resampled mean is bit-identical to before.
+  The runner prints the YT1 significance level (0.05 / 53); the registered level here is 0.05 / 155 and no rule is
+  near either.
+- Not coded, with reasons, in `YT11_SPEC.md` ("Read and not coded").
+- Count of things tried: 155 rules (11 fixed rules, 6 picks and 8 model verdicts added), four grid searches, 33
+  claim checks, FLOW3, LEV1, MID1, VPN1, COST1, PRED1.

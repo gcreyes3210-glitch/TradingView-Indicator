@@ -1,0 +1,706 @@
+{
+ "stated_in_advance": "a 1-minute bar that holds both the stop and the target counts as a stop, so Q7 and Q8 are scored at their worst; the best case counts every such trade as a winner; the truth is between the two",
+ "span": "2019-06-03 -> 2026-10-07",
+ "cost_round_trip_usd": 3.0,
+ "Q7": {
+  "base": {
+   "params": {
+    "stop_ticks": 6,
+    "target_ticks": 16
+   },
+   "n": 5826,
+   "both": 3413,
+   "both_share": 0.5858,
+   "net_house": -26127.0,
+   "net_best": 11439.5,
+   "sessions_with_a_trade": 1836,
+   "win_rate_house": 0.1383,
+   "win_rate_best": 0.7242,
+   "net_per_trade_house": -4.485,
+   "net_per_trade_best": 1.964,
+   "both_scored_as": {
+    "SL": 3413
+   },
+   "both_bar_opened_at_or_beyond_stop": 14,
+   "both_bar_opened_at_or_beyond_target": 1,
+   "both_order_inside_bar_unknown": 3398,
+   "exits": {
+    "SL": 5020,
+    "TP": 806
+   },
+   "mean_stop_ticks": 6.0,
+   "mean_target_ticks": 16.0,
+   "by_year": {
+    "2019": {
+     "n": 412,
+     "both": 67,
+     "both_share": 0.1626,
+     "net_house": -1242.5,
+     "net_best": -505.5
+    },
+    "2020": {
+     "n": 753,
+     "both": 405,
+     "both_share": 0.5378,
+     "net_house": -3281.5,
+     "net_best": 1193.5
+    },
+    "2021": {
+     "n": 753,
+     "both": 409,
+     "both_share": 0.5432,
+     "net_house": -2956.0,
+     "net_best": 1543.0
+    },
+    "2022": {
+     "n": 823,
+     "both": 562,
+     "both_share": 0.6829,
+     "net_house": -3794.0,
+     "net_best": 2388.0
+    },
+    "2023": {
+     "n": 861,
+     "both": 458,
+     "both_share": 0.5319,
+     "net_house": -3912.0,
+     "net_best": 1126.0
+    },
+    "2024": {
+     "n": 845,
+     "both": 528,
+     "both_share": 0.6249,
+     "net_house": -3995.0,
+     "net_best": 1814.0
+    },
+    "2025": {
+     "n": 800,
+     "both": 559,
+     "both_share": 0.6987,
+     "net_house": -3877.5,
+     "net_best": 2272.5
+    },
+    "2026": {
+     "n": 579,
+     "both": 425,
+     "both_share": 0.734,
+     "net_house": -3068.5,
+     "net_best": 1608.0
+    }
+   }
+  },
+  "nb1": {
+   "params": {
+    "stop_ticks": 4,
+    "target_ticks": 8
+   },
+   "n": 5839,
+   "both": 4417,
+   "both_share": 0.7565,
+   "net_house": -25601.0,
+   "net_best": 954.5,
+   "sessions_with_a_trade": 1836,
+   "win_rate_house": 0.1045,
+   "win_rate_best": 0.8609,
+   "net_per_trade_house": -4.384,
+   "net_per_trade_best": 0.163,
+   "both_scored_as": {
+    "SL": 4417
+   },
+   "both_bar_opened_at_or_beyond_stop": 85,
+   "both_bar_opened_at_or_beyond_target": 10,
+   "both_order_inside_bar_unknown": 4322,
+   "exits": {
+    "SL": 5229,
+    "TP": 610
+   },
+   "mean_stop_ticks": 4.0,
+   "mean_target_ticks": 8.0,
+   "by_year": {
+    "2019": {
+     "n": 422,
+     "both": 186,
+     "both_share": 0.4408,
+     "net_house": -1531.5,
+     "net_best": -415.5
+    },
+    "2020": {
+     "n": 753,
+     "both": 541,
+     "both_share": 0.7185,
+     "net_house": -3286.5,
+     "net_best": -10.0
+    },
+    "2021": {
+     "n": 753,
+     "both": 549,
+     "both_share": 0.7291,
+     "net_house": -3082.0,
+     "net_best": 212.5
+    },
+    "2022": {
+     "n": 823,
+     "both": 659,
+     "both_share": 0.8007,
+     "net_house": -3649.5,
+     "net_best": 306.5
+    },
+    "2023": {
+     "n": 863,
+     "both": 640,
+     "both_share": 0.7416,
+     "net_house": -3818.0,
+     "net_best": 22.5
+    },
+    "2024": {
+     "n": 846,
+     "both": 671,
+     "both_share": 0.7931,
+     "net_house": -3780.0,
+     "net_best": 252.0
+    },
+    "2025": {
+     "n": 800,
+     "both": 675,
+     "both_share": 0.8438,
+     "net_house": -3675.5,
+     "net_best": 380.0
+    },
+    "2026": {
+     "n": 579,
+     "both": 496,
+     "both_share": 0.8566,
+     "net_house": -2778.0,
+     "net_best": 206.5
+    }
+   }
+  },
+  "nb2": {
+   "params": {
+    "stop_ticks": 6,
+    "target_ticks": 12
+   },
+   "n": 5832,
+   "both": 3802,
+   "both_share": 0.6519,
+   "net_house": -27647.0,
+   "net_best": 6596.0,
+   "sessions_with_a_trade": 1836,
+   "win_rate_house": 0.1406,
+   "win_rate_best": 0.7925,
+   "net_per_trade_house": -4.741,
+   "net_per_trade_best": 1.131,
+   "both_scored_as": {
+    "SL": 3802
+   },
+   "both_bar_opened_at_or_beyond_stop": 16,
+   "both_bar_opened_at_or_beyond_target": 2,
+   "both_order_inside_bar_unknown": 3784,
+   "exits": {
+    "SL": 5012,
+    "TP": 820
+   },
+   "mean_stop_ticks": 6.0,
+   "mean_target_ticks": 12.0,
+   "by_year": {
+    "2019": {
+     "n": 417,
+     "both": 101,
+     "both_share": 0.2422,
+     "net_house": -1415.5,
+     "net_best": -506.5
+    },
+    "2020": {
+     "n": 753,
+     "both": 454,
+     "both_share": 0.6029,
+     "net_house": -3491.5,
+     "net_best": 615.5
+    },
+    "2021": {
+     "n": 753,
+     "both": 467,
+     "both_share": 0.6202,
+     "net_house": -3231.0,
+     "net_best": 972.0
+    },
+    "2022": {
+     "n": 823,
+     "both": 595,
+     "both_share": 0.723,
+     "net_house": -3993.0,
+     "net_best": 1362.0
+    },
+    "2023": {
+     "n": 861,
+     "both": 541,
+     "both_share": 0.6283,
+     "net_house": -4131.0,
+     "net_best": 738.0
+    },
+    "2024": {
+     "n": 846,
+     "both": 584,
+     "both_share": 0.6903,
+     "net_house": -4197.0,
+     "net_best": 1060.0
+    },
+    "2025": {
+     "n": 800,
+     "both": 601,
+     "both_share": 0.7512,
+     "net_house": -4045.5,
+     "net_best": 1365.0
+    },
+    "2026": {
+     "n": 579,
+     "both": 459,
+     "both_share": 0.7927,
+     "net_house": -3142.5,
+     "net_best": 990.0
+    }
+   }
+  },
+  "x4": {
+   "params": {
+    "stop_ticks": 24,
+    "target_ticks": 64
+   },
+   "n": 5425,
+   "both": 406,
+   "both_share": 0.0748,
+   "net_house": -18660.0,
+   "net_best": -796.0,
+   "sessions_with_a_trade": 1836,
+   "win_rate_house": 0.263,
+   "win_rate_best": 0.3379,
+   "net_per_trade_house": -3.44,
+   "net_per_trade_best": -0.147,
+   "both_scored_as": {
+    "SL": 406
+   },
+   "both_bar_opened_at_or_beyond_stop": 0,
+   "both_bar_opened_at_or_beyond_target": 1,
+   "both_order_inside_bar_unknown": 405,
+   "exits": {
+    "SL": 3998,
+    "TP": 1423,
+    "time": 4
+   },
+   "mean_stop_ticks": 24.0,
+   "mean_target_ticks": 64.0,
+   "by_year": {
+    "2019": {
+     "n": 301,
+     "both": 2,
+     "both_share": 0.0066,
+     "net_house": -687.0,
+     "net_best": -599.0
+    },
+    "2020": {
+     "n": 681,
+     "both": 31,
+     "both_share": 0.0455,
+     "net_house": -1652.5,
+     "net_best": -288.5
+    },
+    "2021": {
+     "n": 693,
+     "both": 20,
+     "both_share": 0.0289,
+     "net_house": -2170.0,
+     "net_best": -1290.0
+    },
+    "2022": {
+     "n": 804,
+     "both": 82,
+     "both_share": 0.102,
+     "net_house": -2820.0,
+     "net_best": 788.0
+    },
+    "2023": {
+     "n": 800,
+     "both": 21,
+     "both_share": 0.0262,
+     "net_house": -2768.5,
+     "net_best": -1844.5
+    },
+    "2024": {
+     "n": 799,
+     "both": 40,
+     "both_share": 0.0501,
+     "net_house": -1909.0,
+     "net_best": -149.0
+    },
+    "2025": {
+     "n": 771,
+     "both": 85,
+     "both_share": 0.1102,
+     "net_house": -3073.0,
+     "net_best": 667.0
+    },
+    "2026": {
+     "n": 576,
+     "both": 125,
+     "both_share": 0.217,
+     "net_house": -3580.0,
+     "net_best": 1920.0
+    }
+   }
+  }
+ },
+ "Q8": {
+  "base": {
+   "params": {
+    "sd_k": 2.0,
+    "stop_ticks": 8,
+    "target_ticks": 20
+   },
+   "n": 6368,
+   "both": 254,
+   "both_share": 0.0399,
+   "net_house": -24326.0,
+   "net_best": -16632.5,
+   "sessions_with_a_trade": 1082,
+   "win_rate_house": 0.5959,
+   "win_rate_best": 0.6358,
+   "net_per_trade_house": -3.82,
+   "net_per_trade_best": -2.612,
+   "both_scored_as": {
+    "SL": 254
+   },
+   "both_bar_opened_at_or_beyond_stop": 0,
+   "both_bar_opened_at_or_beyond_target": 0,
+   "both_order_inside_bar_unknown": 254,
+   "exits": {
+    "TP": 3793,
+    "SL": 2569,
+    "time": 6
+   },
+   "mean_stop_ticks": 40.63,
+   "mean_target_ticks": 20.0,
+   "by_year": {
+    "2019": {
+     "n": 245,
+     "both": 0,
+     "both_share": 0.0,
+     "net_house": -593.0,
+     "net_best": -593.0
+    },
+    "2020": {
+     "n": 823,
+     "both": 31,
+     "both_share": 0.0377,
+     "net_house": -2902.0,
+     "net_best": -1989.5
+    },
+    "2021": {
+     "n": 925,
+     "both": 18,
+     "both_share": 0.0195,
+     "net_house": -3000.5,
+     "net_best": -2552.5
+    },
+    "2022": {
+     "n": 867,
+     "both": 46,
+     "both_share": 0.0531,
+     "net_house": -3294.5,
+     "net_best": -1869.0
+    },
+    "2023": {
+     "n": 926,
+     "both": 14,
+     "both_share": 0.0151,
+     "net_house": -3093.0,
+     "net_best": -2769.5
+    },
+    "2024": {
+     "n": 1016,
+     "both": 33,
+     "both_share": 0.0325,
+     "net_house": -3532.0,
+     "net_best": -2751.0
+    },
+    "2025": {
+     "n": 866,
+     "both": 53,
+     "both_share": 0.0612,
+     "net_house": -5045.5,
+     "net_best": -3072.0
+    },
+    "2026": {
+     "n": 700,
+     "both": 59,
+     "both_share": 0.0843,
+     "net_house": -2865.5,
+     "net_best": -1036.0
+    }
+   }
+  },
+  "nb1": {
+   "params": {
+    "sd_k": 2.0,
+    "stop_ticks": 6,
+    "target_ticks": 10
+   },
+   "n": 7189,
+   "both": 617,
+   "both_share": 0.0858,
+   "net_house": -33223.0,
+   "net_best": -19385.0,
+   "sessions_with_a_trade": 1082,
+   "win_rate_house": 0.6746,
+   "win_rate_best": 0.7605,
+   "net_per_trade_house": -4.621,
+   "net_per_trade_best": -2.696,
+   "both_scored_as": {
+    "SL": 617
+   },
+   "both_bar_opened_at_or_beyond_stop": 0,
+   "both_bar_opened_at_or_beyond_target": 1,
+   "both_order_inside_bar_unknown": 616,
+   "exits": {
+    "TP": 4850,
+    "SL": 2338,
+    "time": 1
+   },
+   "mean_stop_ticks": 37.2,
+   "mean_target_ticks": 10.0,
+   "by_year": {
+    "2019": {
+     "n": 323,
+     "both": 1,
+     "both_share": 0.0031,
+     "net_house": -784.0,
+     "net_best": -775.0
+    },
+    "2020": {
+     "n": 937,
+     "both": 73,
+     "both_share": 0.0779,
+     "net_house": -3964.0,
+     "net_best": -2462.5
+    },
+    "2021": {
+     "n": 1108,
+     "both": 70,
+     "both_share": 0.0632,
+     "net_house": -3970.0,
+     "net_best": -2796.0
+    },
+    "2022": {
+     "n": 943,
+     "both": 98,
+     "both_share": 0.1039,
+     "net_house": -4269.0,
+     "net_best": -2071.0
+    },
+    "2023": {
+     "n": 1086,
+     "both": 52,
+     "both_share": 0.0479,
+     "net_house": -4198.0,
+     "net_best": -3411.5
+    },
+    "2024": {
+     "n": 1129,
+     "both": 84,
+     "both_share": 0.0744,
+     "net_house": -4744.5,
+     "net_best": -3217.5
+    },
+    "2025": {
+     "n": 929,
+     "both": 123,
+     "both_share": 0.1324,
+     "net_house": -6694.0,
+     "net_best": -3294.5
+    },
+    "2026": {
+     "n": 734,
+     "both": 116,
+     "both_share": 0.158,
+     "net_house": -4599.5,
+     "net_best": -1357.0
+    }
+   }
+  },
+  "nb2": {
+   "params": {
+    "sd_k": 2.5,
+    "stop_ticks": 8,
+    "target_ticks": 20
+   },
+   "n": 1190,
+   "both": 48,
+   "both_share": 0.0403,
+   "net_house": -4653.0,
+   "net_best": -3136.5,
+   "sessions_with_a_trade": 393,
+   "win_rate_house": 0.5966,
+   "win_rate_best": 0.637,
+   "net_per_trade_house": -3.91,
+   "net_per_trade_best": -2.636,
+   "both_scored_as": {
+    "SL": 48
+   },
+   "both_bar_opened_at_or_beyond_stop": 0,
+   "both_bar_opened_at_or_beyond_target": 0,
+   "both_order_inside_bar_unknown": 48,
+   "exits": {
+    "TP": 709,
+    "SL": 480,
+    "time": 1
+   },
+   "mean_stop_ticks": 42.6,
+   "mean_target_ticks": 20.0,
+   "by_year": {
+    "2019": {
+     "n": 51,
+     "both": 0,
+     "both_share": 0.0,
+     "net_house": -207.5,
+     "net_best": -207.5
+    },
+    "2020": {
+     "n": 134,
+     "both": 7,
+     "both_share": 0.0522,
+     "net_house": -449.0,
+     "net_best": -245.5
+    },
+    "2021": {
+     "n": 204,
+     "both": 5,
+     "both_share": 0.0245,
+     "net_house": -696.5,
+     "net_best": -571.5
+    },
+    "2022": {
+     "n": 176,
+     "both": 18,
+     "both_share": 0.1023,
+     "net_house": -932.5,
+     "net_best": -316.5
+    },
+    "2023": {
+     "n": 168,
+     "both": 1,
+     "both_share": 0.006,
+     "net_house": -436.0,
+     "net_best": -404.0
+    },
+    "2024": {
+     "n": 205,
+     "both": 4,
+     "both_share": 0.0195,
+     "net_house": -259.0,
+     "net_best": -163.5
+    },
+    "2025": {
+     "n": 154,
+     "both": 6,
+     "both_share": 0.039,
+     "net_house": -898.0,
+     "net_best": -694.0
+    },
+    "2026": {
+     "n": 98,
+     "both": 7,
+     "both_share": 0.0714,
+     "net_house": -774.5,
+     "net_best": -534.0
+    }
+   }
+  },
+  "x4": {
+   "params": {
+    "sd_k": 2.0,
+    "stop_ticks": 32,
+    "target_ticks": 80
+   },
+   "n": 3704,
+   "both": 11,
+   "both_share": 0.003,
+   "net_house": -15214.5,
+   "net_best": -14385.0,
+   "sessions_with_a_trade": 1082,
+   "win_rate_house": 0.4303,
+   "win_rate_best": 0.4333,
+   "net_per_trade_house": -4.108,
+   "net_per_trade_best": -3.884,
+   "both_scored_as": {
+    "SL": 11
+   },
+   "both_bar_opened_at_or_beyond_stop": 0,
+   "both_bar_opened_at_or_beyond_target": 0,
+   "both_order_inside_bar_unknown": 11,
+   "exits": {
+    "SL": 2098,
+    "TP": 1589,
+    "time": 17
+   },
+   "mean_stop_ticks": 69.73,
+   "mean_target_ticks": 79.58,
+   "by_year": {
+    "2019": {
+     "n": 141,
+     "both": 2,
+     "both_share": 0.0142,
+     "net_house": -96.5,
+     "net_best": 4.5
+    },
+    "2020": {
+     "n": 493,
+     "both": 2,
+     "both_share": 0.0041,
+     "net_house": -1523.0,
+     "net_best": -1346.5
+    },
+    "2021": {
+     "n": 479,
+     "both": 1,
+     "both_share": 0.0021,
+     "net_house": -2298.0,
+     "net_best": -2208.5
+    },
+    "2022": {
+     "n": 518,
+     "both": 0,
+     "both_share": 0.0,
+     "net_house": -2319.0,
+     "net_best": -2319.0
+    },
+    "2023": {
+     "n": 477,
+     "both": 0,
+     "both_share": 0.0,
+     "net_house": -2691.5,
+     "net_best": -2691.5
+    },
+    "2024": {
+     "n": 555,
+     "both": 0,
+     "both_share": 0.0,
+     "net_house": -2635.0,
+     "net_best": -2635.0
+    },
+    "2025": {
+     "n": 581,
+     "both": 4,
+     "both_share": 0.0069,
+     "net_house": -3093.0,
+     "net_best": -2772.0
+    },
+    "2026": {
+     "n": 460,
+     "both": 2,
+     "both_share": 0.0043,
+     "net_house": -558.5,
+     "net_best": -417.0
+    }
+   }
+  }
+ }
+}

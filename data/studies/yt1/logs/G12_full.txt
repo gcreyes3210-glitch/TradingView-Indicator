@@ -1,0 +1,156 @@
+G12 grid   phase full   bars 2019-06-02 18:00:00-04:00 -> 2026-10-08 09:33:00-04:00   traded days 1854   out of sample from 2023-01-01
+  g12_sim.py is the file stamped at the selection
+  g12_grid.py is the file stamped at the selection
+in-sample grid rebuilt from these bars: 756 of 756 combinations have the frozen n and net $
+out-of-sample sessions: 956 (2023-01-03 -> 2026-10-07)   wrote G12_grid_oos.csv, G12_grid_full.csv
+
+ORB v1.4 (cal_orb through the harness), 2023-01-01 -> 2026-10-07: n 460  net +15417  max dd on daily P&L -3143  net / dd +4.91  years {2023: 2540.0, 2024: 3287.5, 2025: 5501.0, 2026: 4088.5}
+
+frozen picks, out of sample. A pick passes if: mean net a day > 0 with p < 0.00833 (one-sided bootstrap of the daily net over days with a decision, 10,000 resamples, seed 1); 3 of 4 calendar years net positive; neighbours net positive. Beats ORB v1.4 = a pass with more net $ and a larger net / max drawdown.
+  A1 (highest t)  mom-1.z0.k1.mkt   in sample: a day 344.0  gross $/trade +0.232  net $/trade -2.768  net $/day -952.3  t +10.30   frozen row reproduced: True
+      out of sample: n 332039  a day 347.3  gross $/trade -0.121 (-0.0607 pts)  net $/trade -3.121  net $/day -1084.1  net -1036434  p 1.00000  years {2023: -274931.5, 2024: -259002.5, 2025: -286856.5, 2026: -215643.0}  max dd -1036434  net / dd -1.00
+      neighbours: mom-1.z0.k2.mkt: n 166011 net -531610   mom-1.z1.k1.mkt: n 78240 net -249890
+      -> fails  {'mean_net_day_positive': False, 'p': False, 'years': False, 'neighbours': False}   beats ORB v1.4: False  {'passes': False, 'net_above_orb': False, 'net_dd_above_orb': False}
+  A2 (largest net $ a day)  rev-1.z0.k3.lim   in sample: a day 107.7  gross $/trade -0.530  net $/trade -3.030  net $/day -326.3  t -8.83   frozen row reproduced: True
+      out of sample: n 106173  a day 111.1  gross $/trade -0.605 (-0.3025 pts)  net $/trade -3.105  net $/day -344.8  net -329660  p 1.00000  years {2023: -76731.0, 2024: -93256.5, 2025: -90586.0, 2026: -69087.0}  max dd -329660  net / dd -1.00
+      neighbours: rev-1.z0.k2.lim: n 159332 net -471340   rev-1.z0.k5.lim: n 63784 net -197242   rev-1.z1.k3.lim: n 24897 net -73652
+      -> fails  {'mean_net_day_positive': False, 'p': False, 'years': False, 'neighbours': False}   beats ORB v1.4: False  {'passes': False, 'net_above_orb': False, 'net_dd_above_orb': False}
+  B1 (highest t)  mom-1.z1.k1.mkt   in sample: a day 81.0  gross $/trade +0.606  net $/trade -2.394  net $/day -193.8  t +9.42   frozen row reproduced: True
+      out of sample: n 78240  a day 81.8  gross $/trade -0.194 (-0.0969 pts)  net $/trade -3.194  net $/day -261.4  net -249890  p 1.00000  years {2023: -68784.0, 2024: -59923.5, 2025: -73387.5, 2026: -47795.5}  max dd -249890  net / dd -1.00
+      neighbours: mom-1.z1.k2.mkt: n 38267 net -123330   mom-1.z0.k1.mkt: n 332039 net -1036434   mom-1.z2.k1.mkt: n 14665 net -44794
+      -> fails  {'mean_net_day_positive': False, 'p': False, 'years': False, 'neighbours': False}   beats ORB v1.4: False  {'passes': False, 'net_above_orb': False, 'net_dd_above_orb': False}
+  B2 (largest net $ a day)  vw.z0.k10.mkt   in sample: a day 35.4  gross $/trade +0.864  net $/trade -2.136  net $/day -75.6  t +3.58   frozen row reproduced: True
+      out of sample: n 33778  a day 35.3  gross $/trade +0.096 (+0.0478 pts)  net $/trade -2.904  net $/day -102.6  net -98103  p 1.00000  years {2023: -23839.0, 2024: -21096.0, 2025: -29994.5, 2026: -23173.5}  max dd -98340  net / dd -1.00
+      neighbours: vw.z0.k5.mkt: n 67564 net -204148   vw.z0.k15.mkt: n 22510 net -67579   vw.z1.k10.mkt: n 18544 net -38096
+      -> fails  {'mean_net_day_positive': False, 'p': False, 'years': False, 'neighbours': False}   beats ORB v1.4: False  {'passes': False, 'net_above_orb': False, 'net_dd_above_orb': False}
+  C1 (highest t)  mom-1.z2.k1.mkt   in sample: a day 15.0  gross $/trade +0.958  net $/trade -2.042  net $/day -30.6  t +5.52   frozen row reproduced: True
+      out of sample: n 14665  a day 15.3  gross $/trade -0.054 (-0.0272 pts)  net $/trade -3.054  net $/day -46.9  net -44794  p 1.00000  years {2023: -9648.5, 2024: -9668.0, 2025: -14059.0, 2026: -11418.5}  max dd -44932  net / dd -1.00
+      neighbours: mom-1.z2.k2.mkt: n 7007 net -16504   mom-1.z1.k1.mkt: n 78240 net -249890
+      -> fails  {'mean_net_day_positive': False, 'p': False, 'years': False, 'neighbours': False}   beats ORB v1.4: False  {'passes': False, 'net_above_orb': False, 'net_dd_above_orb': False}
+  C2 (largest net $ a day)  vw.z0.k30.mkt   in sample: a day 11.8  gross $/trade +2.179  net $/trade -0.821  net $/day -9.7  t +3.58   frozen row reproduced: True
+      out of sample: n 11242  a day 11.8  gross $/trade +0.023 (+0.0117 pts)  net $/trade -2.977  net $/day -35.0  net -33462  p 0.99850  years {2023: -4128.5, 2024: -2661.0, 2025: -18091.0, 2026: -8582.0}  max dd -34814  net / dd -0.96
+      neighbours: vw.z0.k15.mkt: n 22510 net -67579   vw.z1.k30.mkt: n 6199 net -7294
+      -> fails  {'mean_net_day_positive': False, 'p': False, 'years': False, 'neighbours': False}   beats ORB v1.4: False  {'passes': False, 'net_above_orb': False, 'net_dd_above_orb': False}
+
+gross points per trade, z >= 0, mkt, by signal and holding time (in sample, frozen); the cost is 1.5 points
+           k1     k2     k3     k5    k10    k15    k30  cost_pts
+G                                                                
+mom-1  +0.116 -0.003 -0.076 -0.070 -0.090 -0.078 +0.017    +1.500
+mom-5  +0.012 -0.061 -0.079 -0.204 -0.322 -0.300 -0.164    +1.500
+mom-15 +0.029 +0.021 -0.001 -0.052 -0.071 +0.326 +0.447    +1.500
+mom-30 +0.033 +0.047 +0.041 +0.055 +0.160 +0.381 +0.263    +1.500
+rev-1  -0.116 +0.003 +0.076 +0.070 +0.090 +0.078 -0.017    +1.500
+rev-5  -0.012 +0.061 +0.079 +0.204 +0.322 +0.300 +0.164    +1.500
+rev-15 -0.029 -0.021 +0.001 +0.052 +0.071 -0.326 -0.447    +1.500
+rev-30 -0.033 -0.047 -0.041 -0.055 -0.160 -0.381 -0.263    +1.500
+es-1   -0.070 -0.003 +0.017 +0.009 +0.035 +0.091 -0.014    +1.500
+es-5   -0.006 +0.043 +0.033 -0.042 -0.085 -0.036 -0.118    +1.500
+es-15  -0.036 -0.056 -0.081 -0.113 -0.208 -0.521 -0.901    +1.500
+es-30  -0.028 -0.047 -0.061 -0.119 -0.299 -0.448 -0.630    +1.500
+esr-1  +0.070 +0.003 -0.017 -0.009 -0.035 -0.091 +0.014    +1.500
+esr-5  +0.006 -0.043 -0.033 +0.042 +0.085 +0.036 +0.118    +1.500
+esr-15 +0.036 +0.056 +0.081 +0.113 +0.208 +0.521 +0.901    +1.500
+esr-30 +0.028 +0.047 +0.061 +0.119 +0.299 +0.448 +0.630    +1.500
+vw     +0.053 +0.098 +0.116 +0.213 +0.432 +0.752 +1.089    +1.500
+vwr    -0.053 -0.098 -0.116 -0.213 -0.432 -0.752 -1.089    +1.500
+
+gross points per trade, z >= 0, mkt, by signal and holding time (out of sample); the cost is 1.5 points
+           k1     k2     k3     k5    k10    k15    k30  cost_pts
+G                                                                
+mom-1  -0.061 -0.101 -0.030 -0.057 +0.044 +0.270 +1.290    +1.500
+mom-5  -0.032 -0.057 -0.051 -0.220 -0.248 -0.477 -0.039    +1.500
+mom-15 -0.003 +0.005 +0.002 -0.053 +0.250 +0.122 -0.018    +1.500
+mom-30 -0.019 -0.019 -0.011 -0.111 +0.105 -0.134 -0.176    +1.500
+rev-1  +0.061 +0.101 +0.030 +0.057 -0.044 -0.270 -1.290    +1.500
+rev-5  +0.032 +0.057 +0.051 +0.220 +0.248 +0.477 +0.039    +1.500
+rev-15 +0.003 -0.005 -0.002 +0.053 -0.250 -0.122 +0.018    +1.500
+rev-30 +0.019 +0.019 +0.011 +0.111 -0.105 +0.134 +0.176    +1.500
+es-1   +0.064 +0.039 +0.012 +0.053 +0.079 -0.419 -0.645    +1.500
+es-5   +0.018 +0.027 +0.046 +0.204 +0.274 +0.506 +0.281    +1.500
+es-15  +0.007 +0.004 +0.042 +0.130 +0.153 +0.551 +1.179    +1.500
+es-30  +0.021 +0.026 +0.055 +0.125 +0.157 +0.483 +1.087    +1.500
+esr-1  -0.064 -0.039 -0.012 -0.053 -0.079 +0.419 +0.645    +1.500
+esr-5  -0.018 -0.027 -0.046 -0.204 -0.274 -0.506 -0.281    +1.500
+esr-15 -0.007 -0.004 -0.042 -0.130 -0.153 -0.551 -1.179    +1.500
+esr-30 -0.021 -0.026 -0.055 -0.125 -0.157 -0.483 -1.087    +1.500
+vw     +0.018 +0.043 +0.058 -0.011 +0.048 -0.001 +0.012    +1.500
+vwr    -0.018 -0.043 -0.058 +0.011 -0.048 +0.001 -0.012    +1.500
+
+in sample, frozen: of the 756 combinations 756 have a trade; gross per trade positive 243 (32.1%); net per trade positive 27 (3.6%)   [mkt: gross 189 net 17 of 378; lim: gross 54 net 10 of 378]
+
+out of sample: of the 756 combinations 756 have a trade; gross per trade positive 228 (30.2%); net per trade positive 33 (4.4%)   [mkt: gross 189 net 18 of 378; lim: gross 39 net 15 of 378]
+
+lim entries (out of sample), z >= 0: share of limits filled, by signal and holding time
+K         1     2     3     5     10    15    30
+G                                               
+mom-1  0.965 0.964 0.965 0.965 0.964 0.965 0.960
+mom-5  0.963 0.962 0.963 0.962 0.960 0.961 0.957
+mom-15 0.961 0.960 0.961 0.959 0.956 0.954 0.950
+mom-30 0.961 0.959 0.960 0.958 0.954 0.952 0.947
+rev-1  0.961 0.960 0.960 0.962 0.960 0.959 0.955
+rev-5  0.962 0.962 0.962 0.965 0.963 0.962 0.957
+rev-15 0.963 0.964 0.964 0.968 0.967 0.969 0.965
+rev-30 0.964 0.965 0.965 0.969 0.969 0.971 0.967
+es-1   0.960 0.960 0.961 0.961 0.959 0.958 0.954
+es-5   0.962 0.962 0.962 0.963 0.962 0.960 0.956
+es-15  0.963 0.963 0.963 0.966 0.964 0.965 0.961
+es-30  0.963 0.963 0.963 0.966 0.965 0.966 0.963
+esr-1  0.965 0.964 0.965 0.966 0.964 0.965 0.961
+esr-5  0.963 0.962 0.963 0.964 0.961 0.963 0.959
+esr-15 0.962 0.961 0.962 0.961 0.958 0.958 0.954
+esr-30 0.962 0.961 0.962 0.961 0.958 0.957 0.952
+vw     0.961 0.959 0.959 0.960 0.956 0.954 0.945
+vwr    0.964 0.965 0.966 0.967 0.967 0.970 0.969
+lim entries (out of sample), z >= 0: gross points per FILLED trade (the same signal's mkt trade is in the table above)
+K          1      2      3      5      10     15     30
+G                                                      
+mom-1  -0.360 -0.403 -0.343 -0.394 -0.328 -0.149 +0.698
+mom-5  -0.339 -0.378 -0.379 -0.579 -0.669 -0.925 -0.696
+mom-15 -0.325 -0.331 -0.338 -0.440 -0.193 -0.317 -0.725
+mom-30 -0.345 -0.363 -0.362 -0.505 -0.341 -0.621 -0.912
+rev-1  -0.256 -0.229 -0.302 -0.296 -0.484 -0.705 -1.954
+rev-5  -0.278 -0.256 -0.266 -0.110 -0.141 +0.074 -0.559
+rev-15 -0.293 -0.303 -0.306 -0.248 -0.613 -0.537 -0.543
+rev-30 -0.273 -0.271 -0.282 -0.185 -0.468 -0.232 -0.379
+es-1   -0.259 -0.297 -0.323 -0.315 -0.352 -0.853 -1.236
+es-5   -0.297 -0.298 -0.277 -0.145 -0.157 +0.044 -0.359
+es-15  -0.295 -0.302 -0.277 -0.199 -0.238 +0.136 +0.617
+es-30  -0.282 -0.281 -0.263 -0.206 -0.246 +0.063 +0.464
+esr-1  -0.358 -0.337 -0.321 -0.374 -0.460 -0.007 -0.037
+esr-5  -0.321 -0.336 -0.367 -0.542 -0.651 -0.897 -0.902
+esr-15 -0.322 -0.332 -0.367 -0.489 -0.573 -0.995 -1.890
+esr-30 -0.335 -0.353 -0.381 -0.481 -0.565 -0.922 -1.739
+vw     -0.302 -0.297 -0.298 -0.393 -0.399 -0.485 -0.735
+vwr    -0.315 -0.337 -0.346 -0.295 -0.411 -0.370 -0.530
+lim entries (out of sample), every signal and holding time pooled, by strength (every signal is pooled with its mirror, so the same orders at the market gross exactly 0: this is what the fill rule alone selects):
+ Z   orders   filled  fill_share  lim_gross_pts_per_filled
+ 0 13520728 13011279      0.9623                   -0.3283
+ 1  3434056  3319671      0.9667                   -0.3500
+ 2   642272   622727      0.9696                   -0.4033
+
+Spearman of gross $ per trade in sample against out of sample over the 756 combinations with a trade in both: +0.236   (of net $ a day: +0.964)
+
+White's reality check on the out-of-sample net $ a day of all 756 (756 with a trade), 956 days, 2000 day resamples, seed 1:
+  largest day-level t +1.473 (mom-30.z2.k30.mkt); resampled largest t: median 2.793  95% 3.696  99% 4.112   p = 1.0000
+  largest mean net $ a day +5.65 (mom-30.z2.k30.mkt); resampled largest centred mean: median 27.40  95% 38.86  99% 44.44   p = 1.0000
+
+HINDSIGHT (the top 10 of 756 by out-of-sample net $; chosen after the fact, not a result):
+                     n tpd gross_pt gross_pts net_pt net_day   net     t  win    dd
+name                                                                               
+mom-30.z2.k30.mkt  681 0.7  +10.938   +5.4688 +7.938    +5.7 +5406 +2.27 52.9 -1324
+mom-1.z1.k30.mkt  2170 2.3   +4.886   +2.4431 +1.886    +4.3 +4093 +2.38 50.0 -5278
+mom-30.z2.k30.lim  623 0.7   +8.528   +4.2640 +6.028    +3.9 +3756 +1.60 51.0 -1458
+esr-1.z1.k30.mkt  2000 2.1   +4.573   +2.2864 +1.573    +3.3 +3146 +2.10 49.8 -6869
+es-15.z1.k30.mkt  2438 2.6   +4.257   +2.1285 +1.257    +3.2 +3064 +1.59 49.9 -6103
+esr-1.z2.k15.mkt   633 0.7   +7.823   +3.9115 +4.823    +3.2 +3053 +2.03 52.0 -3652
+mom-15.z2.k30.mkt  576 0.6   +7.985   +3.9926 +4.985    +3.0 +2872 +1.94 52.6 -3114
+mom-1.z2.k30.mkt   378 0.4  +10.044   +5.0218 +7.044    +2.8 +2662 +1.74 49.2 -2272
+esr-1.z2.k30.mkt   343 0.4   +9.576   +4.7879 +6.576    +2.4 +2256 +1.31 51.6 -2494
+mom-1.z2.k30.lim   365 0.4   +8.315   +4.1575 +5.815    +2.2 +2122 +1.44 48.5 -2259
+
+best out-of-sample gross per trade in each tier (tiers by out-of-sample trades a day) and the round-trip cost in ticks at which it would break even (the house cost is 6 ticks at the market, 5 with a limit entry):
+  tier A (112 combinations): rev-1.z0.k2.mkt  a day 173.7  gross $/trade +0.202 = +0.1011 points -> breaks even at 0.40 ticks a round trip (house cost 6); net $/trade -2.798  net $/day -485.8
+  tier B (152 combinations): es-5.z0.k10.mkt  a day 35.3  gross $/trade +0.548 = +0.2740 points -> breaks even at 1.10 ticks a round trip (house cost 6); net $/trade -2.452  net $/day -86.5
+  tier C (184 combinations): mom-1.z0.k30.mkt  a day 11.5  gross $/trade +2.580 = +1.2901 points -> breaks even at 5.16 ticks a round trip (house cost 6); net $/trade -0.420  net $/day -4.8
+
+wrote /home/claude/repos/TradingView-Indicator/data/studies/yt1/full/G12_oos.json, G12_gross_by_signal.csv, G12_lim.csv, G12_lim_full.csv, G12_reality.json, G12_pick_trades.parquet   total 25s
